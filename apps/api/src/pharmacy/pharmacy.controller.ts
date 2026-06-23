@@ -26,6 +26,33 @@ export class PharmacyController {
     res.send(html);
   }
 
+  // ========== Public: Message Customer via Email Link ==========
+
+  @Get('orders/message')
+  @ApiOperation({ summary: 'Render the compose page for messaging the customer (no auth)' })
+  @ApiResponse({ status: 200, description: 'HTML compose page' })
+  async renderMessagePage(@Query('token') token: string, @Res() res: Response) {
+    const html = await this.pharmacyService.renderMessagePage(token);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  }
+
+  @Post('orders/message')
+  @ApiOperation({ summary: 'Submit a message to the customer from the email link (no auth)' })
+  @ApiResponse({ status: 200, description: 'HTML confirmation page' })
+  async submitMessage(
+    @Body() body: { token?: string; reason?: string; text?: string },
+    @Res() res: Response,
+  ) {
+    const html = await this.pharmacyService.submitOrderMessage(
+      body?.token || '',
+      body?.reason || 'other',
+      body?.text || '',
+    );
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  }
+
   // ========== Protected: Connections ==========
 
   @Get('connections')

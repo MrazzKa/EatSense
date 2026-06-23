@@ -6,21 +6,26 @@
   <title>EatSense — Link your pharmacy</title>
   <meta name="description" content="Open EatSense to link your pharmacy and order refills.">
   <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#1B4D3E">
+  <link rel="icon" href="/images/eatsense.png" sizes="any">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root{
       --forest:#1B4D3E; --forest-dark:#143D31; --gold:#B8976A;
-      --cream:#FAFAFA; --text:#1A1A1A; --muted:#666; --border:#E8E8E8; --white:#fff;
+      --cream:#FAFAF8; --text:#1A1A1A; --muted:#666; --border:#E8E8E8; --white:#fff;
       --font-display:'Cormorant Garamond',Georgia,serif;
       --font-body:'DM Sans',-apple-system,sans-serif;
     }
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:var(--font-body);color:var(--text);background:var(--cream);
       min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;line-height:1.55}
-    .card{background:var(--white);max-width:420px;width:100%;border:1px solid var(--border);
-      border-radius:20px;padding:32px 28px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.06)}
+    .card{position:relative;background:var(--white);max-width:420px;width:100%;border:1px solid var(--border);
+      border-radius:20px;padding:32px 28px;text-align:center;box-shadow:0 10px 40px rgba(20,40,33,.08)}
+    .langsel{position:absolute;top:16px;right:16px;font-family:var(--font-body);font-size:13px;
+      color:var(--muted);background:var(--cream);border:1px solid var(--border);border-radius:100px;
+      padding:5px 10px;cursor:pointer}
     .logo{font-family:var(--font-display);font-size:28px;font-weight:600;color:var(--forest);letter-spacing:.5px}
     .icon{width:64px;height:64px;border-radius:18px;background:rgba(27,77,62,.08);
       display:flex;align-items:center;justify-content:center;margin:20px auto 8px;font-size:30px}
@@ -35,7 +40,6 @@
     .btn:active{opacity:.85}
     .btn-primary{background:var(--forest);color:#fff}
     .btn-store{background:#111;color:#fff}
-    .btn-outline{background:#fff;color:var(--forest);border:1.5px solid var(--border)}
     .hint{font-size:13px;color:var(--muted);margin-top:18px}
     .stores{display:none}
     .stores.show{display:block}
@@ -43,24 +47,46 @@
 </head>
 <body>
   <div class="card">
+    <select class="langsel" id="lang" aria-label="Language">
+      <option value="en">EN</option><option value="de">DE</option><option value="fr">FR</option><option value="ru">RU</option><option value="kk">KK</option><option value="es">ES</option>
+    </select>
     <div class="logo">EatSense</div>
     <div class="icon">🏥</div>
-    <h1 id="title">Link your pharmacy</h1>
-    <p id="sub">Open EatSense to connect this pharmacy and order refills.</p>
+    <h1 id="title" data-i18n="title">Link your pharmacy</h1>
+    <p id="sub" data-i18n="sub">Open EatSense to connect this pharmacy and order refills.</p>
     <div class="code" id="code" style="display:none"></div>
 
-    <a class="btn btn-primary" id="openApp" href="#">Open in EatSense</a>
+    <a class="btn btn-primary" id="openApp" href="#" data-i18n="open">Open in EatSense</a>
 
     <div class="stores" id="stores">
-      <p class="hint" id="storeHint">Don’t have the app yet? Install it, then your pharmacy links automatically.</p>
-      <a class="btn btn-store" id="appstore" href="https://apps.apple.com/us/app/eatsense/id6755033261" target="_blank" rel="noopener"> Download on the App Store</a>
-      <p class="hint" id="iosOnly" style="display:none">EatSense is available on iPhone only for now. Open this page on your iPhone, then enter the code above in the app.</p>
+      <p class="hint" id="storeHint" data-i18n="storeHint">Don’t have the app yet? Install it, then enter the code above.</p>
+      <a class="btn btn-store" id="appstore" href="https://apps.apple.com/us/app/eatsense/id6755033261" target="_blank" rel="noopener">Download on the App Store</a>
+      <a class="btn btn-store" id="playstore" href="https://play.google.com/store/apps/details?id=ch.eatsense.app" target="_blank" rel="noopener">Get it on Google Play</a>
     </div>
 
-    <p class="hint">In the app: Profile → My pharmacy → “I have a code”, then enter the code above.</p>
+    <p class="hint" data-i18n="bottom">In the app: Profile → My pharmacy → “I have a code”, then enter the code above.</p>
   </div>
 
   <script>
+    var T={
+      en:{title:"Link your pharmacy",sub:"Open EatSense to connect this pharmacy and order refills.",open:"Open in EatSense",storeHint:"Don’t have the app yet? Install it, then enter the code above.",bottom:"In the app: Profile → My pharmacy → “I have a code”, then enter the code above."},
+      de:{title:"Apotheke verknüpfen",sub:"Öffne EatSense, um diese Apotheke zu verknüpfen und Nachfüllungen zu bestellen.",open:"In EatSense öffnen",storeHint:"Noch keine App? Installiere sie und gib dann den Code oben ein.",bottom:"In der App: Profil → Meine Apotheke → „Ich habe einen Code“, dann den Code oben eingeben."},
+      fr:{title:"Associer votre pharmacie",sub:"Ouvrez EatSense pour associer cette pharmacie et commander des renouvellements.",open:"Ouvrir dans EatSense",storeHint:"Vous n’avez pas encore l’app ? Installez-la, puis saisissez le code ci-dessus.",bottom:"Dans l’app : Profil → Ma pharmacie → « J’ai un code », puis saisissez le code ci-dessus."},
+      ru:{title:"Привязать аптеку",sub:"Откройте EatSense, чтобы привязать эту аптеку и заказывать пополнения.",open:"Открыть в EatSense",storeHint:"Ещё нет приложения? Установите его и введите код выше.",bottom:"В приложении: Профиль → Моя аптека → «У меня есть код», затем введите код выше."},
+      kk:{title:"Дәріхананы байланыстыру",sub:"Осы дәріхананы байланыстырып, толықтыруға тапсырыс беру үшін EatSense ашыңыз.",open:"EatSense-те ашу",storeHint:"Қолданба әлі жоқ па? Орнатып, жоғарыдағы кодты енгізіңіз.",bottom:"Қолданбада: Профиль → Менің дәріханам → «Менде код бар», содан кейін жоғарыдағы кодты енгізіңіз."},
+      es:{title:"Vincular tu farmacia",sub:"Abre EatSense para vincular esta farmacia y pedir reposiciones.",open:"Abrir en EatSense",storeHint:"¿Aún no tienes la app? Instálala e introduce el código de arriba.",bottom:"En la app: Perfil → Mi farmacia → «Tengo un código», luego introduce el código de arriba."}
+    };
+    var SUP=['en','de','fr','ru','kk','es'];
+    function setLang(lang){
+      if(!T[lang])lang='en';
+      document.documentElement.lang=lang;
+      document.getElementById('lang').value=lang;
+      document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.dataset.i18n;if(T[lang][k]!=null)el.textContent=T[lang][k];});
+      try{localStorage.setItem('eatsense-lang',lang);}catch(e){}
+    }
+    document.getElementById('lang').addEventListener('change',function(){setLang(this.value);});
+    (function(){var s=null;try{s=localStorage.getItem('eatsense-lang');}catch(e){}var b=(navigator.language||'en').slice(0,2);setLang(s||(SUP.indexOf(b)>=0?b:'en'));})();
+
     (function () {
       var params = new URLSearchParams(location.search);
       var code = (params.get('code') || '').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
@@ -75,13 +101,8 @@
       var isIOS = /iPhone|iPad|iPod/i.test(ua);
       var isAndroid = /Android/i.test(ua);
 
-      // EatSense is iPhone-only for now. On non-iOS, hide the App Store button
-      // (it can't install there) and explain instead of dead-ending the scan.
-      if (!isIOS) {
-        document.getElementById('appstore').style.display = 'none';
-        document.getElementById('storeHint').style.display = 'none';
-        document.getElementById('iosOnly').style.display = 'block';
-      }
+      if (isIOS) { document.getElementById('playstore').style.display = 'none'; }
+      else if (isAndroid) { document.getElementById('appstore').style.display = 'none'; }
 
       var openApp = document.getElementById('openApp');
       openApp.setAttribute('href', deepLink);
@@ -90,11 +111,7 @@
 
       function tryOpen() {
         var t = Date.now();
-        // If the app opens, the page is backgrounded and the timer is delayed →
-        // we never reveal the store. If nothing happens (no app), reveal stores.
-        var timer = setTimeout(function () {
-          if (Date.now() - t < 2200) reveal();
-        }, 1600);
+        var timer = setTimeout(function () { if (Date.now() - t < 2200) reveal(); }, 1600);
         document.addEventListener('visibilitychange', function () {
           if (document.hidden) clearTimeout(timer);
         }, { once: true });
@@ -103,15 +120,8 @@
 
       openApp.addEventListener('click', function (e) { e.preventDefault(); tryOpen(); });
 
-      // iPhone-only: only iOS can open/install the app. On iOS auto-attempt the
-      // deep link (app → link; no app → App Store). Elsewhere skip the dead-end
-      // deep link and just show the explanation.
-      if (isIOS) {
-        setTimeout(tryOpen, 350);
-      } else {
-        openApp.style.display = 'none';
-        reveal();
-      }
+      if (isIOS || isAndroid) { setTimeout(tryOpen, 350); }
+      else { openApp.style.display = 'none'; reveal(); }
     })();
   </script>
 </body>

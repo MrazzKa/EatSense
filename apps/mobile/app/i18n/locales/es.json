@@ -2069,7 +2069,25 @@
     "themeDark": "Oscuro",
     "themeMonochrome": "Mono",
     "themeRose": "Rosa",
-    "themeBeige": "Beige"
+    "themeBeige": "Beige",
+    "exportData": "Exportar mis datos",
+    "exportError": "No se pudieron exportar tus datos. Inténtalo de nuevo.",
+    "exportSaved": "Tu exportación de datos se guardó en la carpeta de la app.",
+    "myConsents": "Mis consentimientos",
+    "privacyDataHint": "Descarga una copia de tus datos o revisa los consentimientos que has dado.",
+    "myConsentsHint": "Avisos y consentimientos que has aceptado en la app.",
+    "noConsents": "Aún no hay consentimientos registrados.",
+    "consentTypes": {
+      "ai_assistant": "Asistente de IA",
+      "lifestyle_programs": "Programas de estilo de vida",
+      "biomarkers": "Seguimiento de biomarcadores",
+      "medications": "Medicamentos",
+      "experts_chat": "Chat con experto",
+      "data_sharing_consent": "Compartir datos con expertos",
+      "food_scanning": "Escaneo de alimentos",
+      "expert_marketplace": "Mercado de expertos",
+      "general_health_disclaimer": "Aviso general de salud"
+    }
   },
   "recently": {
     "analyzing": "Analyzing...",
@@ -2873,7 +2891,14 @@
     "scanPermission": "Permite el acceso a la cámara para escanear el QR de la farmacia.",
     "scanCodeTitle": "Escanear QR de la farmacia",
     "scanCodeSub": "Apunta tu cámara al código en la farmacia.",
-    "connectHelp": "Pida a su farmacia su código EatSense o QR — el personal puede mostrarlo o imprimirlo."
+    "connectHelp": "Pida a su farmacia su código EatSense o QR — el personal puede mostrarlo o imprimirlo.",
+    "messagesFromPharmacy": "Mensajes de la farmacia",
+    "msgReason": {
+      "outOfStock": "Algunos medicamentos están agotados actualmente.",
+      "prepayment": "Se requiere pago anticipado para tramitar tu pedido.",
+      "partial": "Tu pedido solo está disponible parcialmente.",
+      "other": "Mensaje de la farmacia"
+    }
   },
   "community": {
     "pickDateTime": "Elegir fecha y hora",

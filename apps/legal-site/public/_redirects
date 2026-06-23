@@ -1,2 +1,5 @@
 /experts       https://experts.eatsense.ch         302
 /experts/*     https://experts.eatsense.ch/:splat  302
+# Referral share links (https://eatsense.ch/r/CODE). Until a dedicated landing
+# exists, send visitors to the homepage where the App Store / Google Play CTAs live.
+/r/*           /                                   302

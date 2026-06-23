@@ -6,3 +6,11 @@
 
 /images/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Universal Links / App Links association files must be served as JSON.
+/.well-known/apple-app-site-association
+  Content-Type: application/json
+  Cache-Control: public, max-age=3600
+/.well-known/assetlinks.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=3600

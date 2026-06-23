@@ -1,398 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terms of Use - EatSense</title>
+    <title>Terms of Use — EatSense</title>
+    <meta name="description" content="EatSense Terms of Use — Swiss-built, available in 6 languages.">
+    <meta name="theme-color" content="#1B4D3E">
+    <link rel="icon" href="/images/eatsense.png" sizes="any">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root{
+            --forest:#1B4D3E;--forest-light:#2D6B5A;--forest-dark:#143D31;
+            --cream:#FAFAF8;--cream-deep:#F3F1EC;--gold:#B8976A;--gold-light:#C9A97A;
+            --text:#1A1A1A;--text-2:#555;--muted:#888;--white:#fff;--border:#E8E8E8;
+            --shadow-sm:0 1px 3px rgba(20,40,33,.06);--shadow-md:0 12px 28px -10px rgba(20,40,33,.16);
+            --radius:16px;--font-display:'Cormorant Garamond',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif;
         }
+        *{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+        body{font-family:var(--font-body);color:var(--text);background:var(--white);line-height:1.7;-webkit-font-smoothing:antialiased}
+        ::selection{background:var(--forest);color:#fff}
+        .lnav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--border)}
+        .lnav-inner{max-width:1100px;margin:0 auto;padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+        .logo{display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--forest)}
+        .logo svg{width:34px;height:34px}
+        .logo-text{font-family:var(--font-display);font-size:1.35rem;font-weight:600;letter-spacing:-.02em}
+        .lnav-links{display:flex;align-items:center;gap:1.5rem}
+        .lnav-links a{text-decoration:none;color:var(--text-2);font-size:.9rem;transition:color .25s}
+        .lnav-links a:hover{color:var(--forest)}
+        .lnav-cta{padding:.55rem 1.15rem;background:var(--forest);color:#fff!important;border-radius:100px;font-weight:500;box-shadow:var(--shadow-sm)}
+        .lnav-cta:hover{background:var(--forest-light)}
+        .lang-dropdown{position:relative}
+        .lang-switcher{display:flex;align-items:center;gap:.4rem;padding:.45rem .85rem;background:var(--cream);border-radius:100px;border:1px solid var(--border);cursor:pointer;font-family:var(--font-body);font-size:.82rem;color:var(--text-2);transition:all .3s}
+        .lang-switcher:hover{border-color:var(--forest);color:var(--forest)}
+        .lang-options{position:absolute;top:100%;right:0;background:var(--white);border-radius:10px;border:1px solid var(--border);padding:.35rem;opacity:0;visibility:hidden;transform:translateY(8px);transition:all .3s;z-index:10;box-shadow:var(--shadow-md);min-width:150px}
+        .lang-dropdown:hover .lang-options{opacity:1;visibility:visible;transform:translateY(4px)}
+        .lang-option{display:block;width:100%;padding:.45rem .75rem;background:none;border:none;text-align:left;font-family:var(--font-body);font-size:.85rem;color:var(--text-2);cursor:pointer;border-radius:6px}
+        .lang-option:hover{background:var(--cream);color:var(--forest)}
+        .lang-option.active{color:var(--forest);font-weight:500}
+        .legal-hero{background:radial-gradient(900px 400px at 80% -20%,rgba(184,151,106,.12),transparent 60%),linear-gradient(180deg,var(--cream),var(--white));text-align:center;padding:4rem 1.5rem 3.5rem;border-bottom:1px solid var(--border)}
+        .legal-hero .tag{display:inline-block;font-size:.72rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem}
+        .legal-hero h1{font-family:var(--font-display);font-size:clamp(2rem,5vw,3rem);font-weight:500;color:var(--text);line-height:1.1}
+        .legal-main{max-width:820px;margin:-1.75rem auto 4rem;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-md);padding:3rem}
+        .legal-main h2{font-family:var(--font-display);color:var(--forest);font-size:1.55rem;font-weight:500;margin:2.4rem 0 1rem}
+        .legal-main h2:first-child{margin-top:0}
+        .legal-main h3{color:var(--forest-light);font-size:1.08rem;font-weight:600;margin:1.6rem 0 .6rem}
+        .legal-main p{margin-bottom:1rem;color:var(--text-2)}
+        .legal-main ul{margin:0 0 1rem 1.4rem}
+        .legal-main ul ul{margin:.4rem 0 .4rem 1.2rem}
+        .legal-main li{margin-bottom:.5rem;color:var(--text-2)}
+        .legal-main a{color:var(--forest);text-decoration:underline;text-underline-offset:2px}
+        .legal-main .meta{color:var(--muted);font-size:.9rem;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+        .lfooter{background:var(--text);color:#fff;padding:3rem 1.5rem 2rem;text-align:center}
+        .lfooter .logo{justify-content:center;color:#fff;margin-bottom:1rem}
+        .lfooter-links{display:flex;gap:1.25rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.25rem}
+        .lfooter-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.875rem}
+        .lfooter-links a:hover{color:#fff}
+        .lfooter-copy{color:rgba(255,255,255,.5);font-size:.8rem}
+        #cookie-banner{position:fixed;bottom:0;left:0;right:0;background:var(--forest-dark);color:#fff;padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem;z-index:9999;box-shadow:0 -2px 16px rgba(0,0,0,.2)}
+        #cookie-banner p{margin:0;font-size:.85rem;flex:1;min-width:240px}
+        #cookie-banner a{color:var(--gold-light)}
+        #cookie-banner button{background:var(--gold);color:#fff;border:none;padding:.6rem 1.3rem;border-radius:100px;cursor:pointer;font-weight:600;font-family:var(--font-body)}
+        @media(max-width:700px){.legal-main{padding:2rem 1.3rem;margin:-1rem 1rem 3rem}.lnav-links{gap:.7rem}.lnav-links a:not(.lnav-cta){display:none}}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            line-height: 1.7;
-            color: #333;
-            background: #f8f9fa;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            background: linear-gradient(135deg, #2D5A27 0%, #4A7C43 100%);
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
-        }
-
-        .logo {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .logo span {
-            color: #8BC34A;
-        }
-
-        header h1 {
-            font-size: 24px;
-            font-weight: 400;
-            opacity: 0.9;
-        }
-
-        .nav-links {
-            margin-top: 20px;
-        }
-
-        .nav-links a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            margin: 0 15px;
-            font-size: 14px;
-        }
-
-        .nav-links a:hover {
-            color: white;
-        }
-
-        main {
-            background: white;
-            padding: 40px;
-            margin: 30px auto;
-            max-width: 800px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .meta {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-
-        h2 {
-            color: #2D5A27;
-            margin-top: 35px;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-
-        h3 {
-            color: #4A7C43;
-            margin-top: 25px;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
-        p {
-            margin-bottom: 15px;
-            color: #444;
-        }
-
-        ul {
-            margin-bottom: 15px;
-            padding-left: 25px;
-        }
-
-        li {
-            margin-bottom: 8px;
-            color: #444;
-        }
-
-        .warning {
-            background: #ffebee;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #f44336;
-            font-weight: 500;
-        }
-
-        .highlight {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #ffc107;
-        }
-
-        .info-box {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #2196f3;
-        }
-
-        .contact-box {
-            background: #e8f5e9;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-
-        th,
-        td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        th {
-            background: #f8f9fa;
-            color: #2D5A27;
-        }
-
-        footer {
-            text-align: center;
-            padding: 30px;
-            color: #999;
-            font-size: 14px;
-        }
-
-        footer a {
-            color: #666;
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 600px) {
-            main {
-                padding: 25px;
-                margin: 15px;
-            }
-
-            header {
-                padding: 30px 15px;
-            }
-
-            table {
-                font-size: 14px;
-            }
-        }
     </style>
 </head>
-
 <body>
-    <header>
-        <div class="logo">Eat<span>Sense</span></div>
-        <h1>Terms of Use</h1>
-        <nav class="nav-links">
-            <a href="/privacy">Privacy Policy</a>
-            <a href="/support">Support</a>
-            <a href="/">Home</a>
-        </nav>
+    <nav class="lnav">
+        <div class="lnav-inner">
+            <a href="/" class="logo">
+                <svg viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#1B4D3E"/><path d="M10 26C10 26 12 17 18 17C24 17 26 26 26 26" stroke="#FAF8F5" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="13" r="1.5" fill="#B8976A"/><circle cx="22" cy="13" r="1.5" fill="#B8976A"/><circle cx="18" cy="10" r="1.5" fill="#B8976A"/></svg>
+                <span class="logo-text">EatSense</span>
+            </a>
+            <div class="lnav-links">
+                <a href="/privacy" data-i18n="nav.privacy">Privacy</a>
+                <a href="/terms" data-i18n="nav.terms">Terms</a>
+                <a href="/support" data-i18n="nav.support">Support</a>
+                <div class="lang-dropdown">
+                    <button class="lang-switcher" aria-label="Language"><span id="curLang">EN</span><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+                    <div class="lang-options"><button class="lang-option active" data-lang="en">English</button><button class="lang-option" data-lang="de">Deutsch</button><button class="lang-option" data-lang="fr">Français</button><button class="lang-option" data-lang="ru">Русский</button><button class="lang-option" data-lang="kk">Қазақша</button><button class="lang-option" data-lang="es">Español</button></div>
+                </div>
+                <a href="/#download" class="lnav-cta" data-i18n="nav.cta">Get the App</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="legal-hero">
+        <span class="tag" data-i18n="hero.tag">Legal</span>
+        <h1 data-i18n="hero.title">Terms of Use</h1>
     </header>
 
-    <main class="container">
-        <div class="meta">
-            <strong>Version 1.0</strong> | Effective Date: January 14, 2026<br>
-            Last Updated: January 14, 2026
-        </div>
-
-        <h2>1. Acceptance of Terms</h2>
-        <p>By downloading, installing, or using EatSense, you agree to these Terms of Use and our Privacy Policy. If you
-            do not agree, do not use our Service.</p>
-
-        <div class="warning">
-            PLEASE READ THESE TERMS CAREFULLY. THEY CONTAIN IMPORTANT INFORMATION ABOUT YOUR RIGHTS AND OBLIGATIONS.
-        </div>
-
-        <h2>2. Eligibility</h2>
-        <p>You must be <strong>at least 18 years old</strong> to use EatSense. By using our Service, you confirm that
-            you meet this requirement.</p>
-
-        <h2>3. Account</h2>
-        <ul>
-            <li>You are responsible for maintaining account security</li>
-            <li>Provide accurate information during registration</li>
-            <li>You may delete your account at any time in Settings</li>
-            <li>We may suspend accounts that violate these Terms</li>
-        </ul>
-
-        <h2>4. Service Description</h2>
-        <p>EatSense provides:</p>
-        <ul>
-            <li>AI-powered food photo analysis</li>
-            <li>Meal logging and nutrition tracking</li>
-            <li>Biomarker tracking</li>
-            <li>Medication reminders</li>
-            <li>AI nutrition assistant</li>
-            <li>Lifestyle Programs</li>
-            <li>Expert Marketplace</li>
-        </ul>
-
-        <h2>5. Health Disclaimer</h2>
-        <div class="warning">
-            EATSENSE IS NOT A MEDICAL DEVICE AND DOES NOT PROVIDE MEDICAL ADVICE.
-        </div>
-        <p>All information is for general educational purposes only. Always consult healthcare professionals for medical
-            decisions.</p>
-
-        <h3>AI Accuracy</h3>
-        <p>AI food analysis provides estimates only. Results may vary based on image quality and portion sizes. You can
-            manually edit any analysis.</p>
-
-        <h3>Biomarkers & Medications</h3>
-        <p>These features are for personal tracking only, not medical interpretation. Always follow your healthcare
-            provider's instructions.</p>
-
-        <h2>6. Lifestyle Programs</h2>
-        <div class="highlight">
-            <strong>Important:</strong> Lifestyle Programs are for INSPIRATION only. They are NOT actual celebrity
-            diets, NOT endorsed by any public figures, and NOT personalized medical nutrition plans.
-        </div>
-
-        <h2>7. Subscriptions</h2>
-
-        <table>
-            <tr>
-                <th>Plan</th>
-                <th>Price</th>
-                <th>Features</th>
-            </tr>
-            <tr>
-                <td>FREE</td>
-                <td>CHF 0</td>
-                <td>3 scans/day, 7-day history</td>
-            </tr>
-            <tr>
-                <td>PRO Monthly</td>
-                <td>CHF 9.90/mo</td>
-                <td>Unlimited scans, full features</td>
-            </tr>
-            <tr>
-                <td>PRO Yearly</td>
-                <td>CHF 79/year</td>
-                <td>Unlimited scans, full features</td>
-            </tr>
-            <tr>
-                <td>Student Yearly</td>
-                <td>CHF 49/year</td>
-                <td>Unlimited scans, full features</td>
-            </tr>
-            <tr>
-                <td>Founders Pass</td>
-                <td>CHF 99 once</td>
-                <td>Lifetime access (limited)</td>
-            </tr>
-        </table>
-
-        <h3>Free Trial</h3>
-        <p>New users may receive a 3-day free trial. You will be charged automatically unless you cancel before the
-            trial ends.</p>
-
-        <h3>Cancellation & Refunds</h3>
-        <p>Manage subscriptions through Apple App Store or Google Play Store settings. Refunds are handled by
-            Apple/Google according to their policies.</p>
-
-        <h2>8. Expert Marketplace</h2>
-        <div class="info-box">
-            Experts are <strong>independent professionals</strong>, not EatSense employees. We verify credentials but do
-            not guarantee service quality.
-        </div>
-        <p>Platform commission: 15% of transactions.</p>
-
-        <h2>9. Referral Program</h2>
-        <p>Invite friends using your referral code. Both you and your friend receive 7 days of free PRO access. Abuse
-            (fake accounts, spam) will result in account termination.</p>
-
-        <h2>10. User Content</h2>
-        <h3>Permitted:</h3>
-        <ul>
-            <li>Food photos</li>
-            <li>Lab result photos/scans</li>
-            <li>Profile photos</li>
-        </ul>
-
-        <h3>Prohibited:</h3>
-        <ul>
-            <li>Images of other people (except yourself)</li>
-            <li>Explicit or violent content</li>
-            <li>Illegal content</li>
-            <li>Malware or harmful code</li>
-        </ul>
-
-        <h2>11. Disclaimers</h2>
-        <div class="warning">
-            THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. WE DO NOT GUARANTEE ACCURACY OF AI ANALYSIS
-            OR UNINTERRUPTED SERVICE.
-        </div>
-
-        <h2>12. Limitation of Liability</h2>
-        <p>To the maximum extent permitted by law, our total liability shall not exceed CHF 100 or the amount you paid
-            us in the past 12 months, whichever is greater.</p>
-
-        <h2>13. Governing Law</h2>
-        <p>These Terms are governed by <strong>Swiss law</strong>. Disputes shall be resolved in the courts of
-            <strong>Geneva, Switzerland</strong>.</p>
-        <div class="info-box">
-            <strong>EU Consumer Rights:</strong> If you are a consumer in the European Union, you retain all mandatory
-            consumer protection rights under the laws of your country of residence. Nothing in these Terms affects your
-            statutory rights as a consumer. You may bring legal proceedings in your local courts.
-        </div>
-        <p>EU users may also use the <a href="https://ec.europa.eu/consumers/odr" target="_blank">EU Online Dispute
-                Resolution platform</a>.</p>
-
-        <h2>14. Changes to Terms</h2>
-        <p>We may modify these Terms at any time. Material changes will be communicated via push notification, email, or
-            in-app notice.</p>
-
-        <h2>15. Contact</h2>
-        <div class="contact-box">
-            <strong>EatSense</strong><br>
-            Aleksei Belov<br>
-            Rue Pictet-de-Bock 6<br>
-            1205 Geneva, Switzerland<br><br>
-            Email: <a href="mailto:support@eatsense.ch">support@eatsense.ch</a>
-        </div>
+    <main class="legal-main" id="legal-content">
+<p class="meta">Last updated: 01 Dec 2025</p>
+<p>These Terms of Use (“Terms”) govern your use of the EatSense mobile application (“App”, “we”, “us”). By installing or using the App, you agree to these Terms.</p>
+<h2>1. Purpose of the App and medical disclaimer</h2>
+<p>EatSense helps you track nutrition, analyse meals and understand your habits.<br>The App may also help you store and interpret some laboratory results.</p>
+<p>The App is not a medical device and does not replace professional medical advice.</p>
+<ul><li>Information and recommendations are for educational and informational purposes only.</li><li>The App does not provide diagnoses or treatment.</li><li>Always consult your doctor or another qualified professional before making decisions about diet, medication or lifestyle.</li></ul>
+<p>You are responsible for your own health decisions.</p>
+<h2>2. Account and access</h2>
+<p>Some features require creating an account (usually by email login code).</p>
+<p>You agree to:</p>
+<ul><li>provide accurate information;</li><li>keep access to your email and device secure;</li><li>not share your account with others without our permission.</li></ul>
+<p>We may suspend or terminate access if you:</p>
+<ul><li>seriously violate these Terms;</li><li>attempt to hack, overload or otherwise interfere with the App;</li><li>use the App for spam, fraud or illegal activities.</li></ul>
+<h2>3. Subscriptions and payments</h2>
+<p>The App may offer both free and paid plans (for example, EatSense Pro).</p>
+<ul><li>Payments and renewals are processed by App Store / Google Play or other platform providers.</li><li>Price, duration and auto-renewal conditions are shown on the purchase screen.</li><li>You can cancel auto-renewal in your store account settings, usually at least 24 hours before the current period ends.</li></ul>
+<p>We do not manage your card details directly and do not store full payment information.</p>
+<h2>4. Acceptable use</h2>
+<p>You agree not to use the App to:</p>
+<ul><li>upload illegal, offensive or infringing content;</li><li>send spam, advertisements or malicious links;</li><li>try to access data of other users without permission;</li><li>reverse-engineer, decompile or attempt to bypass technical protections, except where allowed by law.</li></ul>
+<p>We may block or remove content, or restrict access, if these rules are violated.</p>
+<h2>5. User content</h2>
+<p>You keep ownership of the content you create and upload (photos, notes, lab results, etc.).</p>
+<p>By uploading content, you:</p>
+<ul><li>confirm that you have the right to use and share it;</li><li>grant us a limited, non-exclusive licence to store, process and display this content inside the App, and to use anonymised versions for analytics and product improvement.</li></ul>
+<p>We may anonymise and aggregate data so that it cannot reasonably be linked back to you.</p>
+<h2>6. Limitation of liability</h2>
+<p>The App is provided “as is”.</p>
+<ul><li>We do our best to keep it stable and accurate, but we do not guarantee that it will always be error-free or available.</li><li>We are not responsible for decisions you make based on the App’s data and recommendations.</li><li>To the maximum extent permitted by law, our total liability is limited to the amount you actually paid for paid features during the last 12 months, or zero if you only used the free version.</li></ul>
+<p>Nothing in these Terms limits our liability where it cannot be limited by law.</p>
+<h2>7. Deletion of account and data</h2>
+<p>You may stop using the App at any time. Where available, you can delete your account in the profile settings or by contacting us at <a href="mailto:info@eatsense.ch">info@eatsense.ch</a>.</p>
+<p>After account deletion:</p>
+<ul><li>we may keep some information in anonymised form for analytics and legal records;</li><li>personal data is deleted or anonymised within a reasonable time, unless we are legally required to keep it longer.</li></ul>
+<h2>8. Intellectual property</h2>
+<p>All rights to the App (design, texts, logos, code, databases and other elements), except user content, belong to TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva and/or its partners.</p>
+<p>You receive a limited licence to use the App under these Terms. You do not receive ownership of the App or its components.</p>
+<h2>9. Changes to the App and Terms</h2>
+<p>We may update the App, add or remove features, and update these Terms. The current version of the Terms is always available in the App.</p>
+<p>If we make significant changes, we may show an in-app notice or ask you to accept the new version.<br>By continuing to use the App after changes, you agree to the updated Terms.</p>
+<h2>10. Contact</h2>
+<p>If you have questions about the App, your data or these Terms, please contact us at:<br><a href="mailto:info@eatsense.ch">info@eatsense.ch</a></p>
     </main>
 
-    <footer>
-        <p>&copy; 2026 EatSense. All rights reserved.</p>
-        <p style="margin-top: 10px;">
-            <a href="/privacy">Privacy Policy</a> ·
-            <a href="/terms">Terms of Use</a> ·
-            <a href="/support">Support</a>
-        </p>
+    <footer class="lfooter">
+        <a href="/" class="logo">
+            <svg viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#2D6B5A"/><path d="M10 26C10 26 12 17 18 17C24 17 26 26 26 26" stroke="#FAF8F5" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="13" r="1.5" fill="#B8976A"/><circle cx="22" cy="13" r="1.5" fill="#B8976A"/><circle cx="18" cy="10" r="1.5" fill="#B8976A"/></svg>
+            <span class="logo-text">EatSense</span>
+        </a>
+        <div class="lfooter-links">
+            <a href="/" data-i18n="footer.home">Home</a>
+            <a href="/privacy" data-i18n="footer.privacy">Privacy Policy</a>
+            <a href="/terms" data-i18n="footer.terms">Terms of Use</a>
+            <a href="/support" data-i18n="footer.support">Support</a>
+        </div>
+        <p class="lfooter-copy" data-i18n="footer.copy">© 2026 EatSense · Geneva, Switzerland · Made with Swiss precision.</p>
     </footer>
-    <!-- Cookie Banner -->
-    <div id="cookie-banner"
-        style="position: fixed; bottom: 0; left: 0; right: 0; background: #2D5A27; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 9999; box-shadow: 0 -2px 10px rgba(0,0,0,0.2);">
-        <p style="margin: 0; font-size: 14px; flex: 1;">This website uses only essential cookies required for basic
-            functionality. We do not use tracking or advertising cookies. <a href="/privacy"
-                style="color: #8BC34A;">Learn more</a></p>
-        <button onclick="acceptCookies()"
-            style="background: #8BC34A; color: #2D5A27; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600;">OK</button>
+
+    <div id="cookie-banner">
+        <p data-i18n="cookie.text">This website uses only essential cookies required for basic functionality. We do not use tracking or advertising cookies. <a href="/privacy">Learn more</a></p>
+        <button onclick="acceptCookies()" data-i18n="cookie.ok">OK</button>
     </div>
     <script>
-        if (localStorage.getItem('cookiesAccepted')) {
-            document.getElementById('cookie-banner').style.display = 'none';
+        const UI={"en": {"nav.privacy": "Privacy", "nav.terms": "Terms", "nav.support": "Support", "nav.cta": "Get the App", "hero.tag": "Legal", "footer.home": "Home", "footer.privacy": "Privacy Policy", "footer.terms": "Terms of Use", "footer.support": "Support", "footer.copy": "© 2026 EatSense · Geneva, Switzerland · Made with Swiss precision.", "cookie.text": "This website uses only essential cookies required for basic functionality. We do not use tracking or advertising cookies. <a href=\"/privacy\">Learn more</a>", "cookie.ok": "OK", "title.privacy": "Privacy Policy", "title.terms": "Terms of Use", "hero.title": "Terms of Use"}, "de": {"nav.privacy": "Datenschutz", "nav.terms": "Nutzung", "nav.support": "Support", "nav.cta": "App holen", "hero.tag": "Rechtliches", "footer.home": "Start", "footer.privacy": "Datenschutz", "footer.terms": "Nutzungsbedingungen", "footer.support": "Support", "footer.copy": "© 2026 EatSense · Genf, Schweiz · Mit Schweizer Präzision gemacht.", "cookie.text": "Diese Website verwendet nur essenzielle Cookies für die Grundfunktionen. Wir nutzen keine Tracking- oder Werbe-Cookies. <a href=\"/privacy\">Mehr erfahren</a>", "cookie.ok": "OK", "title.privacy": "Datenschutzerklärung", "title.terms": "Nutzungsbedingungen", "hero.title": "Nutzungsbedingungen"}, "fr": {"nav.privacy": "Confidentialité", "nav.terms": "Conditions", "nav.support": "Support", "nav.cta": "Obtenir l'app", "hero.tag": "Légal", "footer.home": "Accueil", "footer.privacy": "Politique de confidentialité", "footer.terms": "Conditions d'utilisation", "footer.support": "Support", "footer.copy": "© 2026 EatSense · Genève, Suisse · Conçu avec la précision suisse.", "cookie.text": "Ce site utilise uniquement des cookies essentiels au fonctionnement de base. Nous n'utilisons pas de cookies de suivi ou publicitaires. <a href=\"/privacy\">En savoir plus</a>", "cookie.ok": "OK", "title.privacy": "Politique de confidentialité", "title.terms": "Conditions d'utilisation", "hero.title": "Conditions d'utilisation"}, "ru": {"nav.privacy": "Конфиденциальность", "nav.terms": "Условия", "nav.support": "Поддержка", "nav.cta": "Скачать", "hero.tag": "Правовая информация", "footer.home": "Главная", "footer.privacy": "Политика конфиденциальности", "footer.terms": "Условия использования", "footer.support": "Поддержка", "footer.copy": "© 2026 EatSense · Женева, Швейцария · Сделано со швейцарской точностью.", "cookie.text": "Этот сайт использует только необходимые для базовой работы файлы cookie. Мы не используем трекинговые или рекламные cookie. <a href=\"/privacy\">Подробнее</a>", "cookie.ok": "OK", "title.privacy": "Политика конфиденциальности", "title.terms": "Условия использования", "hero.title": "Условия использования"}, "kk": {"nav.privacy": "Құпиялық", "nav.terms": "Шарттар", "nav.support": "Қолдау", "nav.cta": "Жүктеп алу", "hero.tag": "Құқықтық ақпарат", "footer.home": "Басты бет", "footer.privacy": "Құпиялылық саясаты", "footer.terms": "Қолдану шарттары", "footer.support": "Қолдау", "footer.copy": "© 2026 EatSense · Женева, Швейцария · Швейцариялық дәлдікпен жасалған.", "cookie.text": "Бұл сайт тек негізгі жұмыс үшін қажетті cookie файлдарын пайдаланады. Біз трекинг не жарнамалық cookie пайдаланбаймыз. <a href=\"/privacy\">Толығырақ</a>", "cookie.ok": "OK", "title.privacy": "Құпиялылық саясаты", "title.terms": "Қолдану шарттары", "hero.title": "Қолдану шарттары"}, "es": {"nav.privacy": "Privacidad", "nav.terms": "Términos", "nav.support": "Soporte", "nav.cta": "Obtener la app", "hero.tag": "Legal", "footer.home": "Inicio", "footer.privacy": "Política de privacidad", "footer.terms": "Términos de uso", "footer.support": "Soporte", "footer.copy": "© 2026 EatSense · Ginebra, Suiza · Hecho con precisión suiza.", "cookie.text": "Este sitio solo usa cookies esenciales para el funcionamiento básico. No usamos cookies de seguimiento ni publicidad. <a href=\"/privacy\">Más información</a>", "cookie.ok": "OK", "title.privacy": "Política de privacidad", "title.terms": "Términos de uso", "hero.title": "Términos de uso"}};
+        const DOC={"en": "<p class=\"meta\">Last updated: 01 Dec 2025</p>\n<p>These Terms of Use (“Terms”) govern your use of the EatSense mobile application (“App”, “we”, “us”). By installing or using the App, you agree to these Terms.</p>\n<h2>1. Purpose of the App and medical disclaimer</h2>\n<p>EatSense helps you track nutrition, analyse meals and understand your habits.<br>The App may also help you store and interpret some laboratory results.</p>\n<p>The App is not a medical device and does not replace professional medical advice.</p>\n<ul><li>Information and recommendations are for educational and informational purposes only.</li><li>The App does not provide diagnoses or treatment.</li><li>Always consult your doctor or another qualified professional before making decisions about diet, medication or lifestyle.</li></ul>\n<p>You are responsible for your own health decisions.</p>\n<h2>2. Account and access</h2>\n<p>Some features require creating an account (usually by email login code).</p>\n<p>You agree to:</p>\n<ul><li>provide accurate information;</li><li>keep access to your email and device secure;</li><li>not share your account with others without our permission.</li></ul>\n<p>We may suspend or terminate access if you:</p>\n<ul><li>seriously violate these Terms;</li><li>attempt to hack, overload or otherwise interfere with the App;</li><li>use the App for spam, fraud or illegal activities.</li></ul>\n<h2>3. Subscriptions and payments</h2>\n<p>The App may offer both free and paid plans (for example, EatSense Pro).</p>\n<ul><li>Payments and renewals are processed by App Store / Google Play or other platform providers.</li><li>Price, duration and auto-renewal conditions are shown on the purchase screen.</li><li>You can cancel auto-renewal in your store account settings, usually at least 24 hours before the current period ends.</li></ul>\n<p>We do not manage your card details directly and do not store full payment information.</p>\n<h2>4. Acceptable use</h2>\n<p>You agree not to use the App to:</p>\n<ul><li>upload illegal, offensive or infringing content;</li><li>send spam, advertisements or malicious links;</li><li>try to access data of other users without permission;</li><li>reverse-engineer, decompile or attempt to bypass technical protections, except where allowed by law.</li></ul>\n<p>We may block or remove content, or restrict access, if these rules are violated.</p>\n<h2>5. User content</h2>\n<p>You keep ownership of the content you create and upload (photos, notes, lab results, etc.).</p>\n<p>By uploading content, you:</p>\n<ul><li>confirm that you have the right to use and share it;</li><li>grant us a limited, non-exclusive licence to store, process and display this content inside the App, and to use anonymised versions for analytics and product improvement.</li></ul>\n<p>We may anonymise and aggregate data so that it cannot reasonably be linked back to you.</p>\n<h2>6. Limitation of liability</h2>\n<p>The App is provided “as is”.</p>\n<ul><li>We do our best to keep it stable and accurate, but we do not guarantee that it will always be error-free or available.</li><li>We are not responsible for decisions you make based on the App’s data and recommendations.</li><li>To the maximum extent permitted by law, our total liability is limited to the amount you actually paid for paid features during the last 12 months, or zero if you only used the free version.</li></ul>\n<p>Nothing in these Terms limits our liability where it cannot be limited by law.</p>\n<h2>7. Deletion of account and data</h2>\n<p>You may stop using the App at any time. Where available, you can delete your account in the profile settings or by contacting us at <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a>.</p>\n<p>After account deletion:</p>\n<ul><li>we may keep some information in anonymised form for analytics and legal records;</li><li>personal data is deleted or anonymised within a reasonable time, unless we are legally required to keep it longer.</li></ul>\n<h2>8. Intellectual property</h2>\n<p>All rights to the App (design, texts, logos, code, databases and other elements), except user content, belong to TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva and/or its partners.</p>\n<p>You receive a limited licence to use the App under these Terms. You do not receive ownership of the App or its components.</p>\n<h2>9. Changes to the App and Terms</h2>\n<p>We may update the App, add or remove features, and update these Terms. The current version of the Terms is always available in the App.</p>\n<p>If we make significant changes, we may show an in-app notice or ask you to accept the new version.<br>By continuing to use the App after changes, you agree to the updated Terms.</p>\n<h2>10. Contact</h2>\n<p>If you have questions about the App, your data or these Terms, please contact us at:<br><a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a></p>", "ru": "<p class=\"meta\">Дата обновления: 01.12.2025</p>\n<p>Настоящие Условия использования (далее – «Условия») регулируют использование мобильного приложения EatSense (далее – «Приложение», «мы»). Устанавливая или используя Приложение, вы соглашаетесь с этими Условиями.</p>\n<h2>1. Назначение Приложения и отказ от медицинской ответственности</h2>\n<p>EatSense помогает отслеживать питание, анализировать блюда и лучше понимать свои привычки.<br>Приложение также может помочь хранить и интерпретировать некоторые лабораторные показатели.</p>\n<p>Приложение не является медицинским изделием и не заменяет консультацию врача.</p>\n<ul><li>Вся информация и рекомендации носят справочный и образовательный характер;</li><li>Приложение не ставит диагноз и не назначает лечение;</li><li>Перед изменением рациона, приёма лекарств или образа жизни обязательно консультируйтесь с врачом.</li></ul>\n<p>Ответственность за решения, связанные с вашим здоровьем, несёте вы сами.</p>\n<h2>2. Аккаунт и доступ</h2>\n<p>Для части функций требуется создать аккаунт (обычно по коду, высылаемому на email).</p>\n<p>Вы обязуетесь:</p>\n<ul><li>указывать достоверные данные;</li><li>обеспечивать конфиденциальность доступа к своей почте и устройству;</li><li>не передавать аккаунт третьим лицам без нашего разрешения.</li></ul>\n<p>Мы можем временно ограничить или заблокировать доступ, если вы:</p>\n<ul><li>грубо нарушаете эти Условия;</li><li>пытаетесь взломать сервис, вмешаться в работу серверов;</li><li>используете Приложение для спама, мошенничества или другой незаконной активности.</li></ul>\n<h2>3. Подписки и оплата</h2>\n<p>В Приложении доступны бесплатный и платные тарифы (например, EatSense Pro).</p>\n<ul><li>Оплата и автопродление обрабатываются через App Store / Google Play или другие платформы;</li><li>Стоимость, длительность и условия автопродления указаны на экране покупки;</li><li>Отменить автопродление можно в настройках аккаунта магазина, обычно не позднее чем за 24 часа до окончания текущего периода.</li></ul>\n<p>Мы не храним данные банковских карт и не управляем списаниями напрямую.</p>\n<h2>4. Допустимое использование</h2>\n<p>Запрещено использовать Приложение для:</p>\n<ul><li>размещения незаконного, оскорбительного контента или материалов, нарушающих чьи-либо права;</li><li>рассылки спама, рекламы, вредоносных ссылок;</li><li>попыток получить несанкционированный доступ к данным других пользователей;</li><li>обратной разработки, декомпиляции и обхода технических ограничений, кроме случаев, прямо разрешённых законом.</li></ul>\n<p>При нарушении этих правил мы вправе ограничить доступ, удалить контент или аккаунт.</p>\n<h2>5. Пользовательский контент</h2>\n<p>Права на контент, который вы создаёте и загружаете (фото, заметки, анализы и т.д.), остаются за вами.</p>\n<p>Загружая контент, вы:</p>\n<ul><li>подтверждаете, что имеете право им распоряжаться;</li><li>предоставляете нам ограниченную неисключительную лицензию на хранение, обработку и отображение этого контента в Приложении, а также на использование его обезличенных версий для аналитики и улучшения сервиса.</li></ul>\n<p>Мы можем агрегировать и анонимизировать данные так, чтобы они не позволяли идентифицировать конкретного пользователя.</p>\n<h2>6. Ограничение ответственности</h2>\n<p>Приложение предоставляется по принципу «как есть».</p>\n<ul><li>Мы стремимся поддерживать его стабильную работу, но не гарантируем отсутствие ошибок и стопроцентную доступность;</li><li>Мы не отвечаем за решения, которые вы принимаете на основе данных и рекомендаций Приложения;</li><li>В максимально допустимых законом пределах наша суммарная ответственность ограничивается суммой, фактически уплаченной вами за платный функционал за последние 12 месяцев, либо равна нулю, если вы пользовались только бесплатной версией.</li></ul>\n<p>Ничто в этих Условиях не ограничивает нашу ответственность в случаях, когда по закону такое ограничение недопустимо.</p>\n<h2>7. Удаление аккаунта и данных</h2>\n<p>Вы можете в любой момент прекратить использование Приложения. При наличии соответствующей функции вы можете удалить аккаунт в настройках профиля или запросить удаление по email <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a>.</p>\n<p>После удаления аккаунта:</p>\n<ul><li>часть данных может быть сохранена в обезличенной форме для аналитики и отчётности;</li><li>персональные данные удаляются или анонимизируются в разумный срок, если только закон не требует хранить их дольше.</li></ul>\n<h2>8. Интеллектуальная собственность</h2>\n<p>Все права на Приложение (дизайн, логотипы, тексты, программный код, базы данных и др.), за исключением пользовательского контента, принадлежат TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva и/или нашим партнёрам.</p>\n<p>Вы получаете ограниченную лицензию на использование Приложения в рамках этих Условий. Права собственности на Приложение к вам не переходят.</p>\n<h2>9. Изменения Приложения и Условий</h2>\n<p>Мы можем обновлять Приложение, изменять или добавлять функциональность, а также пересматривать эти Условия. Актуальная версия всегда доступна в Приложении.</p>\n<p>При существенных изменениях мы можем отобразить дополнительное уведомление и/или запросить согласие с новой редакцией. Продолжая пользоваться Приложением, вы принимаете обновлённые Условия.</p>\n<h2>10. Контакты</h2>\n<p>По вопросам работы Приложения, ваших данных или этих Условий вы можете обратиться по адресу:<br><a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a></p>", "kk": "<p class=\"meta\">Жаңартылған күні: 01.12.2025</p>\n<p>Осы Қолдану шарттары («Шарттар») EatSense мобильді қосымшасын («Қосымша», «біз») пайдалану тәртібін реттейді. Қосымшаны орнатып немесе пайдалана отырып, сіз осы Шарттармен келісесіз.</p>\n<h2>1. Қосымшаның мақсаты және медициналық жауапкершіліктен бас тарту</h2>\n<p>EatSense – тамақтануды бақылауға, тағамдарды талдауға және әдеттеріңізді жақсырақ түсінуге көмектесетін құрал.<br>Қосымша сонымен қатар кейбір зертханалық анализ нәтижелерін сақтауға және түсіндіруге мүмкіндік береді.</p>\n<p>Қосымша медициналық құрылғы болып табылмайды және дәрігер кеңесін алмастырмайды.</p>\n<ul><li>Барлық ақпарат пен ұсыныстар тек ақпараттық және білім беру мақсатында беріледі;</li><li>Қосымша диагноз қоймайды және ем тағайындамайды;</li><li>Диетаңызды, дәрі-дәрмек қабылдауды немесе өмір салтыңызды өзгертпес бұрын міндетті түрде дәрігермен кеңесіңіз.</li></ul>\n<p>Өз денсаулығыңыз бойынша шешімдер үшін жауапкершілік өзіңізде.</p>\n<h2>2. Аккаунт және қолжетімділік</h2>\n<p>Кейбір функцияларды пайдалану үшін аккаунт құру қажет (әдетте email-код арқылы кіру).</p>\n<p>Сіз:</p>\n<ul><li>дұрыс және өзекті деректер көрсетуге;</li><li>поштаңызға және құрылғыңызға қолжетімділікті қорғауға;</li><li>аккаунтты үшінші тұлғаларға бермеуге келісесіз.</li></ul>\n<p>Біз келесі жағдайларда қолжетімділікті уақытша тоқтата немесе бұғаулай аламыз:</p>\n<ul><li>осы Шарттарды өрескел бұзсаңыз;</li><li>сервисті бұзу, серверлерге шабуыл жасау әрекеттерін жасасаңыз;</li><li>Қосымшаны спам, алаяқтық немесе заңсыз әрекеттер үшін қолдансаңыз.</li></ul>\n<h2>3. Жазылымдар және төлемдер</h2>\n<p>Қосымшада тегін және ақылы тарифтер (мысалы, EatSense Pro) болуы мүмкін.</p>\n<ul><li>Төлемдер мен автожаңарту App Store / Google Play немесе басқа платформалар арқылы өңделеді;</li><li>Баға, мерзім және автожаңарту шарттары сатып алу экранында көрсетіледі;</li><li>Автожаңартуды дүкен аккаунты баптауларында, әдетте ағымдағы кезең аяқталғанға дейін кемінде 24 сағат бұрын өшіруге болады.</li></ul>\n<p>Біз банк картасы деректерін тікелей өңдемейміз және толық төлем ақпаратын сақтамаймыз.</p>\n<h2>4. Қолданудың рұқсат етілген ережелері</h2>\n<p>Сіз Қосымшаны мына мақсатта пайдаланбауға келісесіз:</p>\n<ul><li>заңға қайшы, қорлайтын немесе біреудің құқығын бұзатын контент жүктеу;</li><li>спам, жарнама, зиянды сілтемелер тарату;</li><li>басқа пайдаланушылардың деректеріне рұқсатсыз қол жеткізуге тырысу;</li><li>кері инжиниринг, декомпиляция немесе техникалық шектеулерді айналып өту (заң тікелей рұқсат еткен жағдайларды қоспағанда).</li></ul>\n<p>Бұл ережелер бұзылған жағдайда біз контентті жоюға немесе қолжетімділікті шектеуге құқылымыз.</p>\n<h2>5. Пайдаланушы контенті</h2>\n<p>Сіз жасаған және жүктеген контентке (фото, жазбалар, анализдер және т.б.) құқық өзіңізде қалады.</p>\n<p>Контент жүктей отырып, сіз:</p>\n<ul><li>оны пайдалануға және бөлісуге құқығыңыз бар екенін растайсыз;</li><li>бізге осы контентті Қосымша ішінде сақтау, өңдеу және көрсетуге, сондай-ақ оның анонимделген нұсқаларын аналитика және сервисті жақсарту үшін қолдануға шектеулі, айрықша емес лицензия бересіз.</li></ul>\n<p>Біз деректерді анонимдеу және агрегаттау арқылы оларды жеке тұлғамен байланыстыру мүмкіндігін барынша азайтамыз.</p>\n<h2>6. Жауапкершілікті шектеу</h2>\n<p>Қосымша «қалай бар, солай» («as is») принципі бойынша ұсынылады.</p>\n<ul><li>Біз тұрақты және дұрыс жұмыс істеуіне ұмтыламыз, бірақ қателер мүлде болмайды немесе сервистің әрдайым қолжетімді болатынына кепілдік бере алмаймыз;</li><li>Қосымшадағы деректер мен ұсыныстарға сүйене отырып қабылдаған шешімдер үшін біз жауап бермейміз;</li><li>Қолданыстағы заңнама рұқсат еткен шекте, біздің жиынтық жауапкершілігіміз соңғы 12 ай ішінде ақылы функциялар үшін сіз төлеген сомамен шектеледі, немесе тек тегін нұсқаны қолдансаңыз – нөлге тең.</li></ul>\n<p>Заң бойынша жауапкершілікті шектеуге жол берілмейтін жағдайларда бұл тармақ қолданылмайды.</p>\n<h2>7. Аккаунт пен деректерді жою</h2>\n<p>Сіз Қосымшаны кез келген уақытта пайдалануды тоқтата аласыз. Мүмкін болған жағдайда аккаунтты профиль баптауларында өшіруге немесе <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a> мекенжайына жаза отырып жоюды сұрауға болады.</p>\n<p>Аккаунт жойылғаннан кейін:</p>\n<ul><li>кейбір деректер аналитика және есептілік үшін анонимді түрде сақталуы мүмкін;</li><li>жеке деректер заң талаптарын ескере отырып, ақылға қонымды мерзімде жойылады немесе анонимделеді.</li></ul>\n<h2>8. Зияткерлік меншік</h2>\n<p>Пайдаланушы контентінен басқа, Қосымшаға (дизайн, логотиптер, мәтіндер, код, дерекқорлар және т.б.) барлық құқықтар TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva және/немесе біздің серіктестерімізге тиесілі.</p>\n<p>Сізге осы Шарттарға сәйкес Қосымшаны пайдалануға шектеулі лицензия беріледі. Қосымшаның немесе оның элементтерінің меншік құқығы сізге өтпейді.</p>\n<h2>9. Қосымшаны және Шарттарды өзгерту</h2>\n<p>Біз Қосымшаны жаңарта аламыз, функциялар қосу немесе алып тастауымыз мүмкін, сондай-ақ осы Шарттарды өзгерте аламыз. Ең соңғы нұсқасы әрдайым Қосымша ішінде қолжетімді.</p>\n<p>Маңызды өзгерістер енгізілген жағдайда қосымшада хабарлама көрсетуіміз немесе сізден жаңартылған Шарттармен келісуді сұрауымыз мүмкін. Қосымшаны әрі қарай пайдалану – жаңа нұсқамен келісім білдіруді білдіреді.</p>\n<h2>10. Байланыс</h2>\n<p>Қосымша, деректеріңіз немесе осы Шарттар туралы сұрақтарыңыз болса, бізге мына мекенжайға жазыңыз:<br><a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a></p>", "fr": "<p class=\"meta\">Dernière mise à jour : 01 déc. 2025</p>\n<p>Les présentes Conditions d’utilisation (« Conditions ») régissent votre utilisation de l’application mobile EatSense (« l’App », « nous »). En installant ou en utilisant l’App, vous acceptez ces Conditions.</p>\n<h2>1. Objet de l’App et avertissement médical</h2>\n<p>EatSense vous aide à suivre votre alimentation, analyser vos repas et comprendre vos habitudes. L’App peut aussi vous aider à stocker et interpréter certains résultats de laboratoire.</p>\n<p>L’App n’est pas un dispositif médical et ne remplace pas un avis médical professionnel.</p>\n<ul><li>Les informations et recommandations sont fournies à des fins éducatives et informatives uniquement.</li><li>L’App ne fournit pas de diagnostic ni de traitement.</li><li>Consultez toujours votre médecin ou un autre professionnel qualifié avant de prendre des décisions concernant votre alimentation, vos médicaments ou votre mode de vie.</li></ul>\n<p>Vous êtes responsable de vos propres décisions de santé.</p>\n<h2>2. Compte et accès</h2>\n<p>Certaines fonctions nécessitent la création d’un compte (généralement par code de connexion envoyé par e-mail).</p>\n<p>Vous vous engagez à :</p>\n<ul><li>fournir des informations exactes ;</li><li>protéger l’accès à votre messagerie et à votre appareil ;</li><li>ne pas partager votre compte sans notre autorisation.</li></ul>\n<p>Nous pouvons suspendre ou résilier l’accès si vous :</p>\n<ul><li>enfreignez gravement ces Conditions ;</li><li>tentez de pirater, surcharger ou perturber l’App ;</li><li>utilisez l’App à des fins de spam, fraude ou activités illégales.</li></ul>\n<h2>3. Abonnements et paiements</h2>\n<p>L’App peut proposer des formules gratuites et payantes (par ex. EatSense Pro).</p>\n<ul><li>Les paiements et renouvellements sont traités par App Store / Google Play ou d’autres plateformes.</li><li>Le prix, la durée et les conditions de renouvellement automatique sont indiqués sur l’écran d’achat.</li><li>Vous pouvez annuler le renouvellement automatique dans les réglages de votre compte de boutique, généralement au moins 24 heures avant la fin de la période en cours.</li></ul>\n<p>Nous ne gérons pas directement vos coordonnées bancaires et ne stockons pas vos informations de paiement complètes.</p>\n<h2>4. Utilisation acceptable</h2>\n<p>Vous vous engagez à ne pas utiliser l’App pour :</p>\n<ul><li>téléverser du contenu illégal, offensant ou portant atteinte aux droits d’autrui ;</li><li>envoyer du spam, des publicités ou des liens malveillants ;</li><li>tenter d’accéder aux données d’autres utilisateurs sans autorisation ;</li><li>faire de l’ingénierie inverse, décompiler ou contourner les protections techniques, sauf si la loi l’autorise.</li></ul>\n<p>Nous pouvons bloquer ou supprimer du contenu, ou restreindre l’accès, en cas de violation de ces règles.</p>\n<h2>5. Contenu de l’utilisateur</h2>\n<p>Vous conservez la propriété du contenu que vous créez et téléversez (photos, notes, résultats de laboratoire, etc.).</p>\n<p>En téléversant du contenu, vous :</p>\n<ul><li>confirmez avoir le droit de l’utiliser et de le partager ;</li><li>nous accordez une licence limitée et non exclusive pour stocker, traiter et afficher ce contenu dans l’App, ainsi que pour utiliser des versions anonymisées à des fins d’analyse et d’amélioration du produit.</li></ul>\n<p>Nous pouvons anonymiser et agréger les données afin qu’elles ne puissent raisonnablement pas vous être rattachées.</p>\n<h2>6. Limitation de responsabilité</h2>\n<p>L’App est fournie « telle quelle ».</p>\n<ul><li>Nous faisons de notre mieux pour la maintenir stable et exacte, mais ne garantissons pas qu’elle sera toujours exempte d’erreurs ou disponible.</li><li>Nous ne sommes pas responsables des décisions que vous prenez sur la base des données et recommandations de l’App.</li><li>Dans la mesure maximale permise par la loi, notre responsabilité totale est limitée au montant que vous avez effectivement payé pour les fonctions payantes au cours des 12 derniers mois, ou à zéro si vous n’avez utilisé que la version gratuite.</li></ul>\n<p>Rien dans ces Conditions ne limite notre responsabilité lorsque la loi l’interdit.</p>\n<h2>7. Suppression du compte et des données</h2>\n<p>Vous pouvez cesser d’utiliser l’App à tout moment. Lorsque cela est possible, vous pouvez supprimer votre compte dans les réglages du profil ou en nous contactant à <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a>.</p>\n<p>Après la suppression du compte :</p>\n<ul><li>nous pouvons conserver certaines informations sous forme anonymisée à des fins d’analyse et de conformité légale ;</li><li>les données personnelles sont supprimées ou anonymisées dans un délai raisonnable, sauf obligation légale de les conserver plus longtemps.</li></ul>\n<h2>8. Propriété intellectuelle</h2>\n<p>Tous les droits sur l’App (design, textes, logos, code, bases de données et autres éléments), à l’exception du contenu de l’utilisateur, appartiennent à TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Genève et/ou à ses partenaires.</p>\n<p>Vous recevez une licence limitée d’utilisation de l’App selon ces Conditions. Vous n’acquérez pas la propriété de l’App ni de ses composants.</p>\n<h2>9. Modifications de l’App et des Conditions</h2>\n<p>Nous pouvons mettre à jour l’App, ajouter ou supprimer des fonctions et modifier ces Conditions. La version actuelle des Conditions est toujours disponible dans l’App.</p>\n<p>En cas de changements importants, nous pouvons afficher un avis dans l’App ou vous demander d’accepter la nouvelle version. En continuant à utiliser l’App après les modifications, vous acceptez les Conditions mises à jour.</p>\n<h2>10. Contact</h2>\n<p>Pour toute question sur l’App, vos données ou ces Conditions, contactez-nous à :<br><a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a></p>", "de": "<p class=\"meta\">Zuletzt aktualisiert: 01. Dez. 2025</p>\n<p>Diese Nutzungsbedingungen („Bedingungen“) regeln Ihre Nutzung der mobilen App EatSense („App“, „wir“). Mit der Installation oder Nutzung der App stimmen Sie diesen Bedingungen zu.</p>\n<h2>1. Zweck der App und medizinischer Hinweis</h2>\n<p>EatSense hilft Ihnen, Ihre Ernährung zu erfassen, Mahlzeiten zu analysieren und Ihre Gewohnheiten zu verstehen. Die App kann Ihnen auch helfen, bestimmte Laborergebnisse zu speichern und zu interpretieren.</p>\n<p>Die App ist kein Medizinprodukt und ersetzt keine professionelle medizinische Beratung.</p>\n<ul><li>Informationen und Empfehlungen dienen ausschließlich Bildungs- und Informationszwecken.</li><li>Die App stellt keine Diagnosen und keine Behandlungen bereit.</li><li>Konsultieren Sie immer Ihren Arzt oder eine andere qualifizierte Fachperson, bevor Sie Entscheidungen zu Ernährung, Medikamenten oder Lebensstil treffen.</li></ul>\n<p>Sie sind für Ihre eigenen Gesundheitsentscheidungen verantwortlich.</p>\n<h2>2. Konto und Zugang</h2>\n<p>Einige Funktionen erfordern ein Konto (in der Regel per E-Mail-Anmeldecode).</p>\n<p>Sie verpflichten sich:</p>\n<ul><li>korrekte Angaben zu machen;</li><li>den Zugang zu Ihrer E-Mail und Ihrem Gerät zu schützen;</li><li>Ihr Konto nicht ohne unsere Erlaubnis weiterzugeben.</li></ul>\n<p>Wir können den Zugang sperren oder beenden, wenn Sie:</p>\n<ul><li>diese Bedingungen schwerwiegend verletzen;</li><li>versuchen, die App zu hacken, zu überlasten oder anderweitig zu stören;</li><li>die App für Spam, Betrug oder illegale Aktivitäten nutzen.</li></ul>\n<h2>3. Abonnements und Zahlungen</h2>\n<p>Die App kann kostenlose und kostenpflichtige Pläne anbieten (z. B. EatSense Pro).</p>\n<ul><li>Zahlungen und Verlängerungen werden über App Store / Google Play oder andere Plattformanbieter abgewickelt.</li><li>Preis, Laufzeit und Bedingungen der automatischen Verlängerung werden auf dem Kaufbildschirm angezeigt.</li><li>Sie können die automatische Verlängerung in den Kontoeinstellungen des Stores kündigen, in der Regel mindestens 24 Stunden vor Ende des laufenden Zeitraums.</li></ul>\n<p>Wir verwalten Ihre Kartendaten nicht direkt und speichern keine vollständigen Zahlungsinformationen.</p>\n<h2>4. Zulässige Nutzung</h2>\n<p>Sie verpflichten sich, die App nicht zu nutzen, um:</p>\n<ul><li>illegale, beleidigende oder rechtsverletzende Inhalte hochzuladen;</li><li>Spam, Werbung oder schädliche Links zu versenden;</li><li>ohne Erlaubnis auf Daten anderer Nutzer zuzugreifen;</li><li>Reverse Engineering, Dekompilierung oder Umgehung technischer Schutzmaßnahmen vorzunehmen, außer soweit gesetzlich erlaubt.</li></ul>\n<p>Bei Verstößen gegen diese Regeln können wir Inhalte sperren oder entfernen oder den Zugang einschränken.</p>\n<h2>5. Nutzerinhalte</h2>\n<p>Sie behalten das Eigentum an den Inhalten, die Sie erstellen und hochladen (Fotos, Notizen, Laborergebnisse usw.).</p>\n<p>Mit dem Hochladen von Inhalten:</p>\n<ul><li>bestätigen Sie, dass Sie das Recht haben, diese zu nutzen und zu teilen;</li><li>gewähren Sie uns eine begrenzte, nicht ausschließliche Lizenz, diese Inhalte in der App zu speichern, zu verarbeiten und anzuzeigen sowie anonymisierte Versionen für Analysen und Produktverbesserung zu nutzen.</li></ul>\n<p>Wir können Daten anonymisieren und aggregieren, sodass sie nicht mehr vernünftigerweise auf Sie zurückgeführt werden können.</p>\n<h2>6. Haftungsbeschränkung</h2>\n<p>Die App wird „wie besehen“ bereitgestellt.</p>\n<ul><li>Wir bemühen uns um Stabilität und Genauigkeit, garantieren jedoch nicht, dass die App stets fehlerfrei oder verfügbar ist.</li><li>Wir sind nicht verantwortlich für Entscheidungen, die Sie auf Grundlage der Daten und Empfehlungen der App treffen.</li><li>Im gesetzlich zulässigen Höchstmaß ist unsere Gesamthaftung auf den Betrag begrenzt, den Sie in den letzten 12 Monaten tatsächlich für kostenpflichtige Funktionen gezahlt haben, oder null, wenn Sie nur die kostenlose Version genutzt haben.</li></ul>\n<p>Nichts in diesen Bedingungen beschränkt unsere Haftung, soweit dies gesetzlich nicht zulässig ist.</p>\n<h2>7. Löschung von Konto und Daten</h2>\n<p>Sie können die Nutzung der App jederzeit beenden. Sofern verfügbar, können Sie Ihr Konto in den Profileinstellungen löschen oder uns unter <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a> kontaktieren.</p>\n<p>Nach der Kontolöschung:</p>\n<ul><li>können wir bestimmte Informationen in anonymisierter Form für Analysen und gesetzliche Aufzeichnungen aufbewahren;</li><li>werden personenbezogene Daten innerhalb angemessener Zeit gelöscht oder anonymisiert, sofern wir nicht gesetzlich zur längeren Aufbewahrung verpflichtet sind.</li></ul>\n<h2>8. Geistiges Eigentum</h2>\n<p>Alle Rechte an der App (Design, Texte, Logos, Code, Datenbanken und andere Elemente), mit Ausnahme der Nutzerinhalte, gehören TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Genf und/oder ihren Partnern.</p>\n<p>Sie erhalten eine begrenzte Lizenz zur Nutzung der App gemäß diesen Bedingungen. Sie erwerben kein Eigentum an der App oder ihren Komponenten.</p>\n<h2>9. Änderungen der App und der Bedingungen</h2>\n<p>Wir können die App aktualisieren, Funktionen hinzufügen oder entfernen und diese Bedingungen aktualisieren. Die aktuelle Fassung der Bedingungen ist stets in der App verfügbar.</p>\n<p>Bei wesentlichen Änderungen können wir einen Hinweis in der App anzeigen oder Sie bitten, die neue Version zu akzeptieren. Durch die weitere Nutzung der App nach Änderungen stimmen Sie den aktualisierten Bedingungen zu.</p>\n<h2>10. Kontakt</h2>\n<p>Bei Fragen zur App, zu Ihren Daten oder zu diesen Bedingungen kontaktieren Sie uns bitte unter:<br><a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a></p>", "es": "<p class=\"meta\">Última actualización: 01 dic. 2025</p>\n<p>Estos Términos de Uso («Términos») regulan el uso de la aplicación móvil EatSense («la App», «nosotros»). Al instalar o usar la App, usted acepta estos Términos.</p>\n<h2>1. Finalidad de la App y aviso médico</h2>\n<p>EatSense le ayuda a registrar su alimentación, analizar sus comidas y entender sus hábitos. La App también puede ayudarle a guardar e interpretar algunos resultados de laboratorio.</p>\n<p>La App no es un dispositivo médico y no sustituye el consejo médico profesional.</p>\n<ul><li>La información y las recomendaciones tienen únicamente fines educativos e informativos.</li><li>La App no proporciona diagnósticos ni tratamientos.</li><li>Consulte siempre a su médico u otro profesional cualificado antes de tomar decisiones sobre dieta, medicación o estilo de vida.</li></ul>\n<p>Usted es responsable de sus propias decisiones de salud.</p>\n<h2>2. Cuenta y acceso</h2>\n<p>Algunas funciones requieren crear una cuenta (normalmente mediante un código de acceso enviado por correo).</p>\n<p>Usted se compromete a:</p>\n<ul><li>proporcionar información veraz;</li><li>mantener seguro el acceso a su correo y dispositivo;</li><li>no compartir su cuenta sin nuestro permiso.</li></ul>\n<p>Podemos suspender o cancelar el acceso si usted:</p>\n<ul><li>infringe gravemente estos Términos;</li><li>intenta piratear, sobrecargar o interferir de otro modo con la App;</li><li>usa la App para spam, fraude o actividades ilegales.</li></ul>\n<h2>3. Suscripciones y pagos</h2>\n<p>La App puede ofrecer planes gratuitos y de pago (por ejemplo, EatSense Pro).</p>\n<ul><li>Los pagos y renovaciones los procesan App Store / Google Play u otros proveedores de plataforma.</li><li>El precio, la duración y las condiciones de renovación automática se muestran en la pantalla de compra.</li><li>Puede cancelar la renovación automática en los ajustes de su cuenta de la tienda, normalmente al menos 24 horas antes de que finalice el período actual.</li></ul>\n<p>No gestionamos directamente los datos de su tarjeta ni almacenamos información de pago completa.</p>\n<h2>4. Uso aceptable</h2>\n<p>Usted se compromete a no usar la App para:</p>\n<ul><li>subir contenido ilegal, ofensivo o que infrinja derechos;</li><li>enviar spam, anuncios o enlaces maliciosos;</li><li>intentar acceder a datos de otros usuarios sin permiso;</li><li>aplicar ingeniería inversa, descompilar o eludir protecciones técnicas, salvo cuando la ley lo permita.</li></ul>\n<p>Podemos bloquear o eliminar contenido, o restringir el acceso, si se incumplen estas reglas.</p>\n<h2>5. Contenido del usuario</h2>\n<p>Usted conserva la propiedad del contenido que crea y sube (fotos, notas, resultados de laboratorio, etc.).</p>\n<p>Al subir contenido, usted:</p>\n<ul><li>confirma que tiene derecho a usarlo y compartirlo;</li><li>nos concede una licencia limitada y no exclusiva para almacenar, procesar y mostrar este contenido dentro de la App, y para usar versiones anonimizadas con fines de analítica y mejora del producto.</li></ul>\n<p>Podemos anonimizar y agregar los datos de modo que no puedan vincularse razonablemente con usted.</p>\n<h2>6. Limitación de responsabilidad</h2>\n<p>La App se proporciona «tal cual».</p>\n<ul><li>Hacemos lo posible por mantenerla estable y precisa, pero no garantizamos que esté siempre libre de errores o disponible.</li><li>No somos responsables de las decisiones que tome basándose en los datos y recomendaciones de la App.</li><li>En la máxima medida permitida por la ley, nuestra responsabilidad total se limita al importe que efectivamente pagó por funciones de pago durante los últimos 12 meses, o cero si solo usó la versión gratuita.</li></ul>\n<p>Nada en estos Términos limita nuestra responsabilidad cuando la ley no lo permite.</p>\n<h2>7. Eliminación de cuenta y datos</h2>\n<p>Puede dejar de usar la App en cualquier momento. Cuando esté disponible, puede eliminar su cuenta en los ajustes del perfil o contactándonos en <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a>.</p>\n<p>Tras la eliminación de la cuenta:</p>\n<ul><li>podemos conservar cierta información de forma anonimizada con fines de analítica y registros legales;</li><li>los datos personales se eliminan o anonimizan en un plazo razonable, salvo que la ley nos obligue a conservarlos más tiempo.</li></ul>\n<h2>8. Propiedad intelectual</h2>\n<p>Todos los derechos sobre la App (diseño, textos, logotipos, código, bases de datos y otros elementos), excepto el contenido del usuario, pertenecen a TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Ginebra y/o sus socios.</p>\n<p>Usted recibe una licencia limitada para usar la App conforme a estos Términos. No adquiere la propiedad de la App ni de sus componentes.</p>\n<h2>9. Cambios en la App y en los Términos</h2>\n<p>Podemos actualizar la App, añadir o eliminar funciones y actualizar estos Términos. La versión actual de los Términos está siempre disponible en la App.</p>\n<p>Si realizamos cambios importantes, podemos mostrar un aviso en la App o pedirle que acepte la nueva versión. Al seguir usando la App tras los cambios, acepta los Términos actualizados.</p>\n<h2>10. Contacto</h2>\n<p>Si tiene preguntas sobre la App, sus datos o estos Términos, contáctenos en:<br><a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a></p>"};
+        const SUP=['en','de','fr','ru','kk','es'];
+        function setLang(lang){
+            if(!UI[lang])lang='en';
+            document.documentElement.lang=lang;
+            document.getElementById('curLang').textContent=lang.toUpperCase();
+            document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.dataset.i18n;if(UI[lang][k]!=null)el.innerHTML=UI[lang][k];});
+            document.querySelectorAll('.lang-option').forEach(function(o){o.classList.toggle('active',o.dataset.lang===lang);});
+            document.getElementById('legal-content').innerHTML=DOC[lang]||DOC.en;
+            try{localStorage.setItem('eatsense-lang',lang);}catch(e){}
         }
-        function acceptCookies() {
-            localStorage.setItem('cookiesAccepted', 'true');
-            document.getElementById('cookie-banner').style.display = 'none';
-        }
+        document.querySelectorAll('.lang-option').forEach(function(b){b.addEventListener('click',function(){setLang(b.dataset.lang);});});
+        (function(){var s=null;try{s=localStorage.getItem('eatsense-lang');}catch(e){}var b=(navigator.language||'en').slice(0,2);setLang(s||(SUP.indexOf(b)>=0?b:'en'));})();
+        function acceptCookies(){try{localStorage.setItem('cookiesAccepted','true');}catch(e){}document.getElementById('cookie-banner').style.display='none';}
+        try{if(localStorage.getItem('cookiesAccepted')){document.getElementById('cookie-banner').style.display='none';}}catch(e){}
     </script>
 </body>
-
 </html>

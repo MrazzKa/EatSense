@@ -268,6 +268,89 @@ export class UsersService {
     return this.getProfile(userId);
   }
 
+  /**
+   * GDPR-style export of all data we hold for a user, returned as a single JSON
+   * object. Each section is fetched defensively so a failure in one collection
+   * never blocks the rest of the export.
+   */
+  async getUserDataExport(userId: string) {
+    const safe = async <T>(label: string, fn: () => Promise<T>): Promise<T | null> => {
+      try {
+        return await fn();
+      } catch (err) {
+        this.logger.warn(`[UsersService] Export section "${label}" failed for ${userId}: ${(err as any)?.message}`);
+        return null;
+      }
+    };
+
+    const p = this.prisma as any;
+
+    const [
+      account,
+      profile,
+      stats,
+      meals,
+      mealLogs,
+      analyses,
+      labResults,
+      medicationsLegacy,
+      medications,
+      pharmacyConnections,
+      pharmacyOrders,
+      subscriptions,
+      payments,
+      communityPosts,
+      communityComments,
+      disclaimerAcceptances,
+      notificationPreference,
+      referralCode,
+    ] = await Promise.all([
+      safe('account', () => p.user.findUnique({ where: { id: userId }, select: { id: true, email: true, createdAt: true, updatedAt: true, expertsRole: true } })),
+      safe('profile', () => p.userProfile.findUnique({ where: { userId } })),
+      safe('stats', () => p.userStats.findUnique({ where: { userId } })),
+      safe('meals', () => p.meal.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 1000 })),
+      safe('mealLogs', () => p.mealLog.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 1000 })),
+      safe('analyses', () => p.analysis.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 1000 })),
+      safe('labResults', () => p.labResult.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } })),
+      safe('medicationsLegacy', () => p.medicationSchedule.findMany({ where: { userId } })),
+      safe('medications', () => p.medication.findMany({ where: { userId } })),
+      safe('pharmacyConnections', () => p.pharmacyConnection.findMany({ where: { userId } })),
+      safe('pharmacyOrders', () => p.pharmacyOrder.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } })),
+      safe('subscriptions', () => p.userSubscription.findMany({ where: { userId } })),
+      safe('payments', () => p.payment.findMany({ where: { userId } })),
+      safe('communityPosts', () => p.communityPost.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 1000 })),
+      safe('communityComments', () => p.communityComment.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 1000 })),
+      safe('disclaimerAcceptances', () => p.disclaimerAcceptance.findMany({ where: { userId } })),
+      safe('notificationPreference', () => p.notificationPreference.findUnique({ where: { userId } })),
+      safe('referralCode', () => p.referralCode.findUnique({ where: { userId } })),
+    ]);
+
+    return {
+      _meta: {
+        generatedAt: new Date().toISOString(),
+        format: 'eatsense-data-export-v1',
+        note: 'This file contains the personal data EatSense holds about your account.',
+      },
+      account,
+      profile,
+      stats,
+      meals,
+      mealLogs,
+      analyses,
+      biomarkers: labResults,
+      medications: [...((medicationsLegacy as any[]) || []), ...((medications as any[]) || [])],
+      pharmacyConnections,
+      pharmacyOrders,
+      subscriptions,
+      payments,
+      communityPosts,
+      communityComments,
+      consents: disclaimerAcceptances,
+      notificationPreference,
+      referralCode,
+    };
+  }
+
   async deleteAccount(userId: string) {
     try {
       // Revoke all refresh tokens

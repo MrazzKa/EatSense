@@ -112,8 +112,8 @@ export class WellKnownController {
     return {
       contact: 'security@eatsense.ch',
       expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-      encryption: 'https://eatsense.app/pgp-key.txt',
-      acknowledgments: 'https://eatsense.app/security',
+      encryption: 'https://eatsense.ch/pgp-key.txt',
+      acknowledgments: 'https://eatsense.ch/security',
     };
   }
 
@@ -125,8 +125,9 @@ export class WellKnownController {
         apps: [] as any[],
         details: [
           {
+            // appID = <AppleTeamID>.<bundleId>. `ch.eatsense.app` is the bundle id.
             appID: '73T7PB4F99.ch.eatsense.app',
-            paths: ['/v1/auth/magic/consume*'],
+            paths: ['/pharmacy', '/pharmacy/*', '/v1/auth/magic/consume*'],
           },
         ],
       },
@@ -139,13 +140,21 @@ export class WellKnownController {
   @Get('assetlinks.json')
   @ApiOperation({ summary: 'Android App Links configuration' })
   getAssetLinks(@Res() res: Response) {
+    // SHA-256 fingerprint(s) of the signing cert. Set ANDROID_SHA256_CERT_FINGERPRINTS
+    // (comma-separated) in the API env — use the Play App Signing cert SHA-256
+    // (and/or the EAS upload key) so App Links verify without a code change.
+    const fingerprints = (process.env.ANDROID_SHA256_CERT_FINGERPRINTS || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
     const assetLinks = [
       {
         relation: ['delegate_permission/common.handle_all_urls'],
         target: {
           namespace: 'android_app',
           package_name: 'ch.eatsense.app',
-          sha256_cert_fingerprints: [] as string[],
+          sha256_cert_fingerprints: fingerprints,
         },
       },
     ];

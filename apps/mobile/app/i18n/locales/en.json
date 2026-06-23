@@ -1258,7 +1258,25 @@
     "themeDark": "Dark",
     "themeMonochrome": "Mono",
     "themeRose": "Rose",
-    "themeBeige": "Beige"
+    "themeBeige": "Beige",
+    "exportData": "Export my data",
+    "exportError": "Could not export your data. Please try again.",
+    "exportSaved": "Your data export was saved to the app folder.",
+    "myConsents": "My consents",
+    "privacyDataHint": "Download a copy of your data or review the consents you have given.",
+    "myConsentsHint": "Disclaimers and consents you have accepted in the app.",
+    "noConsents": "No consents recorded yet.",
+    "consentTypes": {
+      "ai_assistant": "AI assistant",
+      "lifestyle_programs": "Lifestyle programs",
+      "biomarkers": "Biomarker tracking",
+      "medications": "Medications",
+      "experts_chat": "Expert chat",
+      "data_sharing_consent": "Data sharing with experts",
+      "food_scanning": "Food scanning",
+      "expert_marketplace": "Expert marketplace",
+      "general_health_disclaimer": "General health disclaimer"
+    }
   },
   "camera": {
     "requestingPermission": "Requesting camera permission...",
@@ -4514,7 +4532,14 @@
     "scanPermission": "Allow camera access to scan the pharmacy QR code.",
     "scanCodeTitle": "Scan pharmacy QR",
     "scanCodeSub": "Point your camera at the code in the pharmacy.",
-    "connectHelp": "Ask your pharmacy for its EatSense code or QR — staff can show or print it for you."
+    "connectHelp": "Ask your pharmacy for its EatSense code or QR — staff can show or print it for you.",
+    "messagesFromPharmacy": "Messages from the pharmacy",
+    "msgReason": {
+      "outOfStock": "Some medications are currently out of stock.",
+      "prepayment": "Prepayment is required to fulfil your order.",
+      "partial": "Your order is only partially available.",
+      "other": "Message from the pharmacy"
+    }
   },
   "citations": {
     "screenTitle": "Scientific Sources & References",

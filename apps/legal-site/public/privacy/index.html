@@ -3,331 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - EatSense</title>
+    <title>Privacy Policy — EatSense</title>
+    <meta name="description" content="EatSense Privacy Policy — Swiss-built, available in 6 languages.">
+    <meta name="theme-color" content="#1B4D3E">
+    <link rel="icon" href="/images/eatsense.png" sizes="any">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root{
+            --forest:#1B4D3E;--forest-light:#2D6B5A;--forest-dark:#143D31;
+            --cream:#FAFAF8;--cream-deep:#F3F1EC;--gold:#B8976A;--gold-light:#C9A97A;
+            --text:#1A1A1A;--text-2:#555;--muted:#888;--white:#fff;--border:#E8E8E8;
+            --shadow-sm:0 1px 3px rgba(20,40,33,.06);--shadow-md:0 12px 28px -10px rgba(20,40,33,.16);
+            --radius:16px;--font-display:'Cormorant Garamond',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif;
         }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            line-height: 1.7;
-            color: #333;
-            background: #f8f9fa;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, #2D5A27 0%, #4A7C43 100%);
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
-        }
-        
-        .logo {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        
-        .logo span {
-            color: #8BC34A;
-        }
-        
-        header h1 {
-            font-size: 24px;
-            font-weight: 400;
-            opacity: 0.9;
-        }
-        
-        .nav-links {
-            margin-top: 20px;
-        }
-        
-        .nav-links a {
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            margin: 0 15px;
-            font-size: 14px;
-        }
-        
-        .nav-links a:hover {
-            color: white;
-        }
-        
-        main {
-            background: white;
-            padding: 40px;
-            margin: 30px auto;
-            max-width: 800px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        
-        .meta {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        h2 {
-            color: #2D5A27;
-            margin-top: 35px;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-        
-        h3 {
-            color: #4A7C43;
-            margin-top: 25px;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-        
-        p {
-            margin-bottom: 15px;
-            color: #444;
-        }
-        
-        ul {
-            margin-bottom: 15px;
-            padding-left: 25px;
-        }
-        
-        li {
-            margin-bottom: 8px;
-            color: #444;
-        }
-        
-        .highlight {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #ffc107;
-        }
-        
-        .contact-box {
-            background: #e8f5e9;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        
-        footer {
-            text-align: center;
-            padding: 30px;
-            color: #999;
-            font-size: 14px;
-        }
-        
-        footer a {
-            color: #666;
-            text-decoration: none;
-        }
-        
-        footer a:hover {
-            text-decoration: underline;
-        }
-        
-        @media (max-width: 600px) {
-            main {
-                padding: 25px;
-                margin: 15px;
-            }
-            
-            header {
-                padding: 30px 15px;
-            }
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+        body{font-family:var(--font-body);color:var(--text);background:var(--white);line-height:1.7;-webkit-font-smoothing:antialiased}
+        ::selection{background:var(--forest);color:#fff}
+        .lnav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--border)}
+        .lnav-inner{max-width:1100px;margin:0 auto;padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+        .logo{display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--forest)}
+        .logo svg{width:34px;height:34px}
+        .logo-text{font-family:var(--font-display);font-size:1.35rem;font-weight:600;letter-spacing:-.02em}
+        .lnav-links{display:flex;align-items:center;gap:1.5rem}
+        .lnav-links a{text-decoration:none;color:var(--text-2);font-size:.9rem;transition:color .25s}
+        .lnav-links a:hover{color:var(--forest)}
+        .lnav-cta{padding:.55rem 1.15rem;background:var(--forest);color:#fff!important;border-radius:100px;font-weight:500;box-shadow:var(--shadow-sm)}
+        .lnav-cta:hover{background:var(--forest-light)}
+        .lang-dropdown{position:relative}
+        .lang-switcher{display:flex;align-items:center;gap:.4rem;padding:.45rem .85rem;background:var(--cream);border-radius:100px;border:1px solid var(--border);cursor:pointer;font-family:var(--font-body);font-size:.82rem;color:var(--text-2);transition:all .3s}
+        .lang-switcher:hover{border-color:var(--forest);color:var(--forest)}
+        .lang-options{position:absolute;top:100%;right:0;background:var(--white);border-radius:10px;border:1px solid var(--border);padding:.35rem;opacity:0;visibility:hidden;transform:translateY(8px);transition:all .3s;z-index:10;box-shadow:var(--shadow-md);min-width:150px}
+        .lang-dropdown:hover .lang-options{opacity:1;visibility:visible;transform:translateY(4px)}
+        .lang-option{display:block;width:100%;padding:.45rem .75rem;background:none;border:none;text-align:left;font-family:var(--font-body);font-size:.85rem;color:var(--text-2);cursor:pointer;border-radius:6px}
+        .lang-option:hover{background:var(--cream);color:var(--forest)}
+        .lang-option.active{color:var(--forest);font-weight:500}
+        .legal-hero{background:radial-gradient(900px 400px at 80% -20%,rgba(184,151,106,.12),transparent 60%),linear-gradient(180deg,var(--cream),var(--white));text-align:center;padding:4rem 1.5rem 3.5rem;border-bottom:1px solid var(--border)}
+        .legal-hero .tag{display:inline-block;font-size:.72rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem}
+        .legal-hero h1{font-family:var(--font-display);font-size:clamp(2rem,5vw,3rem);font-weight:500;color:var(--text);line-height:1.1}
+        .legal-main{max-width:820px;margin:-1.75rem auto 4rem;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-md);padding:3rem}
+        .legal-main h2{font-family:var(--font-display);color:var(--forest);font-size:1.55rem;font-weight:500;margin:2.4rem 0 1rem}
+        .legal-main h2:first-child{margin-top:0}
+        .legal-main h3{color:var(--forest-light);font-size:1.08rem;font-weight:600;margin:1.6rem 0 .6rem}
+        .legal-main p{margin-bottom:1rem;color:var(--text-2)}
+        .legal-main ul{margin:0 0 1rem 1.4rem}
+        .legal-main ul ul{margin:.4rem 0 .4rem 1.2rem}
+        .legal-main li{margin-bottom:.5rem;color:var(--text-2)}
+        .legal-main a{color:var(--forest);text-decoration:underline;text-underline-offset:2px}
+        .legal-main .meta{color:var(--muted);font-size:.9rem;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+        .lfooter{background:var(--text);color:#fff;padding:3rem 1.5rem 2rem;text-align:center}
+        .lfooter .logo{justify-content:center;color:#fff;margin-bottom:1rem}
+        .lfooter-links{display:flex;gap:1.25rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.25rem}
+        .lfooter-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.875rem}
+        .lfooter-links a:hover{color:#fff}
+        .lfooter-copy{color:rgba(255,255,255,.5);font-size:.8rem}
+        #cookie-banner{position:fixed;bottom:0;left:0;right:0;background:var(--forest-dark);color:#fff;padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem;z-index:9999;box-shadow:0 -2px 16px rgba(0,0,0,.2)}
+        #cookie-banner p{margin:0;font-size:.85rem;flex:1;min-width:240px}
+        #cookie-banner a{color:var(--gold-light)}
+        #cookie-banner button{background:var(--gold);color:#fff;border:none;padding:.6rem 1.3rem;border-radius:100px;cursor:pointer;font-weight:600;font-family:var(--font-body)}
+        @media(max-width:700px){.legal-main{padding:2rem 1.3rem;margin:-1rem 1rem 3rem}.lnav-links{gap:.7rem}.lnav-links a:not(.lnav-cta){display:none}}
+
     </style>
 </head>
 <body>
-    <header>
-        <div class="logo">Eat<span>Sense</span></div>
-        <h1>Privacy Policy</h1>
-        <nav class="nav-links">
-            <a href="/terms">Terms of Use</a>
-            <a href="/support">Support</a>
-            <a href="/">Home</a>
-        </nav>
+    <nav class="lnav">
+        <div class="lnav-inner">
+            <a href="/" class="logo">
+                <svg viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#1B4D3E"/><path d="M10 26C10 26 12 17 18 17C24 17 26 26 26 26" stroke="#FAF8F5" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="13" r="1.5" fill="#B8976A"/><circle cx="22" cy="13" r="1.5" fill="#B8976A"/><circle cx="18" cy="10" r="1.5" fill="#B8976A"/></svg>
+                <span class="logo-text">EatSense</span>
+            </a>
+            <div class="lnav-links">
+                <a href="/privacy" data-i18n="nav.privacy">Privacy</a>
+                <a href="/terms" data-i18n="nav.terms">Terms</a>
+                <a href="/support" data-i18n="nav.support">Support</a>
+                <div class="lang-dropdown">
+                    <button class="lang-switcher" aria-label="Language"><span id="curLang">EN</span><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+                    <div class="lang-options"><button class="lang-option active" data-lang="en">English</button><button class="lang-option" data-lang="de">Deutsch</button><button class="lang-option" data-lang="fr">Français</button><button class="lang-option" data-lang="ru">Русский</button><button class="lang-option" data-lang="kk">Қазақша</button><button class="lang-option" data-lang="es">Español</button></div>
+                </div>
+                <a href="/#download" class="lnav-cta" data-i18n="nav.cta">Get the App</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="legal-hero">
+        <span class="tag" data-i18n="hero.tag">Legal</span>
+        <h1 data-i18n="hero.title">Privacy Policy</h1>
     </header>
-    
-    <main class="container">
-        <div class="meta">
-            <strong>Version 1.0</strong> | Effective Date: January 14, 2026<br>
-            Last Updated: January 14, 2026
-        </div>
 
-        <h2>1. Introduction</h2>
-        <p>Welcome to EatSense. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and related services.</p>
-        <p>EatSense is an AI-powered nutrition tracking application that allows you to photograph food for nutritional analysis, track your meals, monitor biomarkers, and connect with nutrition professionals.</p>
-        <p>By using our Service, you agree to the collection and use of information in accordance with this Privacy Policy.</p>
-
-        <h2>2. Data Controller</h2>
-        <div class="contact-box">
-            <strong>Aleksei Belov</strong><br>
-            Rue Pictet-de-Bock 6<br>
-            1205 Geneva, Switzerland<br>
-            Email: <a href="mailto:info@eatsense.ch">info@eatsense.ch</a>
-        </div>
-
-        <h2>3. Data We Collect</h2>
-        
-        <h3>3.1 Account Information</h3>
-        <ul>
-            <li>Email address</li>
-            <li>Password (encrypted)</li>
-            <li>Apple ID or Google ID (if using social login)</li>
-        </ul>
-
-        <h3>3.2 Profile Information</h3>
-        <ul>
-            <li>Name, age, gender</li>
-            <li>Height, weight, target weight</li>
-            <li>Activity level and health goals</li>
-            <li>Dietary preferences</li>
-        </ul>
-
-        <h3>3.3 Nutrition and Food Data</h3>
-        <ul>
-            <li>Photos of food for AI analysis</li>
-            <li>Meal logs and nutritional values</li>
-            <li>Diet program progress</li>
-        </ul>
-
-        <h3>3.4 Health Data</h3>
-        <div class="highlight">
-            <strong>Sensitive Data:</strong> Health data (biomarkers, medications) is processed only with your explicit consent for providing personalized nutrition insights.
-        </div>
-        <ul>
-            <li>Laboratory test results (biomarkers)</li>
-            <li>Medications and dosages</li>
-            <li>Health conditions</li>
-        </ul>
-
-        <h3>3.5 Device Information</h3>
-        <ul>
-            <li>Device identifier and type</li>
-            <li>Operating system and app version</li>
-            <li>Push notification tokens</li>
-        </ul>
-
-        <h2>4. How We Use Your Data</h2>
-        <ul>
-            <li>Analyze food photos using AI</li>
-            <li>Track meals and calculate nutrition</li>
-            <li>Provide personalized AI assistance</li>
-            <li>Send push notifications (reminders, tips)</li>
-            <li>Improve our services</li>
-            <li>Comply with legal obligations</li>
-        </ul>
-
-        <h2>5. Third-Party Services</h2>
-        <p>We share data with the following services:</p>
-        
-        <h3>OpenAI (United States)</h3>
-        <p>Purpose: AI food analysis and nutrition assistant<br>
-        Data shared: Food photos, chat messages</p>
-        
-        <h3>USDA FoodData Central (United States)</h3>
-        <p>Purpose: Nutritional database for food information<br>
-        Data shared: Food search queries (no personal data)</p>
-        
-        <h3>Open Food Facts</h3>
-        <p>Purpose: Additional food product information<br>
-        Data shared: Product queries (no personal data)</p>
-        
-        <h3>Expo (United States)</h3>
-        <p>Purpose: Push notification delivery<br>
-        Data shared: Push tokens</p>
-        
-        <h3>Apple / Google</h3>
-        <p>Purpose: Authentication, in-app purchases<br>
-        Data shared: Auth tokens, purchase info</p>
-        
-        <h3>Email Service Provider (SendGrid/Infomaniak)</h3>
-        <p>Purpose: Transactional emails (verification, password reset)<br>
-        Data shared: Email address</p>
-
-        <h2>6. Data Storage and Security</h2>
-        <p>Your data is stored on servers in the <strong>European Union (Amsterdam, Netherlands)</strong> provided by Railway.</p>
-        <p>Security measures include:</p>
-        <ul>
-            <li>Encryption in transit (TLS/SSL)</li>
-            <li>Secure password hashing</li>
-            <li>Access controls and authentication</li>
-            <li>Regular security assessments</li>
-        </ul>
-
-        <h2>7. Data Retention</h2>
-        <p>We retain your data while your account is active. When you delete your account, all data is permanently deleted immediately.</p>
-
-        <h2>8. International Data Transfers</h2>
-        <p>Some data is processed in the United States (OpenAI, Expo). We ensure compliance through Standard Contractual Clauses (SCCs).</p>
-
-        <h2>9. Your Rights (GDPR & Swiss FADP)</h2>
-        <ul>
-            <li><strong>Access:</strong> Download your data via "Export My Data" in Settings</li>
-            <li><strong>Rectification:</strong> Update your information in the app</li>
-            <li><strong>Erasure:</strong> Delete your account via "Delete Account" in Settings</li>
-            <li><strong>Portability:</strong> Export data in JSON/CSV format</li>
-            <li><strong>Withdraw Consent:</strong> At any time for optional features</li>
-            <li><strong>Lodge Complaint:</strong> Contact FDPIC (Switzerland) or your local EU authority</li>
-        </ul>
-
-        <h2>10. Anonymized Data</h2>
-        <p>We may create anonymized, aggregated data for research, improving AI models, and business partnerships. This data cannot identify you personally. You can opt out by contacting us.</p>
-
-        <h2>11. Children's Privacy</h2>
-        <div class="highlight">
-            Our Service is for users <strong>18 years or older</strong>. We do not knowingly collect data from children under 18.
-        </div>
-
-        <h2>12. Changes to This Policy</h2>
-        <p>We will notify you of material changes via push notification, email, or in-app notice.</p>
-
-        <h2>13. Contact Us</h2>
-        <div class="contact-box">
-            <strong>EatSense</strong><br>
-            Aleksei Belov<br>
-            Rue Pictet-de-Bock 6<br>
-            1205 Geneva, Switzerland<br><br>
-            General: <a href="mailto:info@eatsense.ch">info@eatsense.ch</a><br>
-            Privacy: <a href="mailto:privacy@eatsense.ch">privacy@eatsense.ch</a>
-        </div>
+    <main class="legal-main" id="legal-content">
+<p class="meta">Last updated: 23 Jun 2026</p>
+<p>This Privacy Policy explains how the EatSense mobile application (“App”, “we”, “us”) collects, uses, and protects your personal data. By installing and using the App, you agree to the practices described here.</p>
+<h2>1. Who controls your data</h2>
+<p>The data controller is:<br>TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva<br>Contact email: <a href="mailto:info@eatsense.ch">info@eatsense.ch</a></p>
+<h2>2. What data we collect</h2>
+<p>We may collect and process the following categories of data:</p>
+<ul><li>Account data<ul><li>email address;</li><li>name and (optionally) surname;</li><li>interface language.</li></ul></li></ul>
+<ul><li>Profile and health-related data (non-medical)<ul><li>age, gender, height, weight;</li><li>goals (weight loss, maintenance, muscle gain);</li><li>diet type and eating habits (meals per day, snacking, etc.);</li><li>body measurements (for example, waist and hip size, approximate body fat);</li><li>health focus areas such as blood sugar, cholesterol and others, if you choose to specify them.</li></ul></li></ul>
+<ul><li>Food tracking and usage data<ul><li>photos of meals and text descriptions;</li><li>AI analysis results (calories, macros, “health” score);</li><li>saved meals and recent entries;</li><li>daily and monthly nutrition statistics.</li></ul></li></ul>
+<ul><li>Laboratory results (if you use this feature)<ul><li>uploaded photos or files of blood tests and other lab reports;</li><li>selected type of analysis (for example, complete blood count, biochemistry, lipid profile, etc.) or automatically detected type;</li><li>AI-generated comments and explanations based on your results.</li></ul></li></ul>
+<ul><li>Technical data<ul><li>device model, OS version, app version;</li><li>IP address, request time, internal identifiers;</li><li>push notification tokens;</li><li>client and server error logs.</li></ul></li></ul>
+<ul><li>Subscription data<ul><li>subscription status (Free / Pro);</li><li>information about purchases and renewals via App Store / Google Play (we do not store your card number or full payment details).</li></ul></li></ul>
+<p>We do not store data that directly identifies your bank card. Payments are processed by Apple, Google or other payment providers.</p>
+<h2>3. Why we use your data</h2>
+<p>We use your data only for legitimate purposes, including:</p>
+<ul><li>Providing the core functionality of the App<ul><li>account registration and login;</li><li>synchronizing your profile and meal history;</li><li>displaying statistics, recent entries and insights.</li></ul></li></ul>
+<ul><li>AI analysis of meals and lab results<ul><li>recognizing dishes from photos;</li><li>calculating approximate calories and macros;</li><li>generating nutrition and lifestyle suggestions;</li><li>analysing uploaded lab results and producing easy-to-read comments.</li></ul></li></ul>
+<ul><li>Personalisation and product improvement<ul><li>selecting relevant educational content and articles;</li><li>improving our AI and recommendation models (using anonymised and aggregated data);</li><li>usage analytics and debugging.</li></ul></li></ul>
+<ul><li>Communication with you<ul><li>service emails and in-app messages (for example, login codes, critical updates);</li><li>push notifications and reminders, if enabled;</li><li>responses to your support requests.</li></ul></li></ul>
+<ul><li>Legal compliance and protection<ul><li>responding to lawful requests from authorities;</li><li>preventing fraud, abuse and security incidents.</li></ul></li></ul>
+<h2>4. AI providers and third-party services</h2>
+<p>For image, text and lab-result analysis we may use third-party AI providers and cloud infrastructure.<br>Data is transmitted via encrypted channels and used only to provide the App’s features. We do not sell your personal data.</p>
+<h2>5. Legal bases for processing</h2>
+<p>Depending on your country, we process your data based on:</p>
+<ul><li>your consent (for example, for uploading photos, lab results, enabling notifications);</li><li>the need to perform our agreement with you (providing the services of the App);</li><li>our legitimate interests in improving the service and protecting users, while respecting your rights and expectations.</li></ul>
+<p>You may withdraw your consent at any time in the App settings or by contacting support.</p>
+<h2>6. Sharing your data</h2>
+<p>We may share data with:</p>
+<ul><li>cloud and infrastructure providers (hosting, storage, logs, analytics);</li><li>push notification and email delivery services;</li><li>payment and platform providers (App Store / Google Play);</li><li>public authorities, only where required by law.</li></ul>
+<p>Each partner receives only the data that is necessary for its role.</p>
+<h2>7. Data retention</h2>
+<p>We retain your data only as long as necessary:</p>
+<ul><li>account and profile data – while you actively use the App;</li><li>technical logs – for a limited period (for example 6–24 months);</li><li>legal and accounting records – for the period required by applicable law.</li></ul>
+<p>You may request deletion or anonymisation of your data (see “Your rights” below).</p>
+<h2>8. Your rights</h2>
+<p>Depending on applicable law, you may have the right to:</p>
+<ul><li>access your personal data;</li><li>correct inaccurate information;</li><li>request deletion of data when it is no longer needed;</li><li>restrict or object to certain types of processing;</li><li>receive a copy of your data in a portable format, where technically possible.</li></ul>
+<p>To exercise these rights, contact us at <a href="mailto:info@eatsense.ch">info@eatsense.ch</a>. We may ask you to verify your identity.</p>
+<h2>9. Security</h2>
+<p>We take reasonable technical and organisational measures to protect your data, including:</p>
+<ul><li>encrypted connections (HTTPS);</li><li>access control and logging;</li><li>monitoring for unusual activity.</li></ul>
+<p>No online service can guarantee 100% security, so please also protect access to your device and email.</p>
+<h2>10. Children</h2>
+<p>The App is not intended for children under 13 (or another minimum age defined by local law).<br>We do not knowingly collect data from such users. If you believe a child has provided us with personal data, please contact us so we can delete it.</p>
+<h2>11. Sharing with pharmacies and nutrition experts</h2>
+<p>When you place a medication order through a connected pharmacy, we share only the information needed to fulfil it: your name and the order details (medications, dosage, quantity, any prescription you attach and the order number). We never share your email address with pharmacies. When you choose to connect with a nutrition expert, we share only the data you explicitly consent to share (for example meal history or biomarkers); you can withdraw this consent at any time.</p>
+<h2>12. Exporting and managing your data</h2>
+<p>You can download a copy of the personal data we hold about you at any time directly in the App (Profile → Export my data). You can also review the consents you have given (Profile → My consents) and delete your account from the same screen.</p>
+<h2>13. Changes to this Policy</h2>
+<p>We may update this Privacy Policy from time to time. The latest version will always be available inside the App. When we make significant changes, we may show an additional notice or request renewed consent where required.</p>
     </main>
-    
-    <footer>
-        <p>&copy; 2026 EatSense. All rights reserved.</p>
-        <p style="margin-top: 10px;">
-            <a href="/privacy">Privacy Policy</a> · 
-            <a href="/terms">Terms of Use</a> · 
-            <a href="/support">Support</a>
-        </p>
+
+    <footer class="lfooter">
+        <a href="/" class="logo">
+            <svg viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#2D6B5A"/><path d="M10 26C10 26 12 17 18 17C24 17 26 26 26 26" stroke="#FAF8F5" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="13" r="1.5" fill="#B8976A"/><circle cx="22" cy="13" r="1.5" fill="#B8976A"/><circle cx="18" cy="10" r="1.5" fill="#B8976A"/></svg>
+            <span class="logo-text">EatSense</span>
+        </a>
+        <div class="lfooter-links">
+            <a href="/" data-i18n="footer.home">Home</a>
+            <a href="/privacy" data-i18n="footer.privacy">Privacy Policy</a>
+            <a href="/terms" data-i18n="footer.terms">Terms of Use</a>
+            <a href="/support" data-i18n="footer.support">Support</a>
+        </div>
+        <p class="lfooter-copy" data-i18n="footer.copy">© 2026 EatSense · Geneva, Switzerland · Made with Swiss precision.</p>
     </footer>
-    <!-- Cookie Banner -->
-    <div id="cookie-banner" style="position: fixed; bottom: 0; left: 0; right: 0; background: #2D5A27; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 9999; box-shadow: 0 -2px 10px rgba(0,0,0,0.2);">
-        <p style="margin: 0; font-size: 14px; flex: 1;">This website uses only essential cookies required for basic functionality. We do not use tracking or advertising cookies. <a href="/privacy" style="color: #8BC34A;">Learn more</a></p>
-        <button onclick="acceptCookies()" style="background: #8BC34A; color: #2D5A27; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600;">OK</button>
+
+    <div id="cookie-banner">
+        <p data-i18n="cookie.text">This website uses only essential cookies required for basic functionality. We do not use tracking or advertising cookies. <a href="/privacy">Learn more</a></p>
+        <button onclick="acceptCookies()" data-i18n="cookie.ok">OK</button>
     </div>
     <script>
-        if (localStorage.getItem('cookiesAccepted')) {
-            document.getElementById('cookie-banner').style.display = 'none';
+        const UI={"en": {"nav.privacy": "Privacy", "nav.terms": "Terms", "nav.support": "Support", "nav.cta": "Get the App", "hero.tag": "Legal", "footer.home": "Home", "footer.privacy": "Privacy Policy", "footer.terms": "Terms of Use", "footer.support": "Support", "footer.copy": "© 2026 EatSense · Geneva, Switzerland · Made with Swiss precision.", "cookie.text": "This website uses only essential cookies required for basic functionality. We do not use tracking or advertising cookies. <a href=\"/privacy\">Learn more</a>", "cookie.ok": "OK", "title.privacy": "Privacy Policy", "title.terms": "Terms of Use", "hero.title": "Privacy Policy"}, "de": {"nav.privacy": "Datenschutz", "nav.terms": "Nutzung", "nav.support": "Support", "nav.cta": "App holen", "hero.tag": "Rechtliches", "footer.home": "Start", "footer.privacy": "Datenschutz", "footer.terms": "Nutzungsbedingungen", "footer.support": "Support", "footer.copy": "© 2026 EatSense · Genf, Schweiz · Mit Schweizer Präzision gemacht.", "cookie.text": "Diese Website verwendet nur essenzielle Cookies für die Grundfunktionen. Wir nutzen keine Tracking- oder Werbe-Cookies. <a href=\"/privacy\">Mehr erfahren</a>", "cookie.ok": "OK", "title.privacy": "Datenschutzerklärung", "title.terms": "Nutzungsbedingungen", "hero.title": "Datenschutzerklärung"}, "fr": {"nav.privacy": "Confidentialité", "nav.terms": "Conditions", "nav.support": "Support", "nav.cta": "Obtenir l'app", "hero.tag": "Légal", "footer.home": "Accueil", "footer.privacy": "Politique de confidentialité", "footer.terms": "Conditions d'utilisation", "footer.support": "Support", "footer.copy": "© 2026 EatSense · Genève, Suisse · Conçu avec la précision suisse.", "cookie.text": "Ce site utilise uniquement des cookies essentiels au fonctionnement de base. Nous n'utilisons pas de cookies de suivi ou publicitaires. <a href=\"/privacy\">En savoir plus</a>", "cookie.ok": "OK", "title.privacy": "Politique de confidentialité", "title.terms": "Conditions d'utilisation", "hero.title": "Politique de confidentialité"}, "ru": {"nav.privacy": "Конфиденциальность", "nav.terms": "Условия", "nav.support": "Поддержка", "nav.cta": "Скачать", "hero.tag": "Правовая информация", "footer.home": "Главная", "footer.privacy": "Политика конфиденциальности", "footer.terms": "Условия использования", "footer.support": "Поддержка", "footer.copy": "© 2026 EatSense · Женева, Швейцария · Сделано со швейцарской точностью.", "cookie.text": "Этот сайт использует только необходимые для базовой работы файлы cookie. Мы не используем трекинговые или рекламные cookie. <a href=\"/privacy\">Подробнее</a>", "cookie.ok": "OK", "title.privacy": "Политика конфиденциальности", "title.terms": "Условия использования", "hero.title": "Политика конфиденциальности"}, "kk": {"nav.privacy": "Құпиялық", "nav.terms": "Шарттар", "nav.support": "Қолдау", "nav.cta": "Жүктеп алу", "hero.tag": "Құқықтық ақпарат", "footer.home": "Басты бет", "footer.privacy": "Құпиялылық саясаты", "footer.terms": "Қолдану шарттары", "footer.support": "Қолдау", "footer.copy": "© 2026 EatSense · Женева, Швейцария · Швейцариялық дәлдікпен жасалған.", "cookie.text": "Бұл сайт тек негізгі жұмыс үшін қажетті cookie файлдарын пайдаланады. Біз трекинг не жарнамалық cookie пайдаланбаймыз. <a href=\"/privacy\">Толығырақ</a>", "cookie.ok": "OK", "title.privacy": "Құпиялылық саясаты", "title.terms": "Қолдану шарттары", "hero.title": "Құпиялылық саясаты"}, "es": {"nav.privacy": "Privacidad", "nav.terms": "Términos", "nav.support": "Soporte", "nav.cta": "Obtener la app", "hero.tag": "Legal", "footer.home": "Inicio", "footer.privacy": "Política de privacidad", "footer.terms": "Términos de uso", "footer.support": "Soporte", "footer.copy": "© 2026 EatSense · Ginebra, Suiza · Hecho con precisión suiza.", "cookie.text": "Este sitio solo usa cookies esenciales para el funcionamiento básico. No usamos cookies de seguimiento ni publicidad. <a href=\"/privacy\">Más información</a>", "cookie.ok": "OK", "title.privacy": "Política de privacidad", "title.terms": "Términos de uso", "hero.title": "Política de privacidad"}};
+        const DOC={"en": "<p class=\"meta\">Last updated: 23 Jun 2026</p>\n<p>This Privacy Policy explains how the EatSense mobile application (“App”, “we”, “us”) collects, uses, and protects your personal data. By installing and using the App, you agree to the practices described here.</p>\n<h2>1. Who controls your data</h2>\n<p>The data controller is:<br>TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva<br>Contact email: <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a></p>\n<h2>2. What data we collect</h2>\n<p>We may collect and process the following categories of data:</p>\n<ul><li>Account data<ul><li>email address;</li><li>name and (optionally) surname;</li><li>interface language.</li></ul></li></ul>\n<ul><li>Profile and health-related data (non-medical)<ul><li>age, gender, height, weight;</li><li>goals (weight loss, maintenance, muscle gain);</li><li>diet type and eating habits (meals per day, snacking, etc.);</li><li>body measurements (for example, waist and hip size, approximate body fat);</li><li>health focus areas such as blood sugar, cholesterol and others, if you choose to specify them.</li></ul></li></ul>\n<ul><li>Food tracking and usage data<ul><li>photos of meals and text descriptions;</li><li>AI analysis results (calories, macros, “health” score);</li><li>saved meals and recent entries;</li><li>daily and monthly nutrition statistics.</li></ul></li></ul>\n<ul><li>Laboratory results (if you use this feature)<ul><li>uploaded photos or files of blood tests and other lab reports;</li><li>selected type of analysis (for example, complete blood count, biochemistry, lipid profile, etc.) or automatically detected type;</li><li>AI-generated comments and explanations based on your results.</li></ul></li></ul>\n<ul><li>Technical data<ul><li>device model, OS version, app version;</li><li>IP address, request time, internal identifiers;</li><li>push notification tokens;</li><li>client and server error logs.</li></ul></li></ul>\n<ul><li>Subscription data<ul><li>subscription status (Free / Pro);</li><li>information about purchases and renewals via App Store / Google Play (we do not store your card number or full payment details).</li></ul></li></ul>\n<p>We do not store data that directly identifies your bank card. Payments are processed by Apple, Google or other payment providers.</p>\n<h2>3. Why we use your data</h2>\n<p>We use your data only for legitimate purposes, including:</p>\n<ul><li>Providing the core functionality of the App<ul><li>account registration and login;</li><li>synchronizing your profile and meal history;</li><li>displaying statistics, recent entries and insights.</li></ul></li></ul>\n<ul><li>AI analysis of meals and lab results<ul><li>recognizing dishes from photos;</li><li>calculating approximate calories and macros;</li><li>generating nutrition and lifestyle suggestions;</li><li>analysing uploaded lab results and producing easy-to-read comments.</li></ul></li></ul>\n<ul><li>Personalisation and product improvement<ul><li>selecting relevant educational content and articles;</li><li>improving our AI and recommendation models (using anonymised and aggregated data);</li><li>usage analytics and debugging.</li></ul></li></ul>\n<ul><li>Communication with you<ul><li>service emails and in-app messages (for example, login codes, critical updates);</li><li>push notifications and reminders, if enabled;</li><li>responses to your support requests.</li></ul></li></ul>\n<ul><li>Legal compliance and protection<ul><li>responding to lawful requests from authorities;</li><li>preventing fraud, abuse and security incidents.</li></ul></li></ul>\n<h2>4. AI providers and third-party services</h2>\n<p>For image, text and lab-result analysis we may use third-party AI providers and cloud infrastructure.<br>Data is transmitted via encrypted channels and used only to provide the App’s features. We do not sell your personal data.</p>\n<h2>5. Legal bases for processing</h2>\n<p>Depending on your country, we process your data based on:</p>\n<ul><li>your consent (for example, for uploading photos, lab results, enabling notifications);</li><li>the need to perform our agreement with you (providing the services of the App);</li><li>our legitimate interests in improving the service and protecting users, while respecting your rights and expectations.</li></ul>\n<p>You may withdraw your consent at any time in the App settings or by contacting support.</p>\n<h2>6. Sharing your data</h2>\n<p>We may share data with:</p>\n<ul><li>cloud and infrastructure providers (hosting, storage, logs, analytics);</li><li>push notification and email delivery services;</li><li>payment and platform providers (App Store / Google Play);</li><li>public authorities, only where required by law.</li></ul>\n<p>Each partner receives only the data that is necessary for its role.</p>\n<h2>7. Data retention</h2>\n<p>We retain your data only as long as necessary:</p>\n<ul><li>account and profile data – while you actively use the App;</li><li>technical logs – for a limited period (for example 6–24 months);</li><li>legal and accounting records – for the period required by applicable law.</li></ul>\n<p>You may request deletion or anonymisation of your data (see “Your rights” below).</p>\n<h2>8. Your rights</h2>\n<p>Depending on applicable law, you may have the right to:</p>\n<ul><li>access your personal data;</li><li>correct inaccurate information;</li><li>request deletion of data when it is no longer needed;</li><li>restrict or object to certain types of processing;</li><li>receive a copy of your data in a portable format, where technically possible.</li></ul>\n<p>To exercise these rights, contact us at <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a>. We may ask you to verify your identity.</p>\n<h2>9. Security</h2>\n<p>We take reasonable technical and organisational measures to protect your data, including:</p>\n<ul><li>encrypted connections (HTTPS);</li><li>access control and logging;</li><li>monitoring for unusual activity.</li></ul>\n<p>No online service can guarantee 100% security, so please also protect access to your device and email.</p>\n<h2>10. Children</h2>\n<p>The App is not intended for children under 13 (or another minimum age defined by local law).<br>We do not knowingly collect data from such users. If you believe a child has provided us with personal data, please contact us so we can delete it.</p>\n<h2>11. Changes to this Policy</h2>\n<p>We may update this Privacy Policy from time to time. The latest version will always be available inside the App. When we make significant changes, we may show an additional notice or request renewed consent where required.</p>\n<h2>Sharing with pharmacies and nutrition experts</h2>\n<p>When you place a medication order through a connected pharmacy, we share only the information needed to fulfil it: your name and the order details (medications, dosage, quantity, any prescription you attach and the order number). We never share your email address with pharmacies. When you choose to connect with a nutrition expert, we share only the data you explicitly consent to share (for example meal history or biomarkers); you can withdraw this consent at any time.</p>\n<h2>Exporting and managing your data</h2>\n<p>You can download a copy of the personal data we hold about you at any time directly in the App (Profile → Export my data). You can also review the consents you have given (Profile → My consents) and delete your account from the same screen.</p>", "ru": "<p class=\"meta\">Дата обновления: 01.12.2025</p>\n<p>Настоящая Политика конфиденциальности описывает, как мобильное приложение EatSense (далее – «Приложение», «мы») собирает, использует и защищает персональные данные пользователей. Устанавливая и используя Приложение, вы подтверждаете, что ознакомились с данной Политикой и соглашаетесь с её условиями.</p>\n<h2>1. Оператор персональных данных</h2>\n<p>Оператором персональных данных является:<br>TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva<br>Email для связи: <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a></p>\n<h2>2. Какие данные мы собираем</h2>\n<p>Мы можем обрабатывать следующие категории данных:</p>\n<ul><li>Данные аккаунта<ul><li>адрес электронной почты;</li><li>имя и (при желании) фамилия;</li><li>язык интерфейса.</li></ul></li></ul>\n<ul><li>Данные профиля и здоровья (не медицинский диагноз)<ul><li>возраст, пол, рост, вес;</li><li>цели (похудение, поддержание веса, набор массы);</li><li>тип диеты и особенности питания (число приёмов пищи в день, перекусы и т.п.);</li><li>параметры тела (например, окружность талии и бёдер, ориентировочный процент жира);</li><li>приоритетные области здоровья, если вы их указываете (сахар, холестерин и др.).</li></ul></li></ul>\n<ul><li>Данные о питании и использовании Приложения<ul><li>фото блюд и текстовые описания;</li><li>результаты AI-анализа (калории, БЖУ, оценка «полезности»);</li><li>сохранённые записи и недавние блюда;</li><li>статистика по питанию за день, неделю, месяц.</li></ul></li></ul>\n<ul><li>Лабораторные анализы (если вы пользуетесь этой функцией)<ul><li>загруженные фотографии или файлы анализов (например, ОАК, биохимия, липидный профиль и т.д.);</li><li>выбранный или автоматически определённый тип анализа;</li><li>текстовые комментарии и объяснения, сгенерированные AI-ассистентом.</li></ul></li></ul>\n<ul><li>Технические данные<ul><li>модель устройства, версия ОС, версия Приложения;</li><li>IP-адрес, время запросов, внутренние идентификаторы;</li><li>токены для push-уведомлений;</li><li>логи ошибок клиента и сервера.</li></ul></li></ul>\n<ul><li>Данные подписки<ul><li>статус подписки (Free / Pro);</li><li>информация о покупке и продлении через App Store / Google Play.</li> Мы не храним полные данные банковских карт – ими управляет платёжная платформа.</ul></li></ul>\n<h2>3. Для чего мы используем данные</h2>\n<p>Ваши данные используются только для законных и понятных целей:</p>\n<ul><li>Работа Приложения<ul><li>регистрация и вход в аккаунт;</li><li>синхронизация профиля и истории питания;</li><li>показ статистики, недавних записей и рекомендаций.</li></ul></li></ul>\n<ul><li>AI-анализ питания и анализов<ul><li>распознавание блюд по фотографиям;</li><li>расчёт примерных калорий и БЖУ;</li><li>рекомендации по питанию и образу жизни;</li><li>анализ загруженных лабораторных результатов и формирование понятных пояснений.</li></ul></li></ul>\n<ul><li>Персонализация и улучшение сервиса<ul><li>подбор релевантных статей и обучающих материалов;</li><li>улучшение алгоритмов и AI-моделей (на основе обезличенных и агрегированных данных);</li><li>аналитика использования и поиск ошибок.</li></ul></li></ul>\n<ul><li>Коммуникация с пользователем<ul><li>сервисные сообщения (например, коды входа);</li><li>push-уведомления и напоминания, если они включены;</li><li>ответы службы поддержки.</li></ul></li></ul>\n<ul><li>Юридические цели и безопасность<ul><li>выполнение требований законодательства;</li><li>защита от мошенничества, злоупотреблений и атак.</li></ul></li></ul>\n<h2>4. AI и сторонние сервисы</h2>\n<p>Для анализа изображений, текстов и лабораторных данных мы можем использовать сторонние AI-провайдеры и облачную инфраструктуру.<br>Передача данных происходит по защищённым каналам и только в объёме, необходимом для работы функций Приложения. Мы не продаём ваши персональные данные.</p>\n<h2>5. Правовые основания обработки</h2>\n<p>В зависимости от юрисдикции мы обрабатываем данные на следующих основаниях:</p>\n<ul><li>ваше согласие (например, на загрузку фотографий, анализов, получение уведомлений);</li><li>необходимость исполнения пользовательского соглашения (оказание услуг Приложения);</li><li>законный интерес в улучшении сервиса и обеспечении безопасности при соблюдении ваших прав.</li></ul>\n<p>Вы можете в любой момент отозвать согласие в настройках или обратившись в поддержку.</p>\n<h2>6. Передача данных третьим лицам</h2>\n<p>Данные могут передаваться:</p>\n<ul><li>облачным и техническим провайдерам (хостинг, хранение файлов, аналитика, логи);</li><li>сервисам рассылки и push-уведомлений;</li><li>платёжным и платформенным провайдерам (App Store / Google Play);</li><li>государственным органам – только в случаях, предусмотренных законом.</li></ul>\n<p>Каждый партнёр получает только тот объём данных, который необходим для его работы.</p>\n<h2>7. Сроки хранения</h2>\n<p>Мы храним данные столько, сколько это действительно нужно:</p>\n<ul><li>данные аккаунта и профиля – пока вы пользуетесь Приложением;</li><li>технические логи – ограниченный срок (обычно 6–24 месяца);</li><li>данные для отчётности – в сроки, установленные законом.</li></ul>\n<p>Вы можете запросить удаление или обезличивание данных.</p>\n<h2>8. Ваши права</h2>\n<p>В пределах применимого законодательства вы можете:</p>\n<ul><li>запрашивать информацию о своих данных;</li><li>исправлять неточные данные;</li><li>требовать удаления данных, если нет законных оснований хранить их дальше;</li><li>ограничивать или оспаривать определённые виды обработки;</li><li>получать копию данных в машиночитаемом виде, если это применимо.</li></ul>\n<p>По вопросам реализации прав напишите на <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a>. Мы можем запросить подтверждение личности.</p>\n<h2>9. Безопасность</h2>\n<p>Мы используем технические и организационные меры защиты:</p>\n<ul><li>шифрование соединения (HTTPS);</li><li>контроль доступа и логирование;</li><li>мониторинг подозрительной активности.</li></ul>\n<p>Однако ни один онлайн-сервис не может гарантировать абсолютную безопасность, поэтому рекомендуем также защищать доступ к вашему устройству и почте.</p>\n<h2>10. Дети</h2>\n<p>Приложение не предназначено для детей младше 13 лет (или иного возраста, установленного местным законом). Мы сознательно не собираем данные таких пользователей. Если вы считаете, что ребёнок предоставил нам свои данные без согласия родителей, сообщите нам – мы удалим эту информацию.</p>\n<h2>11. Изменения Политики</h2>\n<p>Мы можем периодически обновлять Политику конфиденциальности. Актуальная версия всегда доступна в Приложении. При существенных изменениях мы можем отобразить дополнительное уведомление или запросить повторное согласие, если это требуется законом.</p>\n<h2>Передача данных аптекам и экспертам</h2>\n<p>Когда вы оформляете заказ лекарств через подключённую аптеку, мы передаём только данные, необходимые для его выполнения: ваше имя и сведения о заказе (препараты, дозировка, количество, приложенный рецепт и номер заказа). Мы никогда не передаём аптекам ваш адрес электронной почты. Если вы решаете связаться с экспертом по питанию, мы передаём только те данные, на передачу которых вы дали явное согласие (например, историю питания или биомаркеры); вы можете отозвать это согласие в любой момент.</p>\n<h2>Экспорт и управление данными</h2>\n<p>Вы можете в любой момент скачать копию своих персональных данных прямо в Приложении (Профиль → «Выгрузить мои данные»). Также вы можете просмотреть данные согласия (Профиль → «Мои согласия») и удалить аккаунт на том же экране.</p>", "kk": "<p class=\"meta\">Жаңартылған күні: 23.06.2026</p>\n<p>Осы Құпиялылық саясаты EatSense мобильді қосымшасы («Қосымша», «біз») пайдаланушылардың дербес деректерін қалай жинайтынын, қолданатынын және қорғайтынын түсіндіреді. Қосымшаны орнатып, пайдалану арқылы сіз осы Саясатпен танысып, оның шарттарымен келісесіз.</p>\n<h2>1. Деректер үшін жауапты тұлға</h2>\n<p>Деректер операторы:<br>TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva<br>Байланыс email: <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a></p>\n<h2>2. Қандай деректерді жинаймыз</h2>\n<p>Біз келесі санаттағы деректерді өңдеуіміз мүмкін:</p>\n<ul><li>Аккаунт деректері<ul><li>электрондық пошта мекенжайы;</li><li>аты және (қаласаңыз) тегі;</li><li>интерфейс тілі.</li></ul></li></ul>\n<ul><li>Профиль және денсаулыққа қатысты деректер (медициналық диагноз емес)<ul><li>жас, жыныс, бой, салмақ;</li><li>мақсаттар (салмақ тастау, сақтау, салмақ қосу);</li><li>диета түрі және тамақтану әдеттері (күніне қанша рет тамақтану, жеңіл тағамдар және т.б.);</li><li>дене көрсеткіштері (мысалы, бел және жамбас көлемі, шамамен май пайызы);</li><li>сіз көрсететін басты денсаулық бағыттары (қант, холестерин және т.б.).</li></ul></li></ul>\n<ul><li>Тамақтану және қосымшаны пайдалану деректері<ul><li>тағам суреттері және мәтіндік сипаттамалары;</li><li>AI-талдау нәтижелері (калория, БЖҚ, «пайдалылық» бағасы);</li><li>сақталған жазбалар және соңғы тағамдар;</li><li>күндік және айлық статистика.</li></ul></li></ul>\n<ul><li>Зертханалық анализдер (егер осы функцияны қолдансаңыз)<ul><li>қан талдаулары мен басқа да анализдердің фотосуреттері немесе файлдары;</li><li>анализ түрін таңдау немесе оның автоматты анықталуы;</li><li>AI-ассистент жасаған түсініктемелер мен кеңестер.</li></ul></li></ul>\n<ul><li>Техникалық деректер<ul><li>құрылғы моделі, ОЖ нұсқасы, Қосымша нұсқасы;</li><li>IP-мекенжай, сұрау уақыты, ішкі идентификаторлар;</li><li>push-хабарламалар үшін токендер;</li><li>клиент пен сервер қателерінің логтары.</li></ul></li></ul>\n<ul><li>Жазылым деректері<ul><li>жазылым мәртебесі (Free / Pro);</li><li>App Store / Google Play арқылы сатып алу және жаңарту туралы ақпарат.</li> Біз банк картасының толық деректерін сақтамаймыз – оларды төлем платформасы өңдейді.</ul></li></ul>\n<h2>3. Деректерді не үшін қолданамыз</h2>\n<p>Деректеріңіз келесі заңды мақсаттар үшін пайдаланылады:</p>\n<ul><li>Қосымшаның негізгі жұмысын қамтамасыз ету<ul><li>аккаунтты тіркеу және жүйеге кіру;</li><li>профиль мен тамақтану тарихын синхрондау;</li><li>статистика мен ұсыныстарды көрсету.</li></ul></li></ul>\n<ul><li>Тамақ және анализдерді AI-талдау<ul><li>фотосуреттерден тағамды анықтау;</li><li>шамамен калория мен БЖҚ есептеу;</li><li>тамақтану және өмір салты бойынша кеңестер;</li><li>зертханалық анализдерге түсініктеме беру.</li></ul></li></ul>\n<ul><li>Жеке бейімдеу және сервисті жақсарту<ul><li>сізге пайдалы мақалалар мен материалдарды таңдау;</li><li>алгоритмдер мен AI-модельдерді жақсарту (анонимделген және агрегатталған деректер негізінде);</li><li>қателерді табу және пайдалану статистикасы.</li></ul></li></ul>\n<ul><li>Байланыс<ul><li>қызметтік хабарламалар (мысалы, кіру кодтары);</li><li>push-хабарламалар мен еске салғыштар (егер қосулы болса);</li><li>қолдау қызметінің жауаптары.</li></ul></li></ul>\n<ul><li>Заң талаптары және қауіпсіздік<ul><li>заңды талаптарды орындау;</li><li>алаяқтық пен шабуылдардан қорғау.</li></ul></li></ul>\n<h2>4. AI және үшінші тарап сервистері</h2>\n<p>Біз суреттерді, мәтіндерді және анализдер деректерін өңдеу үшін AI-провайдерлер мен бұлттық инфрақұрылымды қолдануымыз мүмкін.<br>Деректер шифрланған арналар арқылы беріледі және тек Қосымша функцияларын орындау үшін қолданылады. Біз сіздің дербес деректеріңізді сатпаймыз.</p>\n<h2>5. Өңдеудің құқықтық негіздері</h2>\n<p>Еліңізге байланысты біз деректерді келесі негіздерде өңдейміз:</p>\n<ul><li>сіздің келісіміңіз (мысалы, фотоларды, анализдерді жүктеу, хабарламалар алу);</li><li>сізбен жасалған келісімді орындау (Қосымша қызметтерін көрсету);</li><li>сервисті жақсарту және қауіпсіздік бойынша заңды мүдде (сіздің құқықтарыңызды ескере отырып).</li></ul>\n<p>Келісімді кез келген уақытта Қосымша баптауларында немесе қолдауға жаза отырып кері қайтарып аласыз.</p>\n<h2>6. Деректерді үшінші тұлғаларға беру</h2>\n<p>Деректер келесі тұлғаларға берілуі мүмкін:</p>\n<ul><li>бұлттық және техникалық провайдерлерге (хостинг, сақтау, логтар, аналитика);</li><li>push-хабарлама және email жіберу сервистеріне;</li><li>төлем және платформа провайдерлеріне (App Store / Google Play);</li><li>мемлекеттік органдарға – заң талап еткен жағдайда ғана.</li></ul>\n<p>Әр серіктес өз міндетін орындау үшін қажетті деректер көлемін ғана алады.</p>\n<h2>7. Деректерді сақтау мерзімі</h2>\n<p>Біз деректерді тек қажетті мерзімге сақтаймыз:</p>\n<ul><li>аккаунт және профиль деректері – Қосымшаны белсенді пайдаланған кезде;</li><li>техникалық логтар – шектеулі уақыт аралығында (әдетте 6–24 ай);</li><li>заң және есептілік үшін қажет деректер – заңда көрсетілген мерзімге.</li></ul>\n<p>Сіз деректерді жоюды немесе анонимдеуді сұрай аласыз.</p>\n<h2>8. Сіздің құқықтарыңыз</h2>\n<p>Қолданылатын заңнамаға сәйкес сізде келесі құқықтар болуы мүмкін:</p>\n<ul><li>өз деректеріңізге қол жеткізу;</li><li>дұрыс емес ақпаратты түзету;</li><li>деректерді жоюды талап ету (егер олар қажет болмаса);</li><li>белгілі бір өңдеу түрлеріне шектеу қою немесе қарсы болу;</li><li>деректердің көшірмесін машиночитілетін форматта алу (техникалық мүмкін болса).</li></ul>\n<p>Құқықтарыңызды жүзеге асыру үшін <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a> мекенжайына жазыңыз. Біз жеке басыңызды растауды сұрай алуымыз мүмкін.</p>\n<h2>9. Қауіпсіздік</h2>\n<p>Біз деректерді қорғау үшін техникалық және ұйымдастырушылық шаралар қолданамыз:</p>\n<ul><li>HTTPS арқылы шифрланған байланыс;</li><li>қолжетімділікті бақылау және логтау;</li><li>күмәнді белсенділікті бақылау.</li></ul>\n<p>Интернет-қызметтердің ешқайсысы абсолютті қауіпсіздікке кепілдік бере алмайды, сондықтан құрылғыңыз бен поштаңызға кіруді де өзіңіз қорғауыңыз маңызды.</p>\n<h2>10. Балалар</h2>\n<p>Қосымша 13 жасқа дейінгі балаларға (немесе жергілікті заңнамадағы басқа жас шегіне) арналмаған. Біз мұндай қолданушылардың деректерін әдейі жинамаймыз. Егер бала бізге ата-анасының рұқсатынсыз деректер берді деп ойласаңыз, бізге хабарласыңыз – біз ол ақпаратты өшіреміз.</p>\n<h2>11. Осы саясаттағы өзгерістер</h2>\n<p>Біз Құпиялылық саясатын мезгіл-мезгіл жаңарта аламыз. Ең соңғы нұсқа әрдайым Қосымша ішінде қолжетімді. Маңызды өзгерістер енгізілген жағдайда қосымша хабарлама көрсетуіміз мүмкін.</p>\n<h2>Дәріханалар мен сарапшыларға деректерді беру</h2>\n<p>Қосылған дәріхана арқылы дәрі тапсырысын бергенде, біз оны орындауға қажетті деректерді ғана береміз: атыңыз және тапсырыс мәліметтері (дәрілер, дозасы, саны, тіркелген рецепт және тапсырыс нөмірі). Біз дәріханаларға электрондық поштаңызды ешқашан бермейміз. Тамақтану сарапшысымен байланысуды таңдасаңыз, біз тек сіз нақты келісім берген деректерді береміз (мысалы, тамақтану тарихы немесе биомаркерлер); бұл келісімді кез келген уақытта қайтарып ала аласыз.</p>\n<h2>Деректерді жүктеу және басқару</h2>\n<p>Жеке деректеріңіздің көшірмесін кез келген уақытта Қосымшада тікелей жүктеп ала аласыз (Профиль → «Деректерімді жүктеу»). Сондай-ақ берген келісімдеріңізді қарап (Профиль → «Менің келісімдерім») және осы экранда аккаунтты жоя аласыз.</p>", "fr": "<p class=\"meta\">Dernière mise à jour : 23 juin 2026</p>\n<p>La présente Politique de confidentialité explique comment l’application mobile EatSense (« l’App », « nous ») collecte, utilise et protège vos données personnelles. En installant et en utilisant l’App, vous acceptez les pratiques décrites ci-dessous.</p>\n<h2>1. Responsable du traitement</h2>\n<p>Le responsable du traitement est :<br>TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Genève<br>E-mail de contact : <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a></p>\n<h2>2. Données que nous collectons</h2>\n<p>Nous pouvons collecter et traiter les catégories de données suivantes :</p>\n<ul><li>Données de compte<ul><li>adresse e-mail ;</li><li>prénom et (facultativement) nom ;</li><li>langue de l’interface.</li></ul></li></ul>\n<ul><li>Données de profil et liées à la santé (non médicales)<ul><li>âge, sexe, taille, poids ;</li><li>objectifs (perte de poids, maintien, prise de masse) ;</li><li>type de régime et habitudes alimentaires (nombre de repas par jour, grignotage, etc.) ;</li><li>mesures corporelles (par ex. tour de taille et de hanches, pourcentage de graisse approximatif) ;</li><li>domaines de santé prioritaires tels que la glycémie, le cholestérol, si vous choisissez de les indiquer.</li></ul></li></ul>\n<ul><li>Données de suivi alimentaire et d’utilisation<ul><li>photos de repas et descriptions textuelles ;</li><li>résultats de l’analyse IA (calories, macros, score « santé ») ;</li><li>repas enregistrés et entrées récentes ;</li><li>statistiques nutritionnelles quotidiennes et mensuelles.</li></ul></li></ul>\n<ul><li>Résultats de laboratoire (si vous utilisez cette fonction)<ul><li>photos ou fichiers de prises de sang et autres analyses ;</li><li>type d’analyse sélectionné ou détecté automatiquement ;</li><li>commentaires et explications générés par l’IA à partir de vos résultats.</li></ul></li></ul>\n<ul><li>Données techniques<ul><li>modèle d’appareil, version de l’OS, version de l’App ;</li><li>adresse IP, heure des requêtes, identifiants internes ;</li><li>jetons de notification push ;</li><li>journaux d’erreurs client et serveur.</li></ul></li></ul>\n<ul><li>Données d’abonnement<ul><li>statut d’abonnement (Free / Pro) ;</li><li>informations sur les achats et renouvellements via App Store / Google Play (nous ne conservons pas votre numéro de carte ni vos coordonnées de paiement complètes).</li></ul></li></ul>\n<p>Nous ne stockons pas de données identifiant directement votre carte bancaire. Les paiements sont traités par Apple, Google ou d’autres prestataires de paiement.</p>\n<h2>3. Pourquoi nous utilisons vos données</h2>\n<p>Nous utilisons vos données uniquement à des fins légitimes, notamment :</p>\n<ul><li>Fournir les fonctionnalités essentielles de l’App<ul><li>inscription et connexion au compte ;</li><li>synchronisation de votre profil et de votre historique de repas ;</li><li>affichage des statistiques, des entrées récentes et des recommandations.</li></ul></li></ul>\n<ul><li>Analyse IA des repas et des résultats de laboratoire<ul><li>reconnaissance des plats à partir de photos ;</li><li>calcul approximatif des calories et des macros ;</li><li>génération de suggestions nutritionnelles et de mode de vie ;</li><li>analyse des résultats de laboratoire et production de commentaires faciles à comprendre.</li></ul></li></ul>\n<ul><li>Personnalisation et amélioration du produit<ul><li>sélection de contenus éducatifs pertinents ;</li><li>amélioration de nos modèles d’IA et de recommandation (à partir de données anonymisées et agrégées) ;</li><li>analyses d’utilisation et débogage.</li></ul></li></ul>\n<ul><li>Communication avec vous<ul><li>e-mails de service et messages dans l’App (par ex. codes de connexion, mises à jour critiques) ;</li><li>notifications push et rappels, si activés ;</li><li>réponses à vos demandes d’assistance.</li></ul></li></ul>\n<ul><li>Conformité légale et protection<ul><li>réponse aux demandes légales des autorités ;</li><li>prévention de la fraude, des abus et des incidents de sécurité.</li></ul></li></ul>\n<h2>4. Fournisseurs d’IA et services tiers</h2>\n<p>Pour l’analyse des images, des textes et des résultats de laboratoire, nous pouvons recourir à des fournisseurs d’IA tiers et à une infrastructure cloud. Les données sont transmises via des canaux chiffrés et utilisées uniquement pour fournir les fonctionnalités de l’App. Nous ne vendons pas vos données personnelles.</p>\n<h2>5. Bases légales du traitement</h2>\n<p>Selon votre pays, nous traitons vos données sur la base de :</p>\n<ul><li>votre consentement (par ex. pour le téléchargement de photos, de résultats de laboratoire, l’activation des notifications) ;</li><li>la nécessité d’exécuter notre contrat avec vous (fourniture des services de l’App) ;</li><li>nos intérêts légitimes à améliorer le service et à protéger les utilisateurs, dans le respect de vos droits.</li></ul>\n<p>Vous pouvez retirer votre consentement à tout moment dans les réglages de l’App ou en contactant l’assistance.</p>\n<h2>6. Partage de vos données</h2>\n<p>Nous pouvons partager des données avec :</p>\n<ul><li>des fournisseurs cloud et d’infrastructure (hébergement, stockage, journaux, analyses) ;</li><li>des services d’envoi de notifications push et d’e-mails ;</li><li>des prestataires de paiement et de plateforme (App Store / Google Play) ;</li><li>des autorités publiques, uniquement lorsque la loi l’exige.</li></ul>\n<p>Chaque partenaire ne reçoit que les données nécessaires à son rôle.</p>\n<h2>7. Conservation des données</h2>\n<p>Nous conservons vos données seulement le temps nécessaire :</p>\n<ul><li>données de compte et de profil – tant que vous utilisez activement l’App ;</li><li>journaux techniques – pour une durée limitée (par ex. 6–24 mois) ;</li><li>registres légaux et comptables – pour la durée requise par la loi applicable.</li></ul>\n<p>Vous pouvez demander la suppression ou l’anonymisation de vos données (voir « Vos droits » ci-dessous).</p>\n<h2>8. Vos droits</h2>\n<p>Selon la loi applicable, vous pouvez avoir le droit de :</p>\n<ul><li>accéder à vos données personnelles ;</li><li>corriger des informations inexactes ;</li><li>demander la suppression des données lorsqu’elles ne sont plus nécessaires ;</li><li>limiter ou vous opposer à certains traitements ;</li><li>recevoir une copie de vos données dans un format portable, lorsque cela est techniquement possible.</li></ul>\n<p>Pour exercer ces droits, contactez-nous à <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a>. Nous pouvons vous demander de vérifier votre identité.</p>\n<h2>9. Sécurité</h2>\n<p>Nous prenons des mesures techniques et organisationnelles raisonnables pour protéger vos données, notamment :</p>\n<ul><li>connexions chiffrées (HTTPS) ;</li><li>contrôle d’accès et journalisation ;</li><li>surveillance des activités inhabituelles.</li></ul>\n<p>Aucun service en ligne ne peut garantir une sécurité à 100 %, veillez donc aussi à protéger l’accès à votre appareil et à votre messagerie.</p>\n<h2>10. Enfants</h2>\n<p>L’App n’est pas destinée aux enfants de moins de 13 ans (ou un autre âge minimum défini par la loi locale). Nous ne collectons pas sciemment de données de ces utilisateurs. Si vous pensez qu’un enfant nous a fourni des données personnelles, contactez-nous afin que nous puissions les supprimer.</p>\n<h2>11. Modifications de cette Politique</h2>\n<p>Nous pouvons mettre à jour cette Politique de confidentialité de temps à autre. La dernière version sera toujours disponible dans l’App. En cas de changements importants, nous pouvons afficher un avis supplémentaire ou demander un nouveau consentement lorsque cela est requis.</p>\n<h2>Partage avec les pharmacies et les experts en nutrition</h2>\n<p>Lorsque vous passez une commande de médicaments via une pharmacie connectée, nous ne partageons que les informations nécessaires à son traitement : votre nom et les détails de la commande (médicaments, dosage, quantité, ordonnance éventuellement jointe et numéro de commande). Nous ne communiquons jamais votre adresse e-mail aux pharmacies. Lorsque vous choisissez de vous connecter à un expert en nutrition, nous ne partageons que les données pour lesquelles vous avez donné un consentement explicite (par exemple l’historique des repas ou les biomarqueurs) ; vous pouvez retirer ce consentement à tout moment.</p>\n<h2>Exporter et gérer vos données</h2>\n<p>Vous pouvez télécharger une copie des données personnelles que nous détenons à votre sujet à tout moment directement dans l’App (Profil → « Exporter mes données »). Vous pouvez également consulter les consentements que vous avez donnés (Profil → « Mes consentements ») et supprimer votre compte depuis le même écran.</p>", "de": "<p class=\"meta\">Zuletzt aktualisiert: 23. Juni 2026</p>\n<p>Diese Datenschutzerklärung erläutert, wie die mobile App EatSense („App“, „wir“) Ihre personenbezogenen Daten erhebt, verwendet und schützt. Mit der Installation und Nutzung der App erklären Sie sich mit den hier beschriebenen Praktiken einverstanden.</p>\n<h2>1. Wer Ihre Daten verantwortet</h2>\n<p>Verantwortlicher ist:<br>TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Genf<br>Kontakt-E-Mail: <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a></p>\n<h2>2. Welche Daten wir erheben</h2>\n<p>Wir können folgende Datenkategorien erheben und verarbeiten:</p>\n<ul><li>Kontodaten<ul><li>E-Mail-Adresse;</li><li>Vorname und (optional) Nachname;</li><li>Sprache der Benutzeroberfläche.</li></ul></li></ul>\n<ul><li>Profil- und gesundheitsbezogene Daten (nicht medizinisch)<ul><li>Alter, Geschlecht, Größe, Gewicht;</li><li>Ziele (Gewichtsabnahme, Erhaltung, Muskelaufbau);</li><li>Ernährungsform und Essgewohnheiten (Mahlzeiten pro Tag, Snacking usw.);</li><li>Körpermaße (z. B. Taillen- und Hüftumfang, ungefährer Körperfettanteil);</li><li>Gesundheitsschwerpunkte wie Blutzucker, Cholesterin u. a., sofern Sie diese angeben.</li></ul></li></ul>\n<ul><li>Daten zur Ernährungserfassung und Nutzung<ul><li>Fotos von Mahlzeiten und Textbeschreibungen;</li><li>Ergebnisse der KI-Analyse (Kalorien, Makros, „Gesundheits“-Score);</li><li>gespeicherte Mahlzeiten und letzte Einträge;</li><li>tägliche und monatliche Ernährungsstatistiken.</li></ul></li></ul>\n<ul><li>Laborergebnisse (wenn Sie diese Funktion nutzen)<ul><li>hochgeladene Fotos oder Dateien von Bluttests und anderen Laborberichten;</li><li>ausgewählter oder automatisch erkannter Analysetyp;</li><li>KI-generierte Kommentare und Erläuterungen zu Ihren Ergebnissen.</li></ul></li></ul>\n<ul><li>Technische Daten<ul><li>Gerätemodell, Betriebssystemversion, App-Version;</li><li>IP-Adresse, Anfragezeit, interne Kennungen;</li><li>Push-Benachrichtigungs-Token;</li><li>Fehlerprotokolle von Client und Server.</li></ul></li></ul>\n<ul><li>Abonnementdaten<ul><li>Abonnementstatus (Free / Pro);</li><li>Informationen zu Käufen und Verlängerungen über App Store / Google Play (wir speichern keine Kartennummer oder vollständigen Zahlungsdaten).</li></ul></li></ul>\n<p>Wir speichern keine Daten, die Ihre Bankkarte direkt identifizieren. Zahlungen werden von Apple, Google oder anderen Zahlungsanbietern abgewickelt.</p>\n<h2>3. Wofür wir Ihre Daten verwenden</h2>\n<p>Wir verwenden Ihre Daten nur zu legitimen Zwecken, darunter:</p>\n<ul><li>Bereitstellung der Kernfunktionen der App<ul><li>Kontoregistrierung und Anmeldung;</li><li>Synchronisierung Ihres Profils und Ihrer Mahlzeitenhistorie;</li><li>Anzeige von Statistiken, letzten Einträgen und Empfehlungen.</li></ul></li></ul>\n<ul><li>KI-Analyse von Mahlzeiten und Laborergebnissen<ul><li>Erkennung von Gerichten aus Fotos;</li><li>Berechnung ungefährer Kalorien und Makros;</li><li>Erstellung von Ernährungs- und Lebensstil-Vorschlägen;</li><li>Auswertung hochgeladener Laborergebnisse und verständliche Kommentare.</li></ul></li></ul>\n<ul><li>Personalisierung und Produktverbesserung<ul><li>Auswahl relevanter Lerninhalte;</li><li>Verbesserung unserer KI- und Empfehlungsmodelle (mit anonymisierten und aggregierten Daten);</li><li>Nutzungsanalyse und Fehlerbehebung.</li></ul></li></ul>\n<ul><li>Kommunikation mit Ihnen<ul><li>Service-E-Mails und In-App-Nachrichten (z. B. Anmeldecodes, kritische Updates);</li><li>Push-Benachrichtigungen und Erinnerungen, sofern aktiviert;</li><li>Antworten auf Ihre Support-Anfragen.</li></ul></li></ul>\n<ul><li>Einhaltung gesetzlicher Vorgaben und Schutz<ul><li>Beantwortung rechtmäßiger Anfragen von Behörden;</li><li>Verhinderung von Betrug, Missbrauch und Sicherheitsvorfällen.</li></ul></li></ul>\n<h2>4. KI-Anbieter und Drittdienste</h2>\n<p>Für die Analyse von Bildern, Texten und Laborergebnissen können wir KI-Anbieter von Drittanbietern und Cloud-Infrastruktur einsetzen. Daten werden über verschlüsselte Kanäle übertragen und nur zur Bereitstellung der App-Funktionen verwendet. Wir verkaufen Ihre personenbezogenen Daten nicht.</p>\n<h2>5. Rechtsgrundlagen der Verarbeitung</h2>\n<p>Je nach Land verarbeiten wir Ihre Daten auf Grundlage von:</p>\n<ul><li>Ihrer Einwilligung (z. B. zum Hochladen von Fotos, Laborergebnissen, zur Aktivierung von Benachrichtigungen);</li><li>der Erforderlichkeit zur Erfüllung unseres Vertrags mit Ihnen (Bereitstellung der App-Dienste);</li><li>unseren berechtigten Interessen an der Verbesserung des Dienstes und am Schutz der Nutzer, unter Wahrung Ihrer Rechte.</li></ul>\n<p>Sie können Ihre Einwilligung jederzeit in den App-Einstellungen oder durch Kontaktaufnahme mit dem Support widerrufen.</p>\n<h2>6. Weitergabe Ihrer Daten</h2>\n<p>Wir können Daten weitergeben an:</p>\n<ul><li>Cloud- und Infrastrukturanbieter (Hosting, Speicherung, Protokolle, Analysen);</li><li>Dienste für Push-Benachrichtigungen und E-Mail-Versand;</li><li>Zahlungs- und Plattformanbieter (App Store / Google Play);</li><li>Behörden, nur soweit gesetzlich vorgeschrieben.</li></ul>\n<p>Jeder Partner erhält nur die für seine Rolle erforderlichen Daten.</p>\n<h2>7. Speicherdauer</h2>\n<p>Wir speichern Ihre Daten nur so lange wie nötig:</p>\n<ul><li>Konto- und Profildaten – solange Sie die App aktiv nutzen;</li><li>technische Protokolle – für einen begrenzten Zeitraum (z. B. 6–24 Monate);</li><li>rechtliche und buchhalterische Unterlagen – für den gesetzlich vorgeschriebenen Zeitraum.</li></ul>\n<p>Sie können die Löschung oder Anonymisierung Ihrer Daten verlangen (siehe „Ihre Rechte“ unten).</p>\n<h2>8. Ihre Rechte</h2>\n<p>Je nach geltendem Recht haben Sie möglicherweise das Recht:</p>\n<ul><li>auf Ihre personenbezogenen Daten zuzugreifen;</li><li>unrichtige Informationen zu berichtigen;</li><li>die Löschung von Daten zu verlangen, wenn sie nicht mehr benötigt werden;</li><li>bestimmte Verarbeitungen einzuschränken oder ihnen zu widersprechen;</li><li>eine Kopie Ihrer Daten in einem übertragbaren Format zu erhalten, soweit technisch möglich.</li></ul>\n<p>Zur Ausübung dieser Rechte kontaktieren Sie uns unter <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a>. Wir können Sie bitten, Ihre Identität zu bestätigen.</p>\n<h2>9. Sicherheit</h2>\n<p>Wir treffen angemessene technische und organisatorische Maßnahmen zum Schutz Ihrer Daten, darunter:</p>\n<ul><li>verschlüsselte Verbindungen (HTTPS);</li><li>Zugriffskontrolle und Protokollierung;</li><li>Überwachung auf ungewöhnliche Aktivitäten.</li></ul>\n<p>Kein Online-Dienst kann 100 % Sicherheit garantieren; schützen Sie daher auch den Zugang zu Ihrem Gerät und Ihrer E-Mail.</p>\n<h2>10. Kinder</h2>\n<p>Die App ist nicht für Kinder unter 13 Jahren (oder ein anderes nach lokalem Recht festgelegtes Mindestalter) bestimmt. Wir erheben wissentlich keine Daten solcher Nutzer. Wenn Sie glauben, dass ein Kind uns personenbezogene Daten übermittelt hat, kontaktieren Sie uns, damit wir diese löschen können.</p>\n<h2>11. Änderungen dieser Erklärung</h2>\n<p>Wir können diese Datenschutzerklärung von Zeit zu Zeit aktualisieren. Die neueste Version ist stets in der App verfügbar. Bei wesentlichen Änderungen können wir einen zusätzlichen Hinweis anzeigen oder, sofern erforderlich, eine erneute Einwilligung einholen.</p>\n<h2>Weitergabe an Apotheken und Ernährungsexperten</h2>\n<p>Wenn Sie über eine verbundene Apotheke eine Medikamentenbestellung aufgeben, geben wir nur die zur Bearbeitung erforderlichen Informationen weiter: Ihren Namen und die Bestelldetails (Medikamente, Dosierung, Menge, ein ggf. beigefügtes Rezept und die Bestellnummer). Ihre E-Mail-Adresse geben wir niemals an Apotheken weiter. Wenn Sie sich mit einem Ernährungsexperten verbinden, geben wir nur die Daten weiter, denen Sie ausdrücklich zugestimmt haben (z. B. Mahlzeitenverlauf oder Biomarker); Sie können diese Einwilligung jederzeit widerrufen.</p>\n<h2>Daten exportieren und verwalten</h2>\n<p>Sie können jederzeit direkt in der App eine Kopie der personenbezogenen Daten herunterladen, die wir über Sie gespeichert haben (Profil → „Meine Daten exportieren“). Außerdem können Sie die erteilten Einwilligungen einsehen (Profil → „Meine Einwilligungen“) und Ihr Konto auf demselben Bildschirm löschen.</p>", "es": "<p class=\"meta\">Última actualización: 23 jun. 2026</p>\n<p>Esta Política de Privacidad explica cómo la aplicación móvil EatSense («la App», «nosotros») recopila, utiliza y protege sus datos personales. Al instalar y usar la App, usted acepta las prácticas aquí descritas.</p>\n<h2>1. Quién controla sus datos</h2>\n<p>El responsable del tratamiento es:<br>TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Ginebra<br>Correo de contacto: <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a></p>\n<h2>2. Qué datos recopilamos</h2>\n<p>Podemos recopilar y tratar las siguientes categorías de datos:</p>\n<ul><li>Datos de la cuenta<ul><li>dirección de correo electrónico;</li><li>nombre y (opcionalmente) apellido;</li><li>idioma de la interfaz.</li></ul></li></ul>\n<ul><li>Datos de perfil y relacionados con la salud (no médicos)<ul><li>edad, sexo, altura, peso;</li><li>objetivos (pérdida de peso, mantenimiento, aumento de masa);</li><li>tipo de dieta y hábitos alimentarios (comidas por día, picoteo, etc.);</li><li>medidas corporales (por ejemplo, cintura y cadera, porcentaje de grasa aproximado);</li><li>áreas de salud prioritarias como azúcar en sangre, colesterol y otras, si decide indicarlas.</li></ul></li></ul>\n<ul><li>Datos de seguimiento de comidas y uso<ul><li>fotos de comidas y descripciones de texto;</li><li>resultados del análisis de IA (calorías, macros, puntuación de «salud»);</li><li>comidas guardadas y entradas recientes;</li><li>estadísticas nutricionales diarias y mensuales.</li></ul></li></ul>\n<ul><li>Resultados de laboratorio (si usa esta función)<ul><li>fotos o archivos de análisis de sangre y otros informes de laboratorio;</li><li>tipo de análisis seleccionado o detectado automáticamente;</li><li>comentarios y explicaciones generados por IA a partir de sus resultados.</li></ul></li></ul>\n<ul><li>Datos técnicos<ul><li>modelo del dispositivo, versión del sistema operativo, versión de la App;</li><li>dirección IP, hora de las solicitudes, identificadores internos;</li><li>tokens de notificaciones push;</li><li>registros de errores del cliente y del servidor.</li></ul></li></ul>\n<ul><li>Datos de suscripción<ul><li>estado de la suscripción (Free / Pro);</li><li>información sobre compras y renovaciones a través de App Store / Google Play (no almacenamos el número de su tarjeta ni los datos completos de pago).</li></ul></li></ul>\n<p>No almacenamos datos que identifiquen directamente su tarjeta bancaria. Los pagos los procesan Apple, Google u otros proveedores de pago.</p>\n<h2>3. Por qué usamos sus datos</h2>\n<p>Usamos sus datos únicamente con fines legítimos, entre ellos:</p>\n<ul><li>Proporcionar la funcionalidad básica de la App<ul><li>registro e inicio de sesión en la cuenta;</li><li>sincronización de su perfil e historial de comidas;</li><li>mostrar estadísticas, entradas recientes y recomendaciones.</li></ul></li></ul>\n<ul><li>Análisis de IA de comidas y resultados de laboratorio<ul><li>reconocimiento de platos a partir de fotos;</li><li>cálculo aproximado de calorías y macros;</li><li>generación de sugerencias de nutrición y estilo de vida;</li><li>análisis de resultados de laboratorio y comentarios fáciles de leer.</li></ul></li></ul>\n<ul><li>Personalización y mejora del producto<ul><li>selección de contenido educativo relevante;</li><li>mejora de nuestros modelos de IA y recomendación (usando datos anonimizados y agregados);</li><li>analítica de uso y depuración.</li></ul></li></ul>\n<ul><li>Comunicación con usted<ul><li>correos de servicio y mensajes en la App (por ejemplo, códigos de acceso, actualizaciones críticas);</li><li>notificaciones push y recordatorios, si están activados;</li><li>respuestas a sus solicitudes de soporte.</li></ul></li></ul>\n<ul><li>Cumplimiento legal y protección<ul><li>respuesta a solicitudes legales de las autoridades;</li><li>prevención de fraude, abuso e incidentes de seguridad.</li></ul></li></ul>\n<h2>4. Proveedores de IA y servicios de terceros</h2>\n<p>Para el análisis de imágenes, textos y resultados de laboratorio podemos usar proveedores de IA de terceros e infraestructura en la nube. Los datos se transmiten por canales cifrados y se usan solo para ofrecer las funciones de la App. No vendemos sus datos personales.</p>\n<h2>5. Bases legales del tratamiento</h2>\n<p>Según su país, tratamos sus datos sobre la base de:</p>\n<ul><li>su consentimiento (por ejemplo, para subir fotos, resultados de laboratorio, activar notificaciones);</li><li>la necesidad de ejecutar nuestro acuerdo con usted (prestación de los servicios de la App);</li><li>nuestros intereses legítimos en mejorar el servicio y proteger a los usuarios, respetando sus derechos.</li></ul>\n<p>Puede retirar su consentimiento en cualquier momento en los ajustes de la App o contactando con soporte.</p>\n<h2>6. Compartir sus datos</h2>\n<p>Podemos compartir datos con:</p>\n<ul><li>proveedores de nube e infraestructura (hosting, almacenamiento, registros, analítica);</li><li>servicios de notificaciones push y envío de correos;</li><li>proveedores de pago y de plataforma (App Store / Google Play);</li><li>autoridades públicas, solo cuando lo exija la ley.</li></ul>\n<p>Cada socio recibe únicamente los datos necesarios para su función.</p>\n<h2>7. Conservación de los datos</h2>\n<p>Conservamos sus datos solo el tiempo necesario:</p>\n<ul><li>datos de cuenta y perfil – mientras use activamente la App;</li><li>registros técnicos – durante un período limitado (por ejemplo, 6–24 meses);</li><li>registros legales y contables – durante el período exigido por la ley aplicable.</li></ul>\n<p>Puede solicitar la eliminación o anonimización de sus datos (véase «Sus derechos» más abajo).</p>\n<h2>8. Sus derechos</h2>\n<p>Según la ley aplicable, puede tener derecho a:</p>\n<ul><li>acceder a sus datos personales;</li><li>corregir información inexacta;</li><li>solicitar la eliminación de datos cuando ya no sean necesarios;</li><li>restringir u oponerse a ciertos tipos de tratamiento;</li><li>recibir una copia de sus datos en un formato portátil, cuando sea técnicamente posible.</li></ul>\n<p>Para ejercer estos derechos, contáctenos en <a href=\"mailto:info@eatsense.ch\">info@eatsense.ch</a>. Podemos pedirle que verifique su identidad.</p>\n<h2>9. Seguridad</h2>\n<p>Adoptamos medidas técnicas y organizativas razonables para proteger sus datos, entre ellas:</p>\n<ul><li>conexiones cifradas (HTTPS);</li><li>control de acceso y registro;</li><li>supervisión de actividad inusual.</li></ul>\n<p>Ningún servicio en línea puede garantizar una seguridad del 100 %, así que proteja también el acceso a su dispositivo y a su correo.</p>\n<h2>10. Menores</h2>\n<p>La App no está dirigida a menores de 13 años (u otra edad mínima definida por la ley local). No recopilamos a sabiendas datos de tales usuarios. Si cree que un menor nos ha facilitado datos personales, contáctenos para que podamos eliminarlos.</p>\n<h2>11. Cambios en esta Política</h2>\n<p>Podemos actualizar esta Política de Privacidad de vez en cuando. La última versión estará siempre disponible en la App. Cuando hagamos cambios importantes, podremos mostrar un aviso adicional o solicitar un nuevo consentimiento cuando sea necesario.</p>\n<h2>Compartir con farmacias y expertos en nutrición</h2>\n<p>Cuando realizas un pedido de medicamentos a través de una farmacia conectada, solo compartimos la información necesaria para tramitarlo: tu nombre y los detalles del pedido (medicamentos, dosis, cantidad, la receta que adjuntes y el número de pedido). Nunca compartimos tu dirección de correo electrónico con las farmacias. Cuando decides conectarte con un experto en nutrición, solo compartimos los datos para los que has dado tu consentimiento explícito (por ejemplo, el historial de comidas o los biomarcadores); puedes retirar este consentimiento en cualquier momento.</p>\n<h2>Exportar y gestionar tus datos</h2>\n<p>Puedes descargar una copia de los datos personales que tenemos sobre ti en cualquier momento directamente en la App (Perfil → «Exportar mis datos»). También puedes revisar los consentimientos que has dado (Perfil → «Mis consentimientos») y eliminar tu cuenta desde la misma pantalla.</p>"};
+        const SUP=['en','de','fr','ru','kk','es'];
+        function setLang(lang){
+            if(!UI[lang])lang='en';
+            document.documentElement.lang=lang;
+            document.getElementById('curLang').textContent=lang.toUpperCase();
+            document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.dataset.i18n;if(UI[lang][k]!=null)el.innerHTML=UI[lang][k];});
+            document.querySelectorAll('.lang-option').forEach(function(o){o.classList.toggle('active',o.dataset.lang===lang);});
+            document.getElementById('legal-content').innerHTML=DOC[lang]||DOC.en;
+            try{localStorage.setItem('eatsense-lang',lang);}catch(e){}
         }
-        function acceptCookies() {
-            localStorage.setItem('cookiesAccepted', 'true');
-            document.getElementById('cookie-banner').style.display = 'none';
-        }
+        document.querySelectorAll('.lang-option').forEach(function(b){b.addEventListener('click',function(){setLang(b.dataset.lang);});});
+        (function(){var s=null;try{s=localStorage.getItem('eatsense-lang');}catch(e){}var b=(navigator.language||'en').slice(0,2);setLang(s||(SUP.indexOf(b)>=0?b:'en'));})();
+        function acceptCookies(){try{localStorage.setItem('cookiesAccepted','true');}catch(e){}document.getElementById('cookie-banner').style.display='none';}
+        try{if(localStorage.getItem('cookiesAccepted')){document.getElementById('cookie-banner').style.display='none';}}catch(e){}
     </script>
 </body>
 </html>

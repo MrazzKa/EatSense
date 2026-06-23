@@ -4,7 +4,7 @@ export default {
     name: "EatSense",
     slug: "eatsense",
     owner: "eatsense",
-    version: "2.0.64",
+    version: "2.0.65",
     orientation: "default",
     // EAS Update configuration
     updates: {
@@ -37,7 +37,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "82",
+      buildNumber: "83",
       developmentTeam: "73T7PB4F99",
       supportsTablet: false,
       infoPlist: {
@@ -61,7 +61,13 @@ export default {
         // NSHealthUpdateUsageDescription — REMOVED (HealthKit not used in v1.0, planned for Q1 2026)
         // NSFaceIDUsageDescription — REMOVED (not used, Apple rejects unused permissions)
       },
-      associatedDomains: ["applinks:eatsense.app", "applinks:*.eatsense.app"],
+      // Universal Links host is www.eatsense.ch — that is where the Cloudflare site
+      // (and the static /.well-known/apple-app-site-association) actually lives. The
+      // apex eatsense.ch only 301-redirects to www, and iOS does NOT follow redirects
+      // when fetching the AASA, so the host here must be www. The wildcard also covers
+      // api.eatsense.ch (its own AASA for /v1/auth paths). NOTE: ch.eatsense.app below
+      // and elsewhere is the reverse-DNS BUNDLE ID, not a domain — leave it as-is.
+      associatedDomains: ["applinks:www.eatsense.ch", "applinks:*.eatsense.ch"],
       privacyManifests: {
         NSPrivacyAccessedAPITypes: [
           {
@@ -74,8 +80,12 @@ export default {
 
     android: {
       package: "ch.eatsense.app",
-      versionCode: 118,
-      adaptiveIcon: { foregroundImage: "./assets/logo/Logo.jpg", backgroundColor: "#FFFFFF" },
+      versionCode: 119,
+      // Adaptive icon uses the purpose-built foreground (no wordmark, content
+      // inside the safe zone) so Android's circular/squircle launcher masks
+      // don't clip the "EatSense" text that lives in Logo.jpg. Background matches
+      // the navy of the artwork so any mask shape blends seamlessly.
+      adaptiveIcon: { foregroundImage: "./assets/adaptive-icon.png", backgroundColor: "#1F2C5C" },
       // react-native-maps on Android requires a Google Maps API key. iOS uses
       // Apple Maps (PROVIDER_DEFAULT) and needs no key. Provide the key via
       // EXPO_PUBLIC_GOOGLE_MAPS_API_KEY before the next Android build; without
@@ -90,8 +100,11 @@ export default {
         action: "VIEW",
         autoVerify: true,
         data: [
-          { scheme: "https", host: "eatsense.app", pathPrefix: "/v1/auth/magic/consume" },
-          { scheme: "https", host: "eatsense.app", pathPrefix: "/auth/google/callback" },
+          // Pharmacy QR / share links open the app directly (PharmacyDeepLinkHandler).
+          // Host is www.eatsense.ch (the apex only redirects to www).
+          { scheme: "https", host: "www.eatsense.ch", pathPrefix: "/pharmacy" },
+          { scheme: "https", host: "www.eatsense.ch", pathPrefix: "/v1/auth/magic/consume" },
+          { scheme: "https", host: "www.eatsense.ch", pathPrefix: "/auth/google/callback" },
           { scheme: "eatsense" }
         ],
         category: ["BROWSABLE", "DEFAULT"]

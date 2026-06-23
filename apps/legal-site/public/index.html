@@ -4,18 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EatSense — AI Nutrition, Swiss Precision</title>
-    <meta name="description" content="Transform your nutrition with AI-powered food analysis and 47 lifestyle programs. Swiss precision meets modern wellness.">
-    
+    <meta name="description" content="Snap a photo, understand your food. AI-powered nutrition analysis, 47 lifestyle programs, biomarker tracking and certified experts. Swiss precision, made for everyday wellness.">
+    <meta name="theme-color" content="#1B4D3E">
+    <link rel="canonical" href="https://eatsense.ch/">
+    <link rel="icon" href="/images/eatsense.png" sizes="any">
+    <link rel="apple-touch-icon" href="/images/eatsense.png">
+
+    <!-- Open Graph / social sharing -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="EatSense">
+    <meta property="og:title" content="EatSense — AI Nutrition, Swiss Precision">
+    <meta property="og:description" content="Snap a photo, understand your food. AI nutrition analysis, 47 lifestyle programs and certified experts — Swiss made.">
+    <meta property="og:url" content="https://eatsense.ch/">
+    <meta property="og:image" content="https://eatsense.ch/images/eatsense.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="EatSense — AI Nutrition, Swiss Precision">
+    <meta name="twitter:description" content="Snap a photo, understand your food. AI nutrition analysis, 47 lifestyle programs and certified experts — Swiss made.">
+    <meta name="twitter:image" content="https://eatsense.ch/images/eatsense.png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+
     <style>
         :root {
             --forest: #1B4D3E;
             --forest-light: #2D6B5A;
             --forest-dark: #143D31;
-            --cream: #FAFAFA;
+            --cream: #FAFAF8;
+            --cream-deep: #F3F1EC;
             --gold: #B8976A;
             --gold-light: #C9A97A;
             --text-primary: #1A1A1A;
@@ -23,14 +40,19 @@
             --text-muted: #888888;
             --white: #FFFFFF;
             --border: #E8E8E8;
-            
+
+            --shadow-sm: 0 1px 3px rgba(20,40,33,0.06), 0 1px 2px rgba(20,40,33,0.04);
+            --shadow-md: 0 12px 28px -10px rgba(20,40,33,0.16);
+            --shadow-lg: 0 30px 60px -20px rgba(20,40,33,0.28);
+            --radius: 16px;
+
             --font-display: 'Cormorant Garamond', Georgia, serif;
             --font-body: 'DM Sans', -apple-system, sans-serif;
             --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
         body {
             font-family: var(--font-body);
             font-weight: 400;
@@ -39,20 +61,22 @@
             line-height: 1.6;
             overflow-x: hidden;
         }
+        ::selection { background: var(--forest); color: #fff; }
 
+        /* ---------------- NAV ---------------- */
         .nav {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: 0; left: 0; right: 0;
             z-index: 100;
-            padding: 1.25rem 2rem;
+            padding: 1.1rem 2rem;
             transition: all 0.4s var(--ease-out);
         }
         .nav.scrolled {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            box-shadow: 0 1px 0 var(--border);
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            box-shadow: 0 1px 0 rgba(20,40,33,0.06);
+            padding: 0.8rem 2rem;
         }
         .nav-container {
             max-width: 1400px;
@@ -60,377 +84,274 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 1rem;
         }
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
-            color: var(--forest);
-        }
-        .logo-icon { width: 36px; height: 36px; }
-        .logo-text {
-            font-family: var(--font-display);
-            font-size: 1.4rem;
-            font-weight: 500;
-            letter-spacing: -0.02em;
-        }
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 2.5rem;
-        }
-        .nav-link {
-            text-decoration: none;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            transition: color 0.3s ease;
-        }
+        .logo { display: flex; align-items: center; gap: 0.7rem; text-decoration: none; color: var(--forest); }
+        .logo-icon { width: 36px; height: 36px; flex-shrink: 0; }
+        .logo-text { font-family: var(--font-display); font-size: 1.45rem; font-weight: 600; letter-spacing: -0.02em; }
+        .nav-links { display: flex; align-items: center; gap: 2.2rem; }
+        .nav-link { text-decoration: none; color: var(--text-secondary); font-size: 0.9rem; transition: color 0.3s ease; }
         .nav-link:hover { color: var(--forest); }
         .lang-switcher {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
+            display: flex; align-items: center; gap: 0.4rem;
+            padding: 0.45rem 0.85rem;
             background: var(--cream);
             border-radius: 100px;
             border: 1px solid var(--border);
             cursor: pointer;
             font-family: var(--font-body);
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--text-secondary);
             transition: all 0.3s ease;
         }
         .lang-switcher:hover { border-color: var(--forest); color: var(--forest); }
         .nav-cta {
-            padding: 0.7rem 1.5rem;
+            padding: 0.65rem 1.4rem;
             background: var(--forest);
             color: var(--white);
             text-decoration: none;
             font-size: 0.875rem;
             font-weight: 500;
-            border-radius: 8px;
+            border-radius: 100px;
             transition: all 0.3s var(--ease-out);
+            box-shadow: var(--shadow-sm);
         }
-        .nav-cta:hover { background: var(--forest-light); }
+        .nav-cta:hover { background: var(--forest-light); transform: translateY(-1px); box-shadow: var(--shadow-md); }
 
+        /* ---------------- HERO ---------------- */
         .hero {
             min-height: 100vh;
             display: flex;
             align-items: center;
-            padding: 8rem 2rem 4rem;
-            background: linear-gradient(180deg, var(--cream) 0%, var(--white) 100%);
+            padding: 9rem 2rem 4rem;
+            background:
+                radial-gradient(1100px 600px at 85% -5%, rgba(184,151,106,0.12), transparent 60%),
+                radial-gradient(900px 500px at 5% 110%, rgba(27,77,62,0.10), transparent 55%),
+                linear-gradient(180deg, var(--cream) 0%, var(--white) 100%);
+            position: relative;
         }
         .hero-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
+            max-width: 1200px; margin: 0 auto;
+            display: grid; grid-template-columns: 1.05fr 0.95fr;
+            gap: 4rem; align-items: center;
         }
         .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+            display: inline-flex; align-items: center; gap: 0.5rem;
             padding: 0.4rem 0.9rem;
             background: var(--white);
             border: 1px solid var(--border);
             border-radius: 100px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
+            font-size: 0.8rem; color: var(--text-secondary);
             margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
             animation: fadeUp 0.8s var(--ease-out) both;
         }
         .hero-badge svg { width: 14px; height: 14px; color: var(--gold); }
         .hero-title {
             font-family: var(--font-display);
-            font-size: clamp(2.5rem, 5vw, 3.5rem);
-            font-weight: 400;
-            line-height: 1.15;
-            letter-spacing: -0.02em;
-            color: var(--text-primary);
-            margin-bottom: 1.5rem;
+            font-size: clamp(2.6rem, 5.5vw, 4rem);
+            font-weight: 500; line-height: 1.08; letter-spacing: -0.02em;
+            color: var(--text-primary); margin-bottom: 1.4rem;
             animation: fadeUp 0.8s var(--ease-out) 0.1s both;
         }
         .hero-title em { font-style: italic; color: var(--forest); }
         .hero-subtitle {
-            font-size: 1.125rem;
-            color: var(--text-secondary);
-            max-width: 480px;
-            line-height: 1.7;
-            margin-bottom: 2rem;
+            font-size: 1.15rem; color: var(--text-secondary);
+            max-width: 500px; line-height: 1.7; margin-bottom: 2rem;
             animation: fadeUp 0.8s var(--ease-out) 0.2s both;
         }
-        .hero-ctas {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-            animation: fadeUp 0.8s var(--ease-out) 0.3s both;
+        .hero-ctas { animation: fadeUp 0.8s var(--ease-out) 0.3s both; }
+        .hero-trust {
+            display: flex; align-items: center; gap: 0.5rem;
+            margin-top: 1.4rem; font-size: 0.85rem; color: var(--text-muted);
+            animation: fadeUp 0.8s var(--ease-out) 0.45s both;
         }
-        .btn-primary {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.6rem;
-            padding: 0.9rem 1.75rem;
-            background: var(--forest);
-            color: var(--white);
-            text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            border-radius: 8px;
-            transition: all 0.3s var(--ease-out);
-        }
-        .btn-primary:hover { background: var(--forest-light); transform: translateY(-1px); }
-        .btn-primary svg { width: 18px; height: 18px; }
-        .btn-secondary {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.9rem 1.75rem;
-            background: transparent;
-            color: var(--text-primary);
-            text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            transition: all 0.3s var(--ease-out);
-        }
-        .btn-secondary:hover { border-color: var(--forest); color: var(--forest); }
+        .hero-stars { color: var(--gold); letter-spacing: 1px; }
 
-        .hero-visual { animation: fadeUp 0.8s var(--ease-out) 0.4s both; }
+        /* Store badges */
+        .store-badges { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+        .store-badge {
+            display: inline-flex; align-items: center; gap: 0.65rem;
+            padding: 0.7rem 1.15rem;
+            background: var(--text-primary); color: #fff;
+            border-radius: 14px; text-decoration: none;
+            transition: all 0.3s var(--ease-out);
+            box-shadow: var(--shadow-sm);
+        }
+        .store-badge:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .store-badge svg { width: 26px; height: 26px; flex-shrink: 0; }
+        .store-badge-text { display: flex; flex-direction: column; line-height: 1.05; text-align: left; }
+        .store-badge-text small { font-size: 0.62rem; font-weight: 400; opacity: 0.85; letter-spacing: 0.02em; }
+        .store-badge-text strong { font-size: 1.02rem; font-weight: 600; }
+
+        .hero-visual { animation: fadeUp 0.9s var(--ease-out) 0.4s both; display: flex; justify-content: center; }
         .hero-phone {
-            width: 300px;
-            height: 620px;
-            background: var(--text-primary);
-            border-radius: 48px;
-            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.25);
-            position: relative;
-            overflow: hidden;
-            margin: 0 auto;
+            width: 300px; height: 620px;
+            background: #0d0d0d; border-radius: 48px;
+            box-shadow: var(--shadow-lg);
+            position: relative; overflow: hidden;
         }
         .hero-phone::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            border: 8px solid var(--text-primary);
-            border-radius: 48px;
-            z-index: 2;
-            pointer-events: none;
+            content: ''; position: absolute; inset: 0;
+            border: 9px solid #0d0d0d; border-radius: 48px; z-index: 2; pointer-events: none;
         }
         .hero-phone-notch {
-            position: absolute;
-            top: 8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 120px;
-            height: 32px;
-            background: var(--text-primary);
-            border-radius: 0 0 20px 20px;
-            z-index: 3;
+            position: absolute; top: 9px; left: 50%; transform: translateX(-50%);
+            width: 120px; height: 30px; background: #0d0d0d; border-radius: 0 0 18px 18px; z-index: 3;
         }
         .hero-phone-screen {
-            position: absolute;
-            top: 8px; left: 8px; right: 8px; bottom: 8px;
-            background: var(--white);
-            border-radius: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
+            position: absolute; inset: 9px; background: var(--white);
+            border-radius: 40px; display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted); font-size: 0.9rem; overflow: hidden;
         }
-        .hero-phone-img {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 40px;
-        }
-        .nav-link-experts {
-            color: var(--forest);
-            font-weight: 500;
-        }
-        .nav-link-experts::before {
-            content: '';
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            margin-right: 6px;
-            vertical-align: -2px;
-            background: currentColor;
-            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M20 7h-4V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z'/></svg>") center / contain no-repeat;
-            -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M20 7h-4V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z'/></svg>") center / contain no-repeat;
-        }
+        .hero-phone-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 40px; }
         .screen-placeholder { text-align: center; padding: 2rem; }
         .screen-placeholder svg { width: 48px; height: 48px; color: var(--border); margin-bottom: 1rem; }
 
+        .nav-link-experts { color: var(--forest); font-weight: 500; }
+        .nav-link-experts::before {
+            content: ''; display: inline-block; width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px;
+            background: currentColor;
+            -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M20 7h-4V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z'/></svg>") center / contain no-repeat;
+            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M20 7h-4V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z'/></svg>") center / contain no-repeat;
+        }
+
+        /* ---------------- STATS BAR ---------------- */
+        .stats { background: var(--white); padding: 0 2rem; }
+        .stats-container {
+            max-width: 1100px; margin: -3rem auto 0; position: relative; z-index: 5;
+            background: var(--forest);
+            border-radius: 20px; padding: 2.25rem 2rem;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+            box-shadow: var(--shadow-lg);
+        }
+        .stat { text-align: center; color: #fff; }
+        .stat-num { font-family: var(--font-display); font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight: 500; line-height: 1; color: var(--gold-light); }
+        .stat-label { font-size: 0.82rem; color: rgba(255,255,255,0.75); margin-top: 0.5rem; }
+        .stat + .stat { border-left: 1px solid rgba(255,255,255,0.12); }
+
+        /* ---------------- SECTIONS ---------------- */
         section { padding: 6rem 2rem; }
         .section-container { max-width: 1200px; margin: 0 auto; }
-        .section-header { text-align: center; max-width: 600px; margin: 0 auto 4rem; }
+        .section-header { text-align: center; max-width: 620px; margin: 0 auto 4rem; }
         .section-tag {
-            display: inline-block;
-            font-size: 0.75rem;
-            font-weight: 500;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 1rem;
+            display: inline-block; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.15em;
+            text-transform: uppercase; color: var(--gold); margin-bottom: 1rem;
         }
         .section-title {
-            font-family: var(--font-display);
-            font-size: clamp(1.75rem, 4vw, 2.5rem);
-            font-weight: 400;
-            line-height: 1.2;
-            color: var(--text-primary);
-            margin-bottom: 1rem;
+            font-family: var(--font-display); font-size: clamp(1.9rem, 4vw, 2.7rem);
+            font-weight: 500; line-height: 1.15; color: var(--text-primary); margin-bottom: 1rem;
         }
         .section-subtitle { font-size: 1.05rem; color: var(--text-secondary); line-height: 1.7; }
 
-        .features { background: var(--white); }
+        /* HOW IT WORKS */
+        .howitworks { background: var(--white); padding-top: 8rem; }
+        .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+        .step-card {
+            position: relative; padding: 2.5rem 2rem; background: var(--cream);
+            border-radius: var(--radius); border: 1px solid transparent; transition: all 0.4s var(--ease-out);
+        }
+        .step-card:hover { border-color: var(--border); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .step-num {
+            position: absolute; top: 1.5rem; right: 1.75rem;
+            font-family: var(--font-display); font-size: 2.5rem; font-weight: 500; color: var(--cream-deep);
+            line-height: 1;
+        }
+        .step-card:hover .step-num { color: var(--gold-light); }
+        .step-icon {
+            width: 52px; height: 52px; background: var(--forest); border-radius: 14px;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;
+        }
+        .step-icon svg { width: 26px; height: 26px; color: #fff; }
+        .step-title { font-family: var(--font-display); font-size: 1.4rem; font-weight: 500; margin-bottom: 0.6rem; }
+        .step-desc { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.7; }
+
+        /* FEATURES */
+        .features { background: var(--cream); }
         .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
         .feature-card {
-            padding: 2.5rem 2rem;
-            background: var(--cream);
-            border-radius: 16px;
-            transition: all 0.4s var(--ease-out);
-            border: 1px solid transparent;
+            padding: 2.5rem 2rem; background: var(--white); border-radius: var(--radius);
+            transition: all 0.4s var(--ease-out); border: 1px solid var(--border);
         }
-        .feature-card:hover { border-color: var(--border); transform: translateY(-2px); }
+        .feature-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
         .feature-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.5rem;
+            width: 48px; height: 48px; background: var(--cream); border: 1px solid var(--border);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;
         }
         .feature-icon svg { width: 24px; height: 24px; color: var(--forest); }
-        .feature-title {
-            font-family: var(--font-display);
-            font-size: 1.35rem;
-            font-weight: 500;
-            color: var(--text-primary);
-            margin-bottom: 0.75rem;
-        }
+        .feature-title { font-family: var(--font-display); font-size: 1.4rem; font-weight: 500; margin-bottom: 0.75rem; }
         .feature-desc { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.7; }
 
-        .programs { background: var(--cream); }
+        /* PROGRAMS */
+        .programs { background: var(--white); }
         .programs-showcase {
-            display: flex;
-            gap: 1.5rem;
-            overflow-x: auto;
-            padding: 1rem 0 2rem;
-            scroll-snap-type: x mandatory;
-            scrollbar-width: none;
+            display: flex; gap: 1.5rem; overflow-x: auto; padding: 1rem 0 2rem;
+            scroll-snap-type: x mandatory; scrollbar-width: none;
         }
         .programs-showcase::-webkit-scrollbar { display: none; }
         .program-card {
-            flex: 0 0 280px;
-            scroll-snap-align: start;
-            background: var(--white);
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid var(--border);
+            flex: 0 0 280px; scroll-snap-align: start; background: var(--cream);
+            border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border);
             transition: all 0.4s var(--ease-out);
         }
-        .program-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.06); }
-        .program-image {
-            height: 160px;
-            background: linear-gradient(135deg, #f5f5f5, #ebebeb);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .program-image svg { width: 40px; height: 40px; color: var(--text-muted); }
+        .program-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+        .program-image { height: 150px; display: flex; align-items: center; justify-content: center; }
+        .program-image svg { width: 40px; height: 40px; color: rgba(255,255,255,0.85); }
         .program-content { padding: 1.5rem; }
-        .program-category {
-            font-size: 0.7rem;
-            font-weight: 500;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 0.5rem;
-        }
-        .program-name {
-            font-family: var(--font-display);
-            font-size: 1.2rem;
-            font-weight: 500;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
+        .program-category { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem; }
+        .program-name { font-family: var(--font-display); font-size: 1.25rem; font-weight: 500; margin-bottom: 0.5rem; }
         .program-desc { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; }
         .programs-counter { text-align: center; margin-top: 3rem; }
-        .counter-number {
-            font-family: var(--font-display);
-            font-size: 3.5rem;
-            font-weight: 400;
-            color: var(--forest);
-            line-height: 1;
-        }
+        .counter-number { font-family: var(--font-display); font-size: 3.5rem; font-weight: 500; color: var(--forest); line-height: 1; }
         .counter-label { font-size: 0.95rem; color: var(--text-secondary); margin-top: 0.5rem; }
 
+        /* BIOMARKERS */
         .biomarkers { background: var(--forest-dark); color: var(--white); }
         .biomarkers .section-tag { color: var(--gold-light); }
         .biomarkers .section-title { color: var(--white); }
         .biomarkers .section-subtitle { color: rgba(255, 255, 255, 0.7); }
         .biomarkers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
         .biomarker-item {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 1.75rem;
-            text-align: center;
-            transition: all 0.3s var(--ease-out);
+            background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px; padding: 1.75rem; text-align: center; transition: all 0.3s var(--ease-out);
         }
-        .biomarker-item:hover { background: rgba(255, 255, 255, 0.1); }
+        .biomarker-item:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
         .biomarker-icon {
-            width: 40px;
-            height: 40px;
-            margin: 0 auto 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 40px; height: 40px; margin: 0 auto 1rem; background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
         }
         .biomarker-icon svg { width: 20px; height: 20px; color: var(--gold-light); }
         .biomarker-name { font-family: var(--font-display); font-size: 1.05rem; font-weight: 500; margin-bottom: 0.35rem; }
         .biomarker-desc { font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); }
 
+        /* VALUE / TRUST CARDS */
+        .testimonials { background: var(--cream); }
+        .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .value-card {
+            background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 2.25rem 2rem; transition: all 0.3s var(--ease-out);
+        }
+        .value-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .value-icon { width: 52px; height: 52px; border-radius: 14px; background: var(--forest); display: flex; align-items: center; justify-content: center; margin-bottom: 1.4rem; }
+        .value-icon svg { width: 26px; height: 26px; color: #fff; }
+        .value-title { font-family: var(--font-display); font-size: 1.4rem; font-weight: 500; margin-bottom: 0.6rem; }
+        .value-desc { color: var(--text-secondary); font-size: 0.97rem; line-height: 1.7; }
+
+        /* PRICING */
         .pricing { background: var(--white); }
-        .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; align-items: start; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; align-items: start; }
         .pricing-card {
-            background: var(--cream);
-            border-radius: 16px;
-            padding: 2rem 1.75rem;
-            position: relative;
-            transition: all 0.4s var(--ease-out);
-            border: 1px solid transparent;
+            background: var(--cream); border-radius: var(--radius); padding: 2rem 1.75rem;
+            position: relative; transition: all 0.4s var(--ease-out); border: 1px solid transparent;
         }
-        .pricing-card:hover { border-color: var(--border); }
-        .pricing-card.featured { background: var(--forest); color: var(--white); }
+        .pricing-card:hover { border-color: var(--border); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .pricing-card.featured { background: var(--forest); color: var(--white); box-shadow: var(--shadow-md); }
         .pricing-badge {
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--gold);
-            color: var(--white);
-            font-size: 0.7rem;
-            font-weight: 600;
-            padding: 0.3rem 0.9rem;
-            border-radius: 100px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+            background: var(--gold); color: var(--white); font-size: 0.7rem; font-weight: 600;
+            padding: 0.3rem 0.9rem; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;
         }
-        .pricing-name { font-family: var(--font-display); font-size: 1.35rem; font-weight: 500; margin-bottom: 0.35rem; }
+        .pricing-name { font-family: var(--font-display); font-size: 1.4rem; font-weight: 500; margin-bottom: 0.35rem; }
         .pricing-card.featured .pricing-name { color: var(--white); }
         .pricing-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem; }
         .pricing-card.featured .pricing-desc { color: rgba(255, 255, 255, 0.7); }
@@ -440,205 +361,143 @@
         .pricing-period { font-size: 0.85rem; color: var(--text-muted); }
         .pricing-card.featured .pricing-period { color: rgba(255, 255, 255, 0.6); }
         .pricing-features { list-style: none; margin-bottom: 1.75rem; }
-        .pricing-features li {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.6rem;
-            font-size: 0.875rem;
-            margin-bottom: 0.6rem;
-            color: var(--text-secondary);
-        }
+        .pricing-features li { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.875rem; margin-bottom: 0.6rem; color: var(--text-secondary); }
         .pricing-card.featured .pricing-features li { color: rgba(255, 255, 255, 0.85); }
         .pricing-features li svg { width: 16px; height: 16px; color: var(--forest); flex-shrink: 0; margin-top: 2px; }
         .pricing-card.featured .pricing-features li svg { color: var(--gold-light); }
         .pricing-btn {
-            display: block;
-            width: 100%;
-            padding: 0.85rem;
-            text-align: center;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            border-radius: 8px;
-            transition: all 0.3s var(--ease-out);
-            background: var(--white);
-            color: var(--forest);
-            border: 1px solid var(--border);
+            display: block; width: 100%; padding: 0.85rem; text-align: center; text-decoration: none;
+            font-size: 0.9rem; font-weight: 500; border-radius: 10px; transition: all 0.3s var(--ease-out);
+            background: var(--white); color: var(--forest); border: 1px solid var(--border);
         }
         .pricing-btn:hover { background: var(--forest); color: var(--white); border-color: var(--forest); }
         .pricing-card.featured .pricing-btn { background: var(--white); color: var(--forest); border: none; }
         .pricing-card.featured .pricing-btn:hover { background: var(--gold); color: var(--white); }
+        .pricing-note { text-align: center; margin-top: 2rem; font-size: 0.85rem; color: var(--text-muted); }
 
+        /* INFLUENCERS */
         .influencers { background: var(--cream); }
         .influencer-content { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
-        .influencer-text h2 {
-            font-family: var(--font-display);
-            font-size: clamp(1.75rem, 4vw, 2.25rem);
-            font-weight: 400;
-            color: var(--text-primary);
-            margin-bottom: 1.25rem;
-            line-height: 1.2;
-        }
+        .influencer-text h2 { font-family: var(--font-display); font-size: clamp(1.9rem, 4vw, 2.4rem); font-weight: 500; color: var(--text-primary); margin-bottom: 1.25rem; line-height: 1.15; }
         .influencer-text h2 em { font-style: italic; color: var(--forest); }
         .influencer-text p { font-size: 1.05rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.5rem; }
         .influencer-benefits { list-style: none; margin-bottom: 2rem; }
-        .influencer-benefits li {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.95rem;
-            color: var(--text-primary);
-        }
+        .influencer-benefits li { display: flex; align-items: center; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border); font-size: 0.95rem; color: var(--text-primary); }
         .influencer-benefits li:last-child { border-bottom: none; }
-        .benefit-icon {
-            width: 36px;
-            height: 36px;
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
+        .benefit-icon { width: 36px; height: 36px; background: var(--white); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .benefit-icon svg { width: 18px; height: 18px; color: var(--forest); }
         .influencer-visual { display: flex; flex-direction: column; gap: 1rem; }
-        .influencer-card {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            border: 1px solid var(--border);
-            transition: all 0.3s var(--ease-out);
-        }
-        .influencer-card:hover { border-color: var(--forest); }
-        .influencer-avatar {
-            width: 48px;
-            height: 48px;
-            background: var(--cream);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .influencer-card { background: var(--white); border-radius: 12px; padding: 1.25rem; display: flex; align-items: center; gap: 1rem; border: 1px solid var(--border); transition: all 0.3s var(--ease-out); }
+        .influencer-card:hover { border-color: var(--forest); transform: translateX(4px); }
+        .influencer-avatar { width: 48px; height: 48px; background: var(--cream); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .influencer-avatar svg { width: 24px; height: 24px; color: var(--forest); }
-        .influencer-info h4 { font-family: var(--font-display); font-size: 1.05rem; color: var(--text-primary); margin-bottom: 0.2rem; }
+        .influencer-info h4 { font-family: var(--font-display); font-size: 1.05rem; margin-bottom: 0.2rem; }
         .influencer-info p { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
 
+        /* FAQ */
+        .faq { background: var(--white); }
+        .faq-list { max-width: 760px; margin: 0 auto; }
+        .faq-item { border-bottom: 1px solid var(--border); }
+        .faq-item summary {
+            list-style: none; cursor: pointer; padding: 1.4rem 0; display: flex; align-items: center;
+            justify-content: space-between; gap: 1rem; font-size: 1.08rem; font-weight: 500; color: var(--text-primary);
+        }
+        .faq-item summary::-webkit-details-marker { display: none; }
+        .faq-item summary::after {
+            content: '+'; font-size: 1.5rem; font-weight: 300; color: var(--forest);
+            transition: transform 0.3s var(--ease-out); flex-shrink: 0;
+        }
+        .faq-item[open] summary::after { transform: rotate(45deg); }
+        .faq-answer { padding: 0 0 1.4rem; color: var(--text-secondary); font-size: 0.97rem; line-height: 1.75; max-width: 640px; }
+
+        /* FINAL CTA */
+        .finalcta { background: var(--forest); color: #fff; text-align: center; }
+        .finalcta-inner {
+            max-width: 760px; margin: 0 auto;
+            background:
+                radial-gradient(600px 300px at 50% -20%, rgba(184,151,106,0.18), transparent 70%);
+            padding: 1rem;
+        }
+        .finalcta h2 { font-family: var(--font-display); font-size: clamp(2rem, 4.5vw, 3rem); font-weight: 500; line-height: 1.1; margin-bottom: 1rem; }
+        .finalcta p { font-size: 1.1rem; color: rgba(255,255,255,0.8); max-width: 520px; margin: 0 auto 2.25rem; }
+        .finalcta .store-badges { justify-content: center; }
+        .finalcta .store-badge { background: #fff; color: var(--text-primary); }
+
+        /* FOOTER */
         .footer { background: var(--text-primary); color: var(--white); padding: 4rem 2rem 2rem; }
         .footer-container { max-width: 1200px; margin: 0 auto; }
-        .footer-top {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 3rem;
-            padding-bottom: 3rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
+        .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; padding-bottom: 3rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
         .footer-brand .logo { color: var(--white); margin-bottom: 1rem; }
         .footer-brand p { color: rgba(255, 255, 255, 0.6); font-size: 0.9rem; line-height: 1.7; max-width: 280px; }
-        .footer-column h4 { font-family: var(--font-display); font-size: 1rem; font-weight: 500; margin-bottom: 1.25rem; }
+        .footer-column h4 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 500; margin-bottom: 1.25rem; }
         .footer-column ul { list-style: none; }
         .footer-column li { margin-bottom: 0.6rem; }
         .footer-column a { color: rgba(255, 255, 255, 0.6); text-decoration: none; font-size: 0.875rem; transition: color 0.3s ease; }
         .footer-column a:hover { color: var(--white); }
-        .footer-bottom {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 2rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
+        .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; flex-wrap: wrap; gap: 1rem; }
         .footer-copy { color: rgba(255, 255, 255, 0.5); font-size: 0.8rem; }
         .footer-badges { display: flex; gap: 0.75rem; }
-        .footer-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.4rem 0.8rem;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 6px;
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.7);
-        }
+        .footer-badge { display: flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.8rem; background: rgba(255, 255, 255, 0.08); border-radius: 6px; font-size: 0.75rem; color: rgba(255, 255, 255, 0.7); }
         .footer-badge svg { width: 14px; height: 14px; }
 
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        /* ANIMATION + UTIL */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .fade-in { opacity: 0; transform: translateY(20px); transition: all 0.6s var(--ease-out); }
         .fade-in.visible { opacity: 1; transform: translateY(0); }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+            html { scroll-behavior: auto; }
+            .fade-in { opacity: 1; transform: none; }
+        }
 
         .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; padding: 0.5rem; }
-        .mobile-menu-btn span { display: block; width: 22px; height: 2px; background: var(--text-primary); margin: 5px 0; }
+        .mobile-menu-btn span { display: block; width: 22px; height: 2px; background: var(--text-primary); margin: 5px 0; border-radius: 2px; }
 
         .lang-dropdown { position: relative; }
         .lang-options {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--white);
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            padding: 0.35rem;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(8px);
-            transition: all 0.3s var(--ease-out);
-            z-index: 10;
+            position: absolute; top: 100%; left: 0; right: 0; background: var(--white);
+            border-radius: 10px; border: 1px solid var(--border); padding: 0.35rem;
+            opacity: 0; visibility: hidden; transform: translateY(8px);
+            transition: all 0.3s var(--ease-out); z-index: 10; box-shadow: var(--shadow-md); min-width: 150px;
         }
         .lang-dropdown:hover .lang-options { opacity: 1; visibility: visible; transform: translateY(4px); }
-        .lang-option {
-            display: block;
-            width: 100%;
-            padding: 0.45rem 0.75rem;
-            background: none;
-            border: none;
-            text-align: left;
-            font-family: var(--font-body);
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-            border-radius: 6px;
-        }
+        .lang-option { display: block; width: 100%; padding: 0.45rem 0.75rem; background: none; border: none; text-align: left; font-family: var(--font-body); font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; border-radius: 6px; }
         .lang-option:hover { background: var(--cream); color: var(--forest); }
         .lang-option.active { color: var(--forest); font-weight: 500; }
 
+        /* RESPONSIVE */
         @media (max-width: 1100px) {
+            .pricing-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 760px) {
             .pricing-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 900px) {
             .mobile-menu-btn { display: block; }
             .nav-links {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: var(--white);
-                flex-direction: column;
-                padding: 2rem;
-                gap: 1.5rem;
-                border-top: 1px solid var(--border);
+                display: none; position: absolute; top: 100%; left: 0; right: 0;
+                background: var(--white); flex-direction: column; padding: 2rem; gap: 1.5rem; border-top: 1px solid var(--border);
+                box-shadow: var(--shadow-md);
             }
             .nav-links.active { display: flex; }
+            .hero { padding-top: 7rem; }
             .hero-content { grid-template-columns: 1fr; text-align: center; }
             .hero-subtitle { margin-left: auto; margin-right: auto; }
-            .hero-ctas { justify-content: center; }
-            .features-grid { grid-template-columns: 1fr; }
+            .store-badges, .hero-trust { justify-content: center; }
+            .stats-container { grid-template-columns: repeat(2, 1fr); gap: 1.5rem 1rem; }
+            .stat + .stat { border-left: none; }
+            .stat:nth-child(2) { border-left: 1px solid rgba(255,255,255,0.12); }
+            .stat:nth-child(4) { border-left: 1px solid rgba(255,255,255,0.12); }
+            .steps-grid, .features-grid, .testimonials-grid { grid-template-columns: 1fr; }
             .biomarkers-grid { grid-template-columns: repeat(2, 1fr); }
             .influencer-content { grid-template-columns: 1fr; }
             .footer-top { grid-template-columns: 1fr 1fr; }
             section { padding: 4rem 1.5rem; }
+            .howitworks { padding-top: 6rem; }
         }
         @media (max-width: 600px) {
             .pricing-grid { grid-template-columns: 1fr; }
+            .footer-top { grid-template-columns: 1fr; gap: 2rem; }
         }
     </style>
 </head>
@@ -656,13 +515,13 @@
                 <span class="logo-text">EatSense</span>
             </a>
             <div class="nav-links" id="navLinks">
+                <a href="#howitworks" class="nav-link" data-i18n="nav.how">How it works</a>
                 <a href="#features" class="nav-link" data-i18n="nav.features">Features</a>
                 <a href="#programs" class="nav-link" data-i18n="nav.programs">Programs</a>
                 <a href="#pricing" class="nav-link" data-i18n="nav.pricing">Pricing</a>
-                <a href="#influencers" class="nav-link" data-i18n="nav.influencers">For Creators</a>
                 <a href="/experts" class="nav-link nav-link-experts" data-i18n="nav.experts">For Experts</a>
                 <div class="lang-dropdown">
-                    <button class="lang-switcher">
+                    <button class="lang-switcher" aria-label="Language">
                         <span id="currentLang">EN</span>
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                     </button>
@@ -675,9 +534,9 @@
                         <button class="lang-option" data-lang="es">Español</button>
                     </div>
                 </div>
-                <a href="https://apps.apple.com/us/app/eatsense/id6755033261" target="_blank" rel="noopener" class="nav-cta" data-i18n="nav.download">Download App</a>
+                <a href="#download" class="nav-cta" data-i18n="nav.download">Get the App</a>
             </div>
-            <button class="mobile-menu-btn" id="mobileMenuBtn"><span></span><span></span><span></span></button>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
         </div>
     </nav>
 
@@ -690,12 +549,21 @@
                 </div>
                 <h1 class="hero-title" data-i18n="hero.title">Nutrition that <em>understands</em> you</h1>
                 <p class="hero-subtitle" data-i18n="hero.subtitle">AI-powered food analysis meets personalized lifestyle programs. Discover 47 ways to eat well, backed by Swiss precision.</p>
-                <div class="hero-ctas">
-                    <a href="https://apps.apple.com/us/app/eatsense/id6755033261" target="_blank" rel="noopener" class="btn-primary">
-                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-                        <span data-i18n="hero.cta.primary">Download for iOS</span>
-                    </a>
-                    <a href="#features" class="btn-secondary" data-i18n="hero.cta.secondary">Learn more</a>
+                <div class="hero-ctas" id="download">
+                    <div class="store-badges">
+                        <a href="https://apps.apple.com/us/app/eatsense/id6755033261" target="_blank" rel="noopener" class="store-badge" aria-label="Download on the App Store">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                            <span class="store-badge-text"><small data-i18n="store.apple.small">Download on the</small><strong>App Store</strong></span>
+                        </a>
+                        <a href="https://play.google.com/store/apps/details?id=ch.eatsense.app" target="_blank" rel="noopener" class="store-badge" aria-label="Get it on Google Play">
+                            <svg viewBox="0 0 24 24"><path fill="#fff" d="M22.018 13.298l-3.919 2.218-3.515-3.493 3.543-3.521 3.891 2.202a1.49 1.49 0 0 1 0 2.594zM1.337.924a1.486 1.486 0 0 0-.112.568v21.017c0 .217.045.419.124.6l11.155-11.087L1.337.924zm12.207 10.065l3.258-3.238L3.45.195a1.466 1.466 0 0 0-.946-.179l11.04 10.973zm0 2.067l-11 10.933c.298.036.612-.016.906-.183l13.324-7.54-3.23-3.21z"/></svg>
+                            <span class="store-badge-text"><small data-i18n="store.google.small">GET IT ON</small><strong>Google Play</strong></span>
+                        </a>
+                    </div>
+                    <div class="hero-trust">
+                        <span class="hero-stars">★★★★★</span>
+                        <span data-i18n="hero.trust">Loved by health-conscious eaters across Switzerland</span>
+                    </div>
                 </div>
             </div>
             <div class="hero-visual">
@@ -708,6 +576,45 @@
                             <p>App screenshot</p>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="stats">
+        <div class="stats-container fade-in">
+            <div class="stat"><div class="stat-num" data-count="47">47</div><div class="stat-label" data-i18n="stats.programs">Lifestyle programs</div></div>
+            <div class="stat"><div class="stat-num">&lt;10s</div><div class="stat-label" data-i18n="stats.scan">Per food scan</div></div>
+            <div class="stat"><div class="stat-num" data-count="6">6</div><div class="stat-label" data-i18n="stats.langs">Languages</div></div>
+            <div class="stat"><div class="stat-num" data-count="100" data-suffix="%">100%</div><div class="stat-label" data-i18n="stats.privacy">Swiss privacy</div></div>
+        </div>
+    </div>
+
+    <section class="howitworks" id="howitworks">
+        <div class="section-container">
+            <div class="section-header fade-in">
+                <span class="section-tag" data-i18n="how.tag">How it works</span>
+                <h2 class="section-title" data-i18n="how.title">Three steps to better eating</h2>
+                <p class="section-subtitle" data-i18n="how.subtitle">No food diaries. No guesswork. Just snap and learn.</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step-card fade-in">
+                    <div class="step-num">01</div>
+                    <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+                    <h3 class="step-title" data-i18n="how.s1.title">Snap your meal</h3>
+                    <p class="step-desc" data-i18n="how.s1.desc">Take a photo of any dish — at home or at a restaurant.</p>
+                </div>
+                <div class="step-card fade-in">
+                    <div class="step-num">02</div>
+                    <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+                    <h3 class="step-title" data-i18n="how.s2.title">Get instant insight</h3>
+                    <p class="step-desc" data-i18n="how.s2.desc">AI breaks down calories, macros and nutrients in seconds.</p>
+                </div>
+                <div class="step-card fade-in">
+                    <div class="step-num">03</div>
+                    <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+                    <h3 class="step-title" data-i18n="how.s3.title">Build better habits</h3>
+                    <p class="step-desc" data-i18n="how.s3.desc">Follow personalized programs and track your progress over time.</p>
                 </div>
             </div>
         </div>
@@ -749,56 +656,56 @@
             </div>
             <div class="programs-showcase">
                 <div class="program-card">
-                    <div class="program-image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15L16 10L5 21"/></svg></div>
+                    <div class="program-image" style="background:linear-gradient(135deg,#1B4D3E,#2D6B5A)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a7 7 0 0 0-7 7c0 3 2 5 2 8h10c0-3 2-5 2-8a7 7 0 0 0-7-7z"/><line x1="9" y1="21" x2="15" y2="21"/></svg></div>
                     <div class="program-content">
-                        <div class="program-category">Historical</div>
+                        <div class="program-category" data-i18n="programs.c1.cat">Historical</div>
                         <h3 class="program-name">Old Hollywood Glamour</h3>
-                        <p class="program-desc">Elegant, portion-conscious dining inspired by golden age stars.</p>
+                        <p class="program-desc" data-i18n="programs.c1.desc">Elegant, portion-conscious dining inspired by golden age stars.</p>
                     </div>
                 </div>
                 <div class="program-card">
-                    <div class="program-image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15L16 10L5 21"/></svg></div>
+                    <div class="program-image" style="background:linear-gradient(135deg,#B8976A,#C9A97A)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/></svg></div>
                     <div class="program-content">
-                        <div class="program-category">Warrior</div>
+                        <div class="program-category" data-i18n="programs.c2.cat">Warrior</div>
                         <h3 class="program-name">Spartan Discipline</h3>
-                        <p class="program-desc">High-protein, minimal processing. Fuel for strength and endurance.</p>
+                        <p class="program-desc" data-i18n="programs.c2.desc">High-protein, minimal processing. Fuel for strength and endurance.</p>
                     </div>
                 </div>
                 <div class="program-card">
-                    <div class="program-image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15L16 10L5 21"/></svg></div>
+                    <div class="program-image" style="background:linear-gradient(135deg,#2D6B5A,#143D31)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 21l4-7 4 7"/><path d="M12 3l9 11H3z"/></svg></div>
                     <div class="program-content">
-                        <div class="program-category">Culture</div>
+                        <div class="program-category" data-i18n="programs.c3.cat">Culture</div>
                         <h3 class="program-name">Swiss Precision</h3>
-                        <p class="program-desc">Balanced, quality-focused eating with Alpine wisdom.</p>
+                        <p class="program-desc" data-i18n="programs.c3.desc">Balanced, quality-focused eating with Alpine wisdom.</p>
                     </div>
                 </div>
                 <div class="program-card">
-                    <div class="program-image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15L16 10L5 21"/></svg></div>
+                    <div class="program-image" style="background:linear-gradient(135deg,#C9A97A,#B8976A)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
                     <div class="program-content">
-                        <div class="program-category">Modern</div>
+                        <div class="program-category" data-i18n="programs.c4.cat">Modern</div>
                         <h3 class="program-name">Glass Skin</h3>
-                        <p class="program-desc">Korean beauty-inspired nutrition for radiant skin from within.</p>
+                        <p class="program-desc" data-i18n="programs.c4.desc">Beauty-inspired nutrition for radiant skin from within.</p>
                     </div>
                 </div>
                 <div class="program-card">
-                    <div class="program-image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15L16 10L5 21"/></svg></div>
+                    <div class="program-image" style="background:linear-gradient(135deg,#1B4D3E,#143D31)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/></svg></div>
                     <div class="program-content">
-                        <div class="program-category">Lifestyle</div>
+                        <div class="program-category" data-i18n="programs.c5.cat">Lifestyle</div>
                         <h3 class="program-name">NYC Hustle</h3>
-                        <p class="program-desc">High-performance eating for busy professionals on the go.</p>
+                        <p class="program-desc" data-i18n="programs.c5.desc">High-performance eating for busy professionals on the go.</p>
                     </div>
                 </div>
                 <div class="program-card">
-                    <div class="program-image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15L16 10L5 21"/></svg></div>
+                    <div class="program-image" style="background:linear-gradient(135deg,#2D6B5A,#1B4D3E)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg></div>
                     <div class="program-content">
-                        <div class="program-category">Spiritual</div>
+                        <div class="program-category" data-i18n="programs.c6.cat">Spiritual</div>
                         <h3 class="program-name">Ramadan Mode</h3>
-                        <p class="program-desc">Optimized nutrition for Suhoor and Iftar during fasting.</p>
+                        <p class="program-desc" data-i18n="programs.c6.desc">Optimized nutrition for Suhoor and Iftar during fasting.</p>
                     </div>
                 </div>
             </div>
             <div class="programs-counter fade-in">
-                <div class="counter-number">47</div>
+                <div class="counter-number" data-count="47">47</div>
                 <div class="counter-label" data-i18n="programs.counter">unique lifestyle programs</div>
             </div>
         </div>
@@ -807,50 +714,45 @@
     <section class="biomarkers" id="biomarkers">
         <div class="section-container">
             <div class="section-header fade-in">
-                <span class="section-tag">Biomarker Intelligence</span>
-                <h2 class="section-title">Connect diet to health</h2>
-                <p class="section-subtitle">Upload your lab results and see how your nutrition choices affect your body.</p>
+                <span class="section-tag" data-i18n="bio.tag">Biomarker Intelligence</span>
+                <h2 class="section-title" data-i18n="bio.title">Connect diet to health</h2>
+                <p class="section-subtitle" data-i18n="bio.subtitle">Upload your lab results and see how your nutrition choices affect your body.</p>
             </div>
             <div class="biomarkers-grid">
-                <div class="biomarker-item fade-in">
-                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div>
-                    <h4 class="biomarker-name">HbA1c</h4>
-                    <p class="biomarker-desc">Blood sugar control</p>
+                <div class="biomarker-item fade-in"><div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div><h4 class="biomarker-name">HbA1c</h4><p class="biomarker-desc" data-i18n="bio.hba1c">Blood sugar control</p></div>
+                <div class="biomarker-item fade-in"><div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><h4 class="biomarker-name" data-i18n="bio.chol.name">Cholesterol</h4><p class="biomarker-desc" data-i18n="bio.chol.desc">LDL, HDL, Triglycerides</p></div>
+                <div class="biomarker-item fade-in"><div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></div><h4 class="biomarker-name" data-i18n="bio.vitd.name">Vitamin D</h4><p class="biomarker-desc" data-i18n="bio.vitd.desc">Bone &amp; immune health</p></div>
+                <div class="biomarker-item fade-in"><div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div><h4 class="biomarker-name">Ferritin</h4><p class="biomarker-desc" data-i18n="bio.ferr">Iron stores</p></div>
+                <div class="biomarker-item fade-in"><div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h4 class="biomarker-name">hs-CRP</h4><p class="biomarker-desc" data-i18n="bio.crp">Inflammation marker</p></div>
+                <div class="biomarker-item fade-in"><div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><h4 class="biomarker-name">B12</h4><p class="biomarker-desc" data-i18n="bio.b12">Energy &amp; nerves</p></div>
+                <div class="biomarker-item fade-in"><div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg></div><h4 class="biomarker-name" data-i18n="bio.cal.name">Calcium</h4><p class="biomarker-desc" data-i18n="bio.cal.desc">Bone density</p></div>
+                <div class="biomarker-item fade-in"><div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h4 class="biomarker-name" data-i18n="bio.thy.name">Thyroid</h4><p class="biomarker-desc" data-i18n="bio.thy.desc">Metabolism balance</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials" id="testimonials">
+        <div class="section-container">
+            <div class="section-header fade-in">
+                <span class="section-tag" data-i18n="tst.tag">Built for trust</span>
+                <h2 class="section-title" data-i18n="tst.title">Designed around how you really eat</h2>
+                <p class="section-subtitle" data-i18n="tst.subtitle">Accurate, private and made for everyday life.</p>
+            </div>
+            <div class="testimonials-grid">
+                <div class="value-card fade-in">
+                    <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.5" fill="currentColor"/></svg></div>
+                    <h3 class="value-title" data-i18n="tst.v1.title">Precision you can trust</h3>
+                    <p class="value-desc" data-i18n="tst.v1.desc">AI estimates calories, macros and nutrients from a single photo — and you can fine-tune any portion in a tap.</p>
                 </div>
-                <div class="biomarker-item fade-in">
-                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
-                    <h4 class="biomarker-name">Cholesterol</h4>
-                    <p class="biomarker-desc">LDL, HDL, Triglycerides</p>
+                <div class="value-card fade-in">
+                    <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+                    <h3 class="value-title" data-i18n="tst.v2.title">Private by design</h3>
+                    <p class="value-desc" data-i18n="tst.v2.desc">Swiss-built and GDPR-compliant. Your data stays yours — you decide exactly what to share, and with whom.</p>
                 </div>
-                <div class="biomarker-item fade-in">
-                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></div>
-                    <h4 class="biomarker-name">Vitamin D</h4>
-                    <p class="biomarker-desc">Bone & immune health</p>
-                </div>
-                <div class="biomarker-item fade-in">
-                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>
-                    <h4 class="biomarker-name">Ferritin</h4>
-                    <p class="biomarker-desc">Iron stores</p>
-                </div>
-                <div class="biomarker-item fade-in">
-                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-                    <h4 class="biomarker-name">hs-CRP</h4>
-                    <p class="biomarker-desc">Inflammation marker</p>
-                </div>
-                <div class="biomarker-item fade-in">
-                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-                    <h4 class="biomarker-name">B12</h4>
-                    <p class="biomarker-desc">Energy & nerves</p>
-                </div>
-                <div class="biomarker-item fade-in">
-                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg></div>
-                    <h4 class="biomarker-name">Calcium</h4>
-                    <p class="biomarker-desc">Bone density</p>
-                </div>
-                <div class="biomarker-item fade-in">
-                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
-                    <h4 class="biomarker-name">Thyroid</h4>
-                    <p class="biomarker-desc">Metabolism balance</p>
+                <div class="value-card fade-in">
+                    <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+                    <h3 class="value-title" data-i18n="tst.v3.title">Wherever you eat</h3>
+                    <p class="value-desc" data-i18n="tst.v3.desc">At home or at a restaurant, in 6 languages — EatSense fits real life, not just perfect meal-prep days.</p>
                 </div>
             </div>
         </div>
@@ -867,19 +769,19 @@
                 <div class="pricing-card fade-in">
                     <h3 class="pricing-name" data-i18n="pricing.free.name">Free</h3>
                     <p class="pricing-desc" data-i18n="pricing.free.desc">Get started</p>
-                    <div class="pricing-price"><span class="pricing-amount">CHF 0</span><span class="pricing-period" data-i18n="pricing.free.period">forever</span></div>
+                    <div class="pricing-price"><span class="pricing-amount">CHF 0</span> <span class="pricing-period" data-i18n="pricing.free.period">forever</span></div>
                     <ul class="pricing-features">
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.free.f1">3 scans per day</span></li>
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.free.f2">Basic nutrition data</span></li>
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.free.f3">7-day history</span></li>
                     </ul>
-                    <a href="https://apps.apple.com/us/app/eatsense/id6755033261" target="_blank" rel="noopener" class="pricing-btn" data-i18n="pricing.free.cta">Get Started</a>
+                    <a href="#download" class="pricing-btn" data-i18n="pricing.free.cta">Get Started</a>
                 </div>
                 <div class="pricing-card featured fade-in">
                     <span class="pricing-badge" data-i18n="pricing.proAnnual.badge">Most Popular</span>
                     <h3 class="pricing-name" data-i18n="pricing.proAnnual.name">PRO Annual</h3>
                     <p class="pricing-desc" data-i18n="pricing.proAnnual.desc">Best value</p>
-                    <div class="pricing-price"><span class="pricing-amount">CHF 80</span><span class="pricing-period" data-i18n="pricing.proAnnual.period">/year</span></div>
+                    <div class="pricing-price"><span class="pricing-amount">CHF 80</span> <span class="pricing-period" data-i18n="pricing.proAnnual.period">/year</span></div>
                     <ul class="pricing-features">
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.proAnnual.f1">Unlimited scans</span></li>
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.proAnnual.f2">AI nutrition assistant</span></li>
@@ -887,34 +789,47 @@
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.proAnnual.f4">All 47 programs</span></li>
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.proAnnual.f5">PDF reports</span></li>
                     </ul>
-                    <a href="https://apps.apple.com/us/app/eatsense/id6755033261" target="_blank" rel="noopener" class="pricing-btn" data-i18n="pricing.proAnnual.cta">Upgrade to PRO</a>
+                    <a href="#download" class="pricing-btn" data-i18n="pricing.proAnnual.cta">Upgrade to PRO</a>
                 </div>
                 <div class="pricing-card fade-in">
                     <h3 class="pricing-name" data-i18n="pricing.proMonthly.name">PRO Monthly</h3>
                     <p class="pricing-desc" data-i18n="pricing.proMonthly.desc">Flexible</p>
-                    <div class="pricing-price"><span class="pricing-amount">CHF 9</span><span class="pricing-period" data-i18n="pricing.proMonthly.period">/month</span></div>
+                    <div class="pricing-price"><span class="pricing-amount">CHF 9</span> <span class="pricing-period" data-i18n="pricing.proMonthly.period">/month</span></div>
                     <ul class="pricing-features">
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.proMonthly.f1">Unlimited scans</span></li>
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.proMonthly.f2">AI nutrition assistant</span></li>
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.proMonthly.f3">Biomarker tracking</span></li>
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.proMonthly.f4">All 47 programs</span></li>
                     </ul>
-                    <a href="https://apps.apple.com/us/app/eatsense/id6755033261" target="_blank" rel="noopener" class="pricing-btn" data-i18n="pricing.proMonthly.cta">Try PRO</a>
+                    <a href="#download" class="pricing-btn" data-i18n="pricing.proMonthly.cta">Try PRO</a>
+                </div>
+                <div class="pricing-card fade-in">
+                    <span class="pricing-badge" data-i18n="pricing.student.badge">Student</span>
+                    <h3 class="pricing-name" data-i18n="pricing.student.name">PRO Student</h3>
+                    <p class="pricing-desc" data-i18n="pricing.student.desc">For verified students</p>
+                    <div class="pricing-price"><span class="pricing-amount">CHF 45</span> <span class="pricing-period" data-i18n="pricing.student.period">/year</span></div>
+                    <ul class="pricing-features">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.student.f1">Everything in PRO</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.student.f2">Unlimited scans</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.student.f3">Student ID required</span></li>
+                    </ul>
+                    <a href="#download" class="pricing-btn" data-i18n="pricing.student.cta">Get Student</a>
                 </div>
                 <div class="pricing-card fade-in">
                     <span class="pricing-badge" data-i18n="pricing.founders.badge">Limited</span>
                     <h3 class="pricing-name" data-i18n="pricing.founders.name">Founders Pass</h3>
                     <p class="pricing-desc" data-i18n="pricing.founders.desc">Lifetime access</p>
-                    <div class="pricing-price"><span class="pricing-amount">CHF 90</span><span class="pricing-period" data-i18n="pricing.founders.period">one-time</span></div>
+                    <div class="pricing-price"><span class="pricing-amount">CHF 90</span> <span class="pricing-period" data-i18n="pricing.founders.period">one-time</span></div>
                     <ul class="pricing-features">
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.founders.f1">Everything in PRO</span></li>
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.founders.f2">Lifetime updates</span></li>
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.founders.f3">Founder badge</span></li>
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.founders.f4">Early access to features</span></li>
                     </ul>
-                    <a href="https://apps.apple.com/us/app/eatsense/id6755033261" target="_blank" rel="noopener" class="pricing-btn" data-i18n="pricing.founders.cta">Claim Now</a>
+                    <a href="#download" class="pricing-btn" data-i18n="pricing.founders.cta">Claim Now</a>
                 </div>
             </div>
+            <p class="pricing-note" data-i18n="pricing.note">Prices in Swiss francs. Cancel anytime — no hidden fees.</p>
         </div>
     </section>
 
@@ -930,7 +845,7 @@
                         <li><span class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span><span data-i18n="influencers.b3">Credit as inspiration source</span></li>
                         <li><span class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></span><span data-i18n="influencers.b4">No work required from you</span></li>
                     </ul>
-                    <a href="mailto:info@eatsense.ch" class="btn-primary" data-i18n="influencers.cta">Get in Touch</a>
+                    <a href="mailto:info@eatsense.ch" class="btn-primary" style="display:inline-flex;align-items:center;gap:.6rem;padding:.9rem 1.75rem;background:var(--forest);color:#fff;text-decoration:none;font-size:.95rem;font-weight:500;border-radius:10px;box-shadow:var(--shadow-sm);" data-i18n="influencers.cta">Get in Touch</a>
                 </div>
                 <div class="influencer-visual fade-in">
                     <div class="influencer-card">
@@ -950,6 +865,40 @@
         </div>
     </section>
 
+    <section class="faq" id="faq">
+        <div class="section-container">
+            <div class="section-header fade-in">
+                <span class="section-tag" data-i18n="faq.tag">FAQ</span>
+                <h2 class="section-title" data-i18n="faq.title">Questions, answered</h2>
+            </div>
+            <div class="faq-list fade-in">
+                <details class="faq-item"><summary data-i18n="faq.q1">Is EatSense free?</summary><div class="faq-answer" data-i18n="faq.a1">Yes. You can scan 3 meals a day for free, forever. PRO unlocks unlimited scans and advanced features.</div></details>
+                <details class="faq-item"><summary data-i18n="faq.q2">How accurate is the AI analysis?</summary><div class="faq-answer" data-i18n="faq.a2">Our AI estimates calories and macros from a single photo with high accuracy, and you can always fine-tune portions.</div></details>
+                <details class="faq-item"><summary data-i18n="faq.q3">Which languages are supported?</summary><div class="faq-answer" data-i18n="faq.a3">EatSense is available in English, German, French, Russian, Kazakh and Spanish.</div></details>
+                <details class="faq-item"><summary data-i18n="faq.q4">Is my data private?</summary><div class="faq-answer" data-i18n="faq.a4">Absolutely. We're Swiss-built and GDPR-compliant. Your data is yours — you control exactly what you share.</div></details>
+                <details class="faq-item"><summary data-i18n="faq.q5">Can I work with a real nutritionist?</summary><div class="faq-answer" data-i18n="faq.a5">Yes. The Expert Marketplace connects you with certified professionals who can view the data you choose to share.</div></details>
+                <details class="faq-item"><summary data-i18n="faq.q6">Is it available on Android and iPhone?</summary><div class="faq-answer" data-i18n="faq.a6">Yes — EatSense is on the App Store for iPhone and on Google Play for Android.</div></details>
+            </div>
+        </div>
+    </section>
+
+    <section class="finalcta">
+        <div class="finalcta-inner">
+            <h2 data-i18n="cta.title">Start eating with intention</h2>
+            <p data-i18n="cta.subtitle">Download EatSense and turn every meal into insight.</p>
+            <div class="store-badges">
+                <a href="https://apps.apple.com/us/app/eatsense/id6755033261" target="_blank" rel="noopener" class="store-badge" aria-label="Download on the App Store">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                    <span class="store-badge-text"><small data-i18n="store.apple.small">Download on the</small><strong>App Store</strong></span>
+                </a>
+                <a href="https://play.google.com/store/apps/details?id=ch.eatsense.app" target="_blank" rel="noopener" class="store-badge" aria-label="Get it on Google Play">
+                    <svg viewBox="0 0 24 24"><path fill="#1B4D3E" d="M22.018 13.298l-3.919 2.218-3.515-3.493 3.543-3.521 3.891 2.202a1.49 1.49 0 0 1 0 2.594zM1.337.924a1.486 1.486 0 0 0-.112.568v21.017c0 .217.045.419.124.6l11.155-11.087L1.337.924zm12.207 10.065l3.258-3.238L3.45.195a1.466 1.466 0 0 0-.946-.179l11.04 10.973zm0 2.067l-11 10.933c.298.036.612-.016.906-.183l13.324-7.54-3.23-3.21z"/></svg>
+                    <span class="store-badge-text"><small data-i18n="store.google.small">GET IT ON</small><strong>Google Play</strong></span>
+                </a>
+            </div>
+        </div>
+    </section>
+
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-top">
@@ -962,22 +911,38 @@
                 </div>
                 <div class="footer-column">
                     <h4 data-i18n="footer.product">Product</h4>
-                    <ul><li><a href="#features" data-i18n="nav.features">Features</a></li><li><a href="#programs" data-i18n="nav.programs">Programs</a></li><li><a href="#pricing" data-i18n="nav.pricing">Pricing</a></li><li><a href="https://apps.apple.com/us/app/eatsense/id6755033261" target="_blank" rel="noopener" data-i18n="nav.download">Download App</a></li></ul>
+                    <ul>
+                        <li><a href="#howitworks" data-i18n="nav.how">How it works</a></li>
+                        <li><a href="#features" data-i18n="nav.features">Features</a></li>
+                        <li><a href="#programs" data-i18n="nav.programs">Programs</a></li>
+                        <li><a href="#pricing" data-i18n="nav.pricing">Pricing</a></li>
+                        <li><a href="https://apps.apple.com/us/app/eatsense/id6755033261" target="_blank" rel="noopener" data-i18n="footer.appstore">App Store</a></li>
+                        <li><a href="https://play.google.com/store/apps/details?id=ch.eatsense.app" target="_blank" rel="noopener" data-i18n="footer.googleplay">Google Play</a></li>
+                    </ul>
                 </div>
                 <div class="footer-column">
                     <h4 data-i18n="footer.company">Company</h4>
-                    <ul><li><a href="#influencers" data-i18n="nav.influencers">For Creators</a></li><li><a href="/experts" data-i18n="nav.experts">For Experts</a></li><li><a href="mailto:info@eatsense.ch" data-i18n="footer.contact">Contact</a></li></ul>
+                    <ul>
+                        <li><a href="#influencers" data-i18n="nav.influencers">For Creators</a></li>
+                        <li><a href="/experts" data-i18n="nav.experts">For Experts</a></li>
+                        <li><a href="#faq" data-i18n="footer.faq">FAQ</a></li>
+                        <li><a href="mailto:info@eatsense.ch" data-i18n="footer.contact">Contact</a></li>
+                    </ul>
                 </div>
                 <div class="footer-column">
                     <h4 data-i18n="footer.legal">Legal</h4>
-                    <ul><li><a href="/privacy" data-i18n="footer.privacy">Privacy Policy</a></li><li><a href="/terms" data-i18n="footer.terms">Terms of Service</a></li><li><a href="/support" data-i18n="footer.support">Support</a></li></ul>
+                    <ul>
+                        <li><a href="/privacy" data-i18n="footer.privacy">Privacy Policy</a></li>
+                        <li><a href="/terms" data-i18n="footer.terms">Terms of Service</a></li>
+                        <li><a href="/support" data-i18n="footer.support">Support</a></li>
+                    </ul>
                 </div>
             </div>
             <div class="footer-bottom">
                 <p class="footer-copy">© 2026 EatSense. Geneva, Switzerland.</p>
                 <div class="footer-badges">
-                    <span class="footer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Swiss Made</span>
-                    <span class="footer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>GDPR Compliant</span>
+                    <span class="footer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span data-i18n="footer.swiss">Swiss Made</span></span>
+                    <span class="footer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span data-i18n="footer.gdpr">GDPR Compliant</span></span>
                 </div>
             </div>
         </div>
@@ -987,87 +952,165 @@
         const SUPPORTED_LANGS = ['en','de','fr','ru','kk','es'];
         const translations = {
           en: {
-            "nav.features":"Features","nav.programs":"Programs","nav.pricing":"Pricing","nav.influencers":"For Creators","nav.experts":"For Experts","nav.download":"Download App",
-            "hero.badge":"Made in Switzerland","hero.title":"Nutrition that <em>understands</em> you","hero.subtitle":"AI-powered food analysis meets personalized lifestyle programs. Discover 47 ways to eat well, backed by Swiss precision.","hero.cta.primary":"Download for iOS","hero.cta.secondary":"Learn more",
+            "nav.how":"How it works","nav.features":"Features","nav.programs":"Programs","nav.pricing":"Pricing","nav.influencers":"For Creators","nav.experts":"For Experts","nav.download":"Get the App",
+            "store.apple.small":"Download on the","store.google.small":"GET IT ON",
+            "hero.badge":"Made in Switzerland","hero.title":"Nutrition that <em>understands</em> you","hero.subtitle":"AI-powered food analysis meets personalized lifestyle programs. Discover 47 ways to eat well, backed by Swiss precision.","hero.trust":"Loved by health-conscious eaters across Switzerland",
+            "stats.programs":"Lifestyle programs","stats.scan":"Per food scan","stats.langs":"Languages","stats.privacy":"Swiss privacy",
+            "how.tag":"How it works","how.title":"Three steps to better eating","how.subtitle":"No food diaries. No guesswork. Just snap and learn.","how.s1.title":"Snap your meal","how.s1.desc":"Take a photo of any dish — at home or at a restaurant.","how.s2.title":"Get instant insight","how.s2.desc":"AI breaks down calories, macros and nutrients in seconds.","how.s3.title":"Build better habits","how.s3.desc":"Follow personalized programs and track your progress over time.",
             "features.tag":"Why EatSense","features.title":"Smart nutrition, effortlessly","features.subtitle":"Snap a photo. Get instant insights. Make better choices.","features.ai.title":"AI Food Analysis","features.ai.desc":"Photograph any meal and receive detailed nutritional breakdown in seconds. Calories, macros, vitamins — all calculated instantly.","features.biomarkers.title":"Biomarker Integration","features.biomarkers.desc":"Connect your blood test results with your nutrition data. Understand how what you eat affects your health markers.","features.experts.title":"Expert Marketplace","features.experts.desc":"Connect with certified nutritionists who can see your real data — not just what you remember eating.",
-            "programs.tag":"Lifestyle Programs","programs.title":"Find your way of eating","programs.subtitle":"Curated nutrition philosophies inspired by cultures, warriors, and iconic lifestyles.","programs.counter":"unique lifestyle programs",
-            "pricing.tag":"Pricing","pricing.title":"Choose your journey","pricing.subtitle":"Start free. Upgrade when you're ready for more.",
+            "programs.tag":"Lifestyle Programs","programs.title":"Find your way of eating","programs.subtitle":"Curated nutrition philosophies inspired by cultures, warriors, and iconic lifestyles.","programs.counter":"unique lifestyle programs","programs.c1.cat":"Historical","programs.c1.desc":"Elegant, portion-conscious dining inspired by golden age stars.","programs.c2.cat":"Warrior","programs.c2.desc":"High-protein, minimal processing. Fuel for strength and endurance.","programs.c3.cat":"Culture","programs.c3.desc":"Balanced, quality-focused eating with Alpine wisdom.","programs.c4.cat":"Modern","programs.c4.desc":"Beauty-inspired nutrition for radiant skin from within.","programs.c5.cat":"Lifestyle","programs.c5.desc":"High-performance eating for busy professionals on the go.","programs.c6.cat":"Spiritual","programs.c6.desc":"Optimized nutrition for Suhoor and Iftar during fasting.",
+            "bio.tag":"Biomarker Intelligence","bio.title":"Connect diet to health","bio.subtitle":"Upload your lab results and see how your nutrition choices affect your body.","bio.hba1c":"Blood sugar control","bio.chol.name":"Cholesterol","bio.chol.desc":"LDL, HDL, Triglycerides","bio.vitd.name":"Vitamin D","bio.vitd.desc":"Bone & immune health","bio.ferr":"Iron stores","bio.crp":"Inflammation marker","bio.b12":"Energy & nerves","bio.cal.name":"Calcium","bio.cal.desc":"Bone density","bio.thy.name":"Thyroid","bio.thy.desc":"Metabolism balance",
+            "tst.tag":"Built for trust","tst.title":"Designed around how you really eat","tst.subtitle":"Accurate, private and made for everyday life.","tst.v1.title":"Precision you can trust","tst.v1.desc":"AI estimates calories, macros and nutrients from a single photo — and you can fine-tune any portion in a tap.","tst.v2.title":"Private by design","tst.v2.desc":"Swiss-built and GDPR-compliant. Your data stays yours — you decide exactly what to share, and with whom.","tst.v3.title":"Wherever you eat","tst.v3.desc":"At home or at a restaurant, in 6 languages — EatSense fits real life, not just perfect meal-prep days.",
+            "pricing.tag":"Pricing","pricing.title":"Choose your journey","pricing.subtitle":"Start free. Upgrade when you're ready for more.","pricing.note":"Prices in Swiss francs. Cancel anytime — no hidden fees.",
             "pricing.free.name":"Free","pricing.free.desc":"Get started","pricing.free.period":"forever","pricing.free.f1":"3 scans per day","pricing.free.f2":"Basic nutrition data","pricing.free.f3":"7-day history","pricing.free.cta":"Get Started",
             "pricing.proAnnual.badge":"Most Popular","pricing.proAnnual.name":"PRO Annual","pricing.proAnnual.desc":"Best value","pricing.proAnnual.period":"/year","pricing.proAnnual.f1":"Unlimited scans","pricing.proAnnual.f2":"AI nutrition assistant","pricing.proAnnual.f3":"Biomarker tracking","pricing.proAnnual.f4":"All 47 programs","pricing.proAnnual.f5":"PDF reports","pricing.proAnnual.cta":"Upgrade to PRO",
-            "pricing.proMonthly.name":"PRO Monthly","pricing.proMonthly.desc":"Flexible","pricing.proMonthly.period":"/month","pricing.proMonthly.f1":"Unlimited scans","pricing.proMonthly.f2":"AI nutrition assistant","pricing.proMonthly.f3":"Biomarker tracking","pricing.proMonthly.f4":"All 47 programs","pricing.proMonthly.cta":"Try PRO",
+            "pricing.proMonthly.name":"PRO Monthly","pricing.proMonthly.desc":"Flexible","pricing.proMonthly.period":"/month","pricing.proMonthly.f1":"Unlimited scans","pricing.proMonthly.f2":"AI nutrition assistant","pricing.proMonthly.f3":"Biomarker tracking","pricing.proMonthly.f4":"All 47 programs","pricing.proMonthly.cta":"Try PRO","pricing.student.badge":"Student","pricing.student.name":"PRO Student","pricing.student.desc":"For verified students","pricing.student.period":"/year","pricing.student.f1":"Everything in PRO","pricing.student.f2":"Unlimited scans","pricing.student.f3":"Student ID required","pricing.student.cta":"Get Student",
             "pricing.founders.badge":"Limited","pricing.founders.name":"Founders Pass","pricing.founders.desc":"Lifetime access","pricing.founders.period":"one-time","pricing.founders.f1":"Everything in PRO","pricing.founders.f2":"Lifetime updates","pricing.founders.f3":"Founder badge","pricing.founders.f4":"Early access to features","pricing.founders.cta":"Claim Now",
-            "influencers.title":"Become an <em>Inspiration</em>","influencers.subtitle":"We're creating lifestyle programs inspired by health & fitness creators. Your philosophy. Your principles. Featured in our app.","influencers.b1":"Permanent feature in the app","influencers.b2":"Free lifetime PRO access","influencers.b3":"Credit as inspiration source","influencers.b4":"No work required from you","influencers.cta":"Get in Touch","influencers.card1.title":"Fitness Creators","influencers.card1.desc":"Training + nutrition combined","influencers.card2.title":"Nutritionists","influencers.card2.desc":"Science-based approaches","influencers.card3.title":"Lifestyle Influencers","influencers.card3.desc":"Wellness philosophy","footer.tagline":"AI nutrition, Swiss precision. Understand what you eat.","footer.product":"Product","footer.company":"Company","footer.legal":"Legal","footer.contact":"Contact","footer.privacy":"Privacy Policy","footer.terms":"Terms of Service","footer.support":"Support"
+            "influencers.title":"Become an <em>Inspiration</em>","influencers.subtitle":"We're creating lifestyle programs inspired by health & fitness creators. Your philosophy. Your principles. Featured in our app.","influencers.b1":"Permanent feature in the app","influencers.b2":"Free lifetime PRO access","influencers.b3":"Credit as inspiration source","influencers.b4":"No work required from you","influencers.cta":"Get in Touch","influencers.card1.title":"Fitness Creators","influencers.card1.desc":"Training + nutrition combined","influencers.card2.title":"Nutritionists","influencers.card2.desc":"Science-based approaches","influencers.card3.title":"Lifestyle Influencers","influencers.card3.desc":"Wellness philosophy",
+            "faq.tag":"FAQ","faq.title":"Questions, answered","faq.q1":"Is EatSense free?","faq.a1":"Yes. You can scan 3 meals a day for free, forever. PRO unlocks unlimited scans and advanced features.","faq.q2":"How accurate is the AI analysis?","faq.a2":"Our AI estimates calories and macros from a single photo with high accuracy, and you can always fine-tune portions.","faq.q3":"Which languages are supported?","faq.a3":"EatSense is available in English, German, French, Russian, Kazakh and Spanish.","faq.q4":"Is my data private?","faq.a4":"Absolutely. We're Swiss-built and GDPR-compliant. Your data is yours — you control exactly what you share.","faq.q5":"Can I work with a real nutritionist?","faq.a5":"Yes. The Expert Marketplace connects you with certified professionals who can view the data you choose to share.","faq.q6":"Is it available on Android and iPhone?","faq.a6":"Yes — EatSense is on the App Store for iPhone and on Google Play for Android.",
+            "cta.title":"Start eating with intention","cta.subtitle":"Download EatSense and turn every meal into insight.",
+            "footer.tagline":"AI nutrition, Swiss precision. Understand what you eat.","footer.product":"Product","footer.company":"Company","footer.legal":"Legal","footer.contact":"Contact","footer.privacy":"Privacy Policy","footer.terms":"Terms of Service","footer.support":"Support","footer.faq":"FAQ","footer.appstore":"App Store","footer.googleplay":"Google Play","footer.swiss":"Swiss Made","footer.gdpr":"GDPR Compliant"
           },
           de: {
-            "nav.features":"Funktionen","nav.programs":"Programme","nav.pricing":"Preise","nav.influencers":"Für Creator","nav.experts":"Für Experten","nav.download":"App laden",
-            "hero.badge":"Made in Switzerland","hero.title":"Ernährung, die dich <em>versteht</em>","hero.subtitle":"KI-gestützte Lebensmittelanalyse trifft personalisierte Lifestyle-Programme. Entdecke 47 Wege, gut zu essen, mit Schweizer Präzision.","hero.cta.primary":"Für iOS laden","hero.cta.secondary":"Mehr erfahren",
+            "nav.how":"So funktioniert's","nav.features":"Funktionen","nav.programs":"Programme","nav.pricing":"Preise","nav.influencers":"Für Creator","nav.experts":"Für Experten","nav.download":"App holen",
+            "store.apple.small":"Laden im","store.google.small":"JETZT BEI",
+            "hero.badge":"Made in Switzerland","hero.title":"Ernährung, die dich <em>versteht</em>","hero.subtitle":"KI-gestützte Lebensmittelanalyse trifft personalisierte Lifestyle-Programme. Entdecke 47 Wege, gut zu essen, mit Schweizer Präzision.","hero.trust":"Beliebt bei gesundheitsbewussten Menschen in der ganzen Schweiz",
+            "stats.programs":"Lifestyle-Programme","stats.scan":"Pro Foto-Scan","stats.langs":"Sprachen","stats.privacy":"Schweizer Datenschutz",
+            "how.tag":"So funktioniert's","how.title":"Drei Schritte zu besserer Ernährung","how.subtitle":"Kein Ernährungstagebuch. Kein Rätselraten. Einfach fotografieren und lernen.","how.s1.title":"Mahlzeit fotografieren","how.s1.desc":"Mach ein Foto von jedem Gericht — zu Hause oder im Restaurant.","how.s2.title":"Sofort Einblick erhalten","how.s2.desc":"Die KI analysiert Kalorien, Makros und Nährstoffe in Sekunden.","how.s3.title":"Bessere Gewohnheiten aufbauen","how.s3.desc":"Folge personalisierten Programmen und verfolge deinen Fortschritt.",
             "features.tag":"Warum EatSense","features.title":"Smarte Ernährung, mühelos","features.subtitle":"Foto machen. Sofort Einblicke erhalten. Bessere Entscheidungen treffen.","features.ai.title":"KI-Lebensmittelanalyse","features.ai.desc":"Fotografiere jede Mahlzeit und erhalte in Sekunden eine detaillierte Nährwertanalyse.","features.biomarkers.title":"Biomarker-Integration","features.biomarkers.desc":"Verbinde deine Blutwerte mit deinen Ernährungsdaten.","features.experts.title":"Experten-Marktplatz","features.experts.desc":"Verbinde dich mit zertifizierten Ernährungsberatern.",
-            "programs.tag":"Lifestyle-Programme","programs.title":"Finde deine Art zu essen","programs.subtitle":"Kuratierte Ernährungsphilosophien.","programs.counter":"einzigartige Programme",
-            "pricing.tag":"Preise","pricing.title":"Wähle deinen Weg","pricing.subtitle":"Kostenlos starten. Upgrade, wenn du bereit bist.",
+            "programs.tag":"Lifestyle-Programme","programs.title":"Finde deine Art zu essen","programs.subtitle":"Kuratierte Ernährungsphilosophien, inspiriert von Kulturen und Lebensstilen.","programs.counter":"einzigartige Programme","programs.c1.cat":"Historisch","programs.c1.desc":"Elegantes, portionsbewusstes Essen, inspiriert von Stars der goldenen Ära.","programs.c2.cat":"Krieger","programs.c2.desc":"Proteinreich, kaum verarbeitet. Treibstoff für Kraft und Ausdauer.","programs.c3.cat":"Kultur","programs.c3.desc":"Ausgewogenes, qualitätsbewusstes Essen mit alpiner Weisheit.","programs.c4.cat":"Modern","programs.c4.desc":"Beauty-inspirierte Ernährung für strahlende Haut von innen.","programs.c5.cat":"Lifestyle","programs.c5.desc":"Leistungsstarke Ernährung für vielbeschäftigte Profis.","programs.c6.cat":"Spirituell","programs.c6.desc":"Optimierte Ernährung für Suhoor und Iftar während des Fastens.",
+            "bio.tag":"Biomarker-Intelligenz","bio.title":"Ernährung mit Gesundheit verbinden","bio.subtitle":"Lade deine Laborwerte hoch und sieh, wie deine Ernährung deinen Körper beeinflusst.","bio.hba1c":"Blutzuckerkontrolle","bio.chol.name":"Cholesterin","bio.chol.desc":"LDL, HDL, Triglyceride","bio.vitd.name":"Vitamin D","bio.vitd.desc":"Knochen & Immunsystem","bio.ferr":"Eisenspeicher","bio.crp":"Entzündungsmarker","bio.b12":"Energie & Nerven","bio.cal.name":"Kalzium","bio.cal.desc":"Knochendichte","bio.thy.name":"Schilddrüse","bio.thy.desc":"Stoffwechsel-Balance",
+            "tst.tag":"Auf Vertrauen gebaut","tst.title":"Entwickelt für deinen echten Alltag","tst.subtitle":"Genau, privat und für das echte Leben gemacht.","tst.v1.title":"Präzision, der du vertraust","tst.v1.desc":"Die KI schätzt Kalorien, Makros und Nährstoffe aus einem einzigen Foto — und du justierst jede Portion mit einem Tipp.","tst.v2.title":"Privat von Grund auf","tst.v2.desc":"Schweizer Entwicklung, DSGVO-konform. Deine Daten gehören dir — du entscheidest, was du teilst und mit wem.","tst.v3.title":"Wo auch immer du isst","tst.v3.desc":"Zu Hause oder im Restaurant, in 6 Sprachen — EatSense passt ins echte Leben, nicht nur an perfekte Meal-Prep-Tage.",
+            "pricing.tag":"Preise","pricing.title":"Wähle deinen Weg","pricing.subtitle":"Kostenlos starten. Upgrade, wenn du bereit bist.","pricing.note":"Preise in Schweizer Franken. Jederzeit kündbar — keine versteckten Kosten.",
             "pricing.free.name":"Kostenlos","pricing.free.desc":"Einstieg","pricing.free.period":"für immer","pricing.free.f1":"3 Scans pro Tag","pricing.free.f2":"Basis-Nährwertdaten","pricing.free.f3":"7-Tage-Verlauf","pricing.free.cta":"Loslegen",
             "pricing.proAnnual.badge":"Am beliebtesten","pricing.proAnnual.name":"PRO Jahres","pricing.proAnnual.desc":"Bester Wert","pricing.proAnnual.period":"/Jahr","pricing.proAnnual.f1":"Unbegrenzte Scans","pricing.proAnnual.f2":"KI-Ernährungsassistent","pricing.proAnnual.f3":"Biomarker-Tracking","pricing.proAnnual.f4":"Alle 47 Programme","pricing.proAnnual.f5":"PDF-Berichte","pricing.proAnnual.cta":"Auf PRO upgraden",
-            "pricing.proMonthly.name":"PRO Monat","pricing.proMonthly.desc":"Flexibel","pricing.proMonthly.period":"/Monat","pricing.proMonthly.f1":"Unbegrenzte Scans","pricing.proMonthly.f2":"KI-Ernährungsassistent","pricing.proMonthly.f3":"Biomarker-Tracking","pricing.proMonthly.f4":"Alle 47 Programme","pricing.proMonthly.cta":"PRO testen",
+            "pricing.proMonthly.name":"PRO Monat","pricing.proMonthly.desc":"Flexibel","pricing.proMonthly.period":"/Monat","pricing.proMonthly.f1":"Unbegrenzte Scans","pricing.proMonthly.f2":"KI-Ernährungsassistent","pricing.proMonthly.f3":"Biomarker-Tracking","pricing.proMonthly.f4":"Alle 47 Programme","pricing.proMonthly.cta":"PRO testen","pricing.student.badge":"Student","pricing.student.name":"PRO Student","pricing.student.desc":"Für verifizierte Studenten","pricing.student.period":"/Jahr","pricing.student.f1":"Alles aus PRO","pricing.student.f2":"Unbegrenzte Scans","pricing.student.f3":"Studierendenausweis erforderlich","pricing.student.cta":"Student holen",
             "pricing.founders.badge":"Limitiert","pricing.founders.name":"Founders Pass","pricing.founders.desc":"Lebenslanger Zugang","pricing.founders.period":"einmalig","pricing.founders.f1":"Alles aus PRO","pricing.founders.f2":"Lebenslange Updates","pricing.founders.f3":"Founder-Badge","pricing.founders.f4":"Früher Zugang zu Features","pricing.founders.cta":"Jetzt sichern",
-            "influencers.title":"Werde eine <em>Inspiration</em>","influencers.subtitle":"Wir entwickeln Lifestyle-Programme, inspiriert von Gesundheits- und Fitness-Creatorn. Deine Philosophie. Deine Prinzipien. In unserer App.","influencers.b1":"Dauerhafter Platz in der App","influencers.b2":"Kostenloser lebenslanger PRO-Zugang","influencers.b3":"Nennung als Inspirationsquelle","influencers.b4":"Kein Aufwand für dich","influencers.cta":"Kontakt aufnehmen","influencers.card1.title":"Fitness-Creator","influencers.card1.desc":"Training + Ernährung kombiniert","influencers.card2.title":"Ernährungsberater","influencers.card2.desc":"Wissenschaftsbasierte Ansätze","influencers.card3.title":"Lifestyle-Influencer","influencers.card3.desc":"Wellness-Philosophie","footer.tagline":"KI-Ernährung, Schweizer Präzision. Verstehe, was du isst.","footer.product":"Produkt","footer.company":"Unternehmen","footer.legal":"Rechtliches","footer.contact":"Kontakt","footer.privacy":"Datenschutz","footer.terms":"Nutzungsbedingungen","footer.support":"Support"
+            "influencers.title":"Werde eine <em>Inspiration</em>","influencers.subtitle":"Wir entwickeln Lifestyle-Programme, inspiriert von Gesundheits- und Fitness-Creatorn. Deine Philosophie. Deine Prinzipien. In unserer App.","influencers.b1":"Dauerhafter Platz in der App","influencers.b2":"Kostenloser lebenslanger PRO-Zugang","influencers.b3":"Nennung als Inspirationsquelle","influencers.b4":"Kein Aufwand für dich","influencers.cta":"Kontakt aufnehmen","influencers.card1.title":"Fitness-Creator","influencers.card1.desc":"Training + Ernährung kombiniert","influencers.card2.title":"Ernährungsberater","influencers.card2.desc":"Wissenschaftsbasierte Ansätze","influencers.card3.title":"Lifestyle-Influencer","influencers.card3.desc":"Wellness-Philosophie",
+            "faq.tag":"FAQ","faq.title":"Antworten auf deine Fragen","faq.q1":"Ist EatSense kostenlos?","faq.a1":"Ja. Du kannst täglich 3 Mahlzeiten kostenlos scannen, für immer. PRO schaltet unbegrenzte Scans und erweiterte Funktionen frei.","faq.q2":"Wie genau ist die KI-Analyse?","faq.a2":"Unsere KI schätzt Kalorien und Makros aus einem einzigen Foto sehr genau, und du kannst Portionen jederzeit anpassen.","faq.q3":"Welche Sprachen werden unterstützt?","faq.a3":"EatSense ist auf Englisch, Deutsch, Französisch, Russisch, Kasachisch und Spanisch verfügbar.","faq.q4":"Sind meine Daten privat?","faq.a4":"Absolut. Wir sind Schweizer und DSGVO-konform. Deine Daten gehören dir — du bestimmst, was du teilst.","faq.q5":"Kann ich mit einem echten Ernährungsberater arbeiten?","faq.a5":"Ja. Der Experten-Marktplatz verbindet dich mit zertifizierten Fachleuten, die die von dir freigegebenen Daten einsehen können.","faq.q6":"Ist es für Android und iPhone verfügbar?","faq.a6":"Ja — EatSense ist im App Store für iPhone und bei Google Play für Android erhältlich.",
+            "cta.title":"Iss mit Bewusstsein","cta.subtitle":"Lade EatSense herunter und mach jede Mahlzeit zu einer Erkenntnis.",
+            "footer.tagline":"KI-Ernährung, Schweizer Präzision. Verstehe, was du isst.","footer.product":"Produkt","footer.company":"Unternehmen","footer.legal":"Rechtliches","footer.contact":"Kontakt","footer.privacy":"Datenschutz","footer.terms":"Nutzungsbedingungen","footer.support":"Support","footer.faq":"FAQ","footer.appstore":"App Store","footer.googleplay":"Google Play","footer.swiss":"Swiss Made","footer.gdpr":"DSGVO-konform"
           },
           fr: {
-            "nav.features":"Fonctionnalités","nav.programs":"Programmes","nav.pricing":"Tarifs","nav.influencers":"Pour Créateurs","nav.experts":"Pour les Experts","nav.download":"Télécharger",
-            "hero.badge":"Made in Switzerland","hero.title":"Une nutrition qui vous <em>comprend</em>","hero.subtitle":"L'analyse alimentaire par IA rencontre les programmes lifestyle personnalisés. Découvrez 47 façons de bien manger.","hero.cta.primary":"Télécharger pour iOS","hero.cta.secondary":"En savoir plus",
+            "nav.how":"Comment ça marche","nav.features":"Fonctionnalités","nav.programs":"Programmes","nav.pricing":"Tarifs","nav.influencers":"Pour Créateurs","nav.experts":"Pour les Experts","nav.download":"Obtenir l'app",
+            "store.apple.small":"Télécharger dans l'","store.google.small":"DISPONIBLE SUR",
+            "hero.badge":"Made in Switzerland","hero.title":"Une nutrition qui vous <em>comprend</em>","hero.subtitle":"L'analyse alimentaire par IA rencontre les programmes lifestyle personnalisés. Découvrez 47 façons de bien manger, avec la précision suisse.","hero.trust":"Apprécié par les amateurs de bien-être dans toute la Suisse",
+            "stats.programs":"Programmes lifestyle","stats.scan":"Par scan de repas","stats.langs":"Langues","stats.privacy":"Confidentialité suisse",
+            "how.tag":"Comment ça marche","how.title":"Trois étapes pour mieux manger","how.subtitle":"Pas de journal alimentaire. Pas de devinettes. Photographiez et apprenez.","how.s1.title":"Photographiez votre repas","how.s1.desc":"Prenez une photo de n'importe quel plat — à la maison ou au restaurant.","how.s2.title":"Obtenez une analyse instantanée","how.s2.desc":"L'IA décompose calories, macros et nutriments en quelques secondes.","how.s3.title":"Créez de meilleures habitudes","how.s3.desc":"Suivez des programmes personnalisés et suivez vos progrès dans le temps.",
             "features.tag":"Pourquoi EatSense","features.title":"Nutrition intelligente, sans effort","features.subtitle":"Prenez une photo. Obtenez des insights instantanés.","features.ai.title":"Analyse IA des Aliments","features.ai.desc":"Photographiez n'importe quel repas et recevez une analyse nutritionnelle détaillée.","features.biomarkers.title":"Intégration Biomarqueurs","features.biomarkers.desc":"Connectez vos résultats sanguins à vos données nutritionnelles.","features.experts.title":"Marketplace d'Experts","features.experts.desc":"Connectez-vous avec des nutritionnistes certifiés.",
-            "programs.tag":"Programmes Lifestyle","programs.title":"Trouvez votre façon de manger","programs.subtitle":"Des philosophies nutritionnelles inspirées.","programs.counter":"programmes uniques",
-            "pricing.tag":"Tarifs","pricing.title":"Choisissez votre parcours","pricing.subtitle":"Commencez gratuitement. Passez au niveau supérieur quand vous êtes prêt.",
+            "programs.tag":"Programmes Lifestyle","programs.title":"Trouvez votre façon de manger","programs.subtitle":"Des philosophies nutritionnelles inspirées de cultures et de modes de vie.","programs.counter":"programmes uniques","programs.c1.cat":"Historique","programs.c1.desc":"Repas élégants et raisonnés, inspirés des stars de l'âge d'or.","programs.c2.cat":"Guerrier","programs.c2.desc":"Riche en protéines, peu transformé. Du carburant pour la force.","programs.c3.cat":"Culture","programs.c3.desc":"Une alimentation équilibrée et de qualité, avec la sagesse alpine.","programs.c4.cat":"Moderne","programs.c4.desc":"Nutrition beauté pour une peau radieuse de l'intérieur.","programs.c5.cat":"Lifestyle","programs.c5.desc":"Une alimentation performante pour les pros pressés.","programs.c6.cat":"Spirituel","programs.c6.desc":"Nutrition optimisée pour le Suhoor et l'Iftar pendant le jeûne.",
+            "bio.tag":"Intelligence Biomarqueurs","bio.title":"Reliez alimentation et santé","bio.subtitle":"Téléchargez vos résultats d'analyses et voyez comment votre alimentation affecte votre corps.","bio.hba1c":"Contrôle de la glycémie","bio.chol.name":"Cholestérol","bio.chol.desc":"LDL, HDL, Triglycérides","bio.vitd.name":"Vitamine D","bio.vitd.desc":"Os & immunité","bio.ferr":"Réserves de fer","bio.crp":"Marqueur d'inflammation","bio.b12":"Énergie & nerfs","bio.cal.name":"Calcium","bio.cal.desc":"Densité osseuse","bio.thy.name":"Thyroïde","bio.thy.desc":"Équilibre métabolique",
+            "tst.tag":"Conçu pour la confiance","tst.title":"Pensé pour votre vraie vie","tst.subtitle":"Précis, privé et fait pour le quotidien.","tst.v1.title":"Une précision fiable","tst.v1.desc":"L'IA estime calories, macros et nutriments à partir d'une seule photo — et vous ajustez chaque portion d'un geste.","tst.v2.title":"Privé par conception","tst.v2.desc":"Conçu en Suisse, conforme RGPD. Vos données restent les vôtres — vous décidez quoi partager, et avec qui.","tst.v3.title":"Où que vous mangiez","tst.v3.desc":"À la maison ou au restaurant, en 6 langues — EatSense s'adapte à la vraie vie, pas seulement aux journées parfaites.",
+            "pricing.tag":"Tarifs","pricing.title":"Choisissez votre parcours","pricing.subtitle":"Commencez gratuitement. Passez au niveau supérieur quand vous êtes prêt.","pricing.note":"Prix en francs suisses. Annulable à tout moment — sans frais cachés.",
             "pricing.free.name":"Gratuit","pricing.free.desc":"Commencer","pricing.free.period":"pour toujours","pricing.free.f1":"3 scans par jour","pricing.free.f2":"Données nutritionnelles de base","pricing.free.f3":"Historique de 7 jours","pricing.free.cta":"Commencer",
             "pricing.proAnnual.badge":"Le plus populaire","pricing.proAnnual.name":"PRO Annuel","pricing.proAnnual.desc":"Meilleur rapport","pricing.proAnnual.period":"/an","pricing.proAnnual.f1":"Scans illimités","pricing.proAnnual.f2":"Assistant nutrition IA","pricing.proAnnual.f3":"Suivi des biomarqueurs","pricing.proAnnual.f4":"Les 47 programmes","pricing.proAnnual.f5":"Rapports PDF","pricing.proAnnual.cta":"Passer à PRO",
-            "pricing.proMonthly.name":"PRO Mensuel","pricing.proMonthly.desc":"Flexible","pricing.proMonthly.period":"/mois","pricing.proMonthly.f1":"Scans illimités","pricing.proMonthly.f2":"Assistant nutrition IA","pricing.proMonthly.f3":"Suivi des biomarqueurs","pricing.proMonthly.f4":"Les 47 programmes","pricing.proMonthly.cta":"Essayer PRO",
+            "pricing.proMonthly.name":"PRO Mensuel","pricing.proMonthly.desc":"Flexible","pricing.proMonthly.period":"/mois","pricing.proMonthly.f1":"Scans illimités","pricing.proMonthly.f2":"Assistant nutrition IA","pricing.proMonthly.f3":"Suivi des biomarqueurs","pricing.proMonthly.f4":"Les 47 programmes","pricing.proMonthly.cta":"Essayer PRO","pricing.student.badge":"Étudiant","pricing.student.name":"PRO Étudiant","pricing.student.desc":"Pour étudiants vérifiés","pricing.student.period":"/an","pricing.student.f1":"Tout de PRO","pricing.student.f2":"Scans illimités","pricing.student.f3":"Carte étudiante requise","pricing.student.cta":"Offre étudiante",
             "pricing.founders.badge":"Limité","pricing.founders.name":"Founders Pass","pricing.founders.desc":"Accès à vie","pricing.founders.period":"paiement unique","pricing.founders.f1":"Tout de PRO","pricing.founders.f2":"Mises à jour à vie","pricing.founders.f3":"Badge fondateur","pricing.founders.f4":"Accès anticipé","pricing.founders.cta":"Obtenir",
-            "influencers.title":"Devenez une <em>Inspiration</em>","influencers.subtitle":"Nous créons des programmes lifestyle inspirés par des créateurs santé & fitness. Votre philosophie. Vos principes. Dans notre app.","influencers.b1":"Présence permanente dans l'app","influencers.b2":"Accès PRO à vie gratuit","influencers.b3":"Crédité comme source d'inspiration","influencers.b4":"Aucun travail requis de votre part","influencers.cta":"Nous contacter","influencers.card1.title":"Créateurs fitness","influencers.card1.desc":"Entraînement + nutrition combinés","influencers.card2.title":"Nutritionnistes","influencers.card2.desc":"Approches scientifiques","influencers.card3.title":"Influenceurs lifestyle","influencers.card3.desc":"Philosophie bien-être","footer.tagline":"Nutrition IA, précision suisse. Comprenez ce que vous mangez.","footer.product":"Produit","footer.company":"Entreprise","footer.legal":"Mentions légales","footer.contact":"Contact","footer.privacy":"Politique de confidentialité","footer.terms":"Conditions d'utilisation","footer.support":"Support"
+            "influencers.title":"Devenez une <em>Inspiration</em>","influencers.subtitle":"Nous créons des programmes lifestyle inspirés par des créateurs santé & fitness. Votre philosophie. Vos principes. Dans notre app.","influencers.b1":"Présence permanente dans l'app","influencers.b2":"Accès PRO à vie gratuit","influencers.b3":"Crédité comme source d'inspiration","influencers.b4":"Aucun travail requis de votre part","influencers.cta":"Nous contacter","influencers.card1.title":"Créateurs fitness","influencers.card1.desc":"Entraînement + nutrition combinés","influencers.card2.title":"Nutritionnistes","influencers.card2.desc":"Approches scientifiques","influencers.card3.title":"Influenceurs lifestyle","influencers.card3.desc":"Philosophie bien-être",
+            "faq.tag":"FAQ","faq.title":"Vos questions, nos réponses","faq.q1":"EatSense est-il gratuit ?","faq.a1":"Oui. Vous pouvez scanner 3 repas par jour gratuitement, pour toujours. PRO débloque les scans illimités et les fonctions avancées.","faq.q2":"Quelle est la précision de l'analyse IA ?","faq.a2":"Notre IA estime calories et macros à partir d'une seule photo avec une grande précision, et vous pouvez toujours ajuster les portions.","faq.q3":"Quelles langues sont prises en charge ?","faq.a3":"EatSense est disponible en anglais, allemand, français, russe, kazakh et espagnol.","faq.q4":"Mes données sont-elles privées ?","faq.a4":"Absolument. Nous sommes suisses et conformes au RGPD. Vos données vous appartiennent — vous contrôlez ce que vous partagez.","faq.q5":"Puis-je travailler avec un vrai nutritionniste ?","faq.a5":"Oui. Le Marketplace d'Experts vous connecte à des professionnels certifiés qui peuvent voir les données que vous choisissez de partager.","faq.q6":"Est-ce disponible sur Android et iPhone ?","faq.a6":"Oui — EatSense est sur l'App Store pour iPhone et sur Google Play pour Android.",
+            "cta.title":"Mangez avec intention","cta.subtitle":"Téléchargez EatSense et transformez chaque repas en information.",
+            "footer.tagline":"Nutrition IA, précision suisse. Comprenez ce que vous mangez.","footer.product":"Produit","footer.company":"Entreprise","footer.legal":"Mentions légales","footer.contact":"Contact","footer.privacy":"Politique de confidentialité","footer.terms":"Conditions d'utilisation","footer.support":"Support","footer.faq":"FAQ","footer.appstore":"App Store","footer.googleplay":"Google Play","footer.swiss":"Swiss Made","footer.gdpr":"Conforme RGPD"
           },
           ru: {
-            "nav.features":"Возможности","nav.programs":"Программы","nav.pricing":"Цены","nav.influencers":"Для авторов","nav.experts":"Для экспертов","nav.download":"Скачать",
-            "hero.badge":"Сделано в Швейцарии","hero.title":"Питание, которое <em>понимает</em> вас","hero.subtitle":"Анализ еды на базе ИИ и персональные программы образа жизни. Откройте 47 способов питаться правильно, с швейцарской точностью.","hero.cta.primary":"Скачать для iOS","hero.cta.secondary":"Подробнее",
+            "nav.how":"Как это работает","nav.features":"Возможности","nav.programs":"Программы","nav.pricing":"Цены","nav.influencers":"Для авторов","nav.experts":"Для экспертов","nav.download":"Скачать",
+            "store.apple.small":"Загрузите в","store.google.small":"ДОСТУПНО В",
+            "hero.badge":"Сделано в Швейцарии","hero.title":"Питание, которое <em>понимает</em> вас","hero.subtitle":"Анализ еды на базе ИИ и персональные программы образа жизни. Откройте 47 способов питаться правильно, со швейцарской точностью.","hero.trust":"Нас любят люди, заботящиеся о здоровье, по всей Швейцарии",
+            "stats.programs":"Программ образа жизни","stats.scan":"На анализ блюда","stats.langs":"Языков","stats.privacy":"Швейцарская приватность",
+            "how.tag":"Как это работает","how.title":"Три шага к лучшему питанию","how.subtitle":"Никаких дневников. Никаких догадок. Просто сфотографируйте и узнайте.","how.s1.title":"Сфотографируйте блюдо","how.s1.desc":"Сделайте фото любого блюда — дома или в ресторане.","how.s2.title":"Получите мгновенный разбор","how.s2.desc":"ИИ разложит калории, макросы и нутриенты за секунды.","how.s3.title":"Формируйте полезные привычки","how.s3.desc":"Следуйте персональным программам и отслеживайте прогресс со временем.",
             "features.tag":"Почему EatSense","features.title":"Умное питание без усилий","features.subtitle":"Сфотографируйте блюдо. Получите мгновенную информацию. Принимайте лучшие решения.","features.ai.title":"ИИ-анализ еды","features.ai.desc":"Сфотографируйте любое блюдо и получите детальный нутриентный разбор за секунды: калории, макросы, витамины.","features.biomarkers.title":"Интеграция биомаркеров","features.biomarkers.desc":"Свяжите результаты анализов с питанием и поймите, как еда влияет на здоровье.","features.experts.title":"Маркетплейс экспертов","features.experts.desc":"Общайтесь с сертифицированными нутрициологами, которые видят ваши реальные данные.",
-            "programs.tag":"Программы образа жизни","programs.title":"Найдите свой способ питания","programs.subtitle":"Отобранные философии питания, вдохновлённые культурами и образами жизни.","programs.counter":"уникальных программ",
-            "pricing.tag":"Цены","pricing.title":"Выберите свой путь","pricing.subtitle":"Начните бесплатно. Обновитесь, когда будете готовы к большему.",
+            "programs.tag":"Программы образа жизни","programs.title":"Найдите свой способ питания","programs.subtitle":"Отобранные философии питания, вдохновлённые культурами и образами жизни.","programs.counter":"уникальных программ","programs.c1.cat":"Историческое","programs.c1.desc":"Элегантное питание с контролем порций в стиле звёзд золотой эпохи.","programs.c2.cat":"Воин","programs.c2.desc":"Много белка, минимум обработки. Топливо для силы и выносливости.","programs.c3.cat":"Культура","programs.c3.desc":"Сбалансированное питание с альпийской мудростью.","programs.c4.cat":"Современное","programs.c4.desc":"Питание для сияющей кожи изнутри.","programs.c5.cat":"Лайфстайл","programs.c5.desc":"Эффективное питание для занятых профессионалов.","programs.c6.cat":"Духовное","programs.c6.desc":"Оптимизированное питание для сухура и ифтара в пост.",
+            "bio.tag":"Интеллект биомаркеров","bio.title":"Свяжите питание со здоровьем","bio.subtitle":"Загрузите результаты анализов и увидите, как ваше питание влияет на организм.","bio.hba1c":"Контроль сахара","bio.chol.name":"Холестерин","bio.chol.desc":"ЛПНП, ЛПВП, триглицериды","bio.vitd.name":"Витамин D","bio.vitd.desc":"Кости и иммунитет","bio.ferr":"Запасы железа","bio.crp":"Маркер воспаления","bio.b12":"Энергия и нервы","bio.cal.name":"Кальций","bio.cal.desc":"Плотность костей","bio.thy.name":"Щитовидная железа","bio.thy.desc":"Баланс метаболизма",
+            "tst.tag":"Создано для доверия","tst.title":"Под то, как вы едите на самом деле","tst.subtitle":"Точно, приватно и для повседневной жизни.","tst.v1.title":"Точность, которой доверяешь","tst.v1.desc":"ИИ оценивает калории, макросы и нутриенты по одному фото — а любую порцию можно поправить в один тап.","tst.v2.title":"Приватность по умолчанию","tst.v2.desc":"Швейцарская разработка, соответствие GDPR. Ваши данные — ваши: вы решаете, чем и с кем делиться.","tst.v3.title":"Где бы вы ни ели","tst.v3.desc":"Дома или в ресторане, на 6 языках — EatSense вписывается в реальную жизнь, а не только в идеальные дни.",
+            "pricing.tag":"Цены","pricing.title":"Выберите свой путь","pricing.subtitle":"Начните бесплатно. Обновитесь, когда будете готовы к большему.","pricing.note":"Цены в швейцарских франках. Отмена в любой момент — без скрытых платежей.",
             "pricing.free.name":"Бесплатно","pricing.free.desc":"Начать","pricing.free.period":"навсегда","pricing.free.f1":"3 сканирования в день","pricing.free.f2":"Базовые данные о питании","pricing.free.f3":"История за 7 дней","pricing.free.cta":"Начать",
             "pricing.proAnnual.badge":"Популярно","pricing.proAnnual.name":"PRO Годовой","pricing.proAnnual.desc":"Лучшая цена","pricing.proAnnual.period":"/год","pricing.proAnnual.f1":"Безлимит сканов","pricing.proAnnual.f2":"ИИ-ассистент по питанию","pricing.proAnnual.f3":"Трекинг биомаркеров","pricing.proAnnual.f4":"Все 47 программ","pricing.proAnnual.f5":"PDF-отчёты","pricing.proAnnual.cta":"Перейти на PRO",
-            "pricing.proMonthly.name":"PRO Месячный","pricing.proMonthly.desc":"Гибко","pricing.proMonthly.period":"/месяц","pricing.proMonthly.f1":"Безлимит сканов","pricing.proMonthly.f2":"ИИ-ассистент по питанию","pricing.proMonthly.f3":"Трекинг биомаркеров","pricing.proMonthly.f4":"Все 47 программ","pricing.proMonthly.cta":"Попробовать PRO",
+            "pricing.proMonthly.name":"PRO Месячный","pricing.proMonthly.desc":"Гибко","pricing.proMonthly.period":"/месяц","pricing.proMonthly.f1":"Безлимит сканов","pricing.proMonthly.f2":"ИИ-ассистент по питанию","pricing.proMonthly.f3":"Трекинг биомаркеров","pricing.proMonthly.f4":"Все 47 программ","pricing.proMonthly.cta":"Попробовать PRO","pricing.student.badge":"Студентам","pricing.student.name":"PRO Студент","pricing.student.desc":"Для подтверждённых студентов","pricing.student.period":"/год","pricing.student.f1":"Всё из PRO","pricing.student.f2":"Безлимит сканов","pricing.student.f3":"Нужен студенческий","pricing.student.cta":"Студенту",
             "pricing.founders.badge":"Ограниченно","pricing.founders.name":"Founders Pass","pricing.founders.desc":"Пожизненный доступ","pricing.founders.period":"разовая оплата","pricing.founders.f1":"Всё из PRO","pricing.founders.f2":"Пожизненные обновления","pricing.founders.f3":"Значок фаундера","pricing.founders.f4":"Ранний доступ к фичам","pricing.founders.cta":"Получить",
-            "influencers.title":"Станьте <em>вдохновением</em>","influencers.subtitle":"Мы создаём программы образа жизни, вдохновлённые экспертами по здоровью и фитнесу. Ваша философия. Ваши принципы. В нашем приложении.","influencers.b1":"Постоянное место в приложении","influencers.b2":"Бесплатный пожизненный доступ PRO","influencers.b3":"Указание как источника вдохновения","influencers.b4":"От вас не требуется работы","influencers.cta":"Связаться","influencers.card1.title":"Фитнес-авторы","influencers.card1.desc":"Тренировки + питание вместе","influencers.card2.title":"Нутрициологи","influencers.card2.desc":"Научный подход","influencers.card3.title":"Лайфстайл-блогеры","influencers.card3.desc":"Философия благополучия","footer.tagline":"ИИ-питание, швейцарская точность. Понимайте, что вы едите.","footer.product":"Продукт","footer.company":"Компания","footer.legal":"Правовая информация","footer.contact":"Контакты","footer.privacy":"Политика конфиденциальности","footer.terms":"Условия использования","footer.support":"Поддержка"
+            "influencers.title":"Станьте <em>вдохновением</em>","influencers.subtitle":"Мы создаём программы образа жизни, вдохновлённые экспертами по здоровью и фитнесу. Ваша философия. Ваши принципы. В нашем приложении.","influencers.b1":"Постоянное место в приложении","influencers.b2":"Бесплатный пожизненный доступ PRO","influencers.b3":"Указание как источника вдохновения","influencers.b4":"От вас не требуется работы","influencers.cta":"Связаться","influencers.card1.title":"Фитнес-авторы","influencers.card1.desc":"Тренировки + питание вместе","influencers.card2.title":"Нутрициологи","influencers.card2.desc":"Научный подход","influencers.card3.title":"Лайфстайл-блогеры","influencers.card3.desc":"Философия благополучия",
+            "faq.tag":"ЧаВо","faq.title":"Отвечаем на вопросы","faq.q1":"EatSense бесплатный?","faq.a1":"Да. Вы можете сканировать 3 блюда в день бесплатно, всегда. PRO открывает безлимит и расширенные функции.","faq.q2":"Насколько точен ИИ-анализ?","faq.a2":"Наш ИИ оценивает калории и макросы по одному фото с высокой точностью, а порции всегда можно подкорректировать.","faq.q3":"Какие языки поддерживаются?","faq.a3":"EatSense доступен на английском, немецком, французском, русском, казахском и испанском.","faq.q4":"Мои данные приватны?","faq.a4":"Абсолютно. Мы швейцарские и соответствуем GDPR. Ваши данные принадлежат вам — вы решаете, чем делиться.","faq.q5":"Могу ли я работать с настоящим нутрициологом?","faq.a5":"Да. Маркетплейс экспертов связывает вас с сертифицированными специалистами, которые видят данные, которыми вы решили поделиться.","faq.q6":"Доступно ли на Android и iPhone?","faq.a6":"Да — EatSense есть в App Store для iPhone и в Google Play для Android.",
+            "cta.title":"Начните питаться осознанно","cta.subtitle":"Скачайте EatSense и превратите каждый приём пищи в инсайт.",
+            "footer.tagline":"ИИ-питание, швейцарская точность. Понимайте, что вы едите.","footer.product":"Продукт","footer.company":"Компания","footer.legal":"Правовая информация","footer.contact":"Контакты","footer.privacy":"Политика конфиденциальности","footer.terms":"Условия использования","footer.support":"Поддержка","footer.faq":"ЧаВо","footer.appstore":"App Store","footer.googleplay":"Google Play","footer.swiss":"Сделано в Швейцарии","footer.gdpr":"Соответствие GDPR"
           },
           kk: {
-            "nav.features":"Мүмкіндіктер","nav.programs":"Бағдарламалар","nav.pricing":"Бағалар","nav.influencers":"Авторларға","nav.experts":"Сарапшыларға","nav.download":"Жүктеп алу",
-            "hero.badge":"Швейцарияда жасалған","hero.title":"Сізді <em>түсінетін</em> тамақтану","hero.subtitle":"ЖИ негізіндегі тамақ талдауы және дербес бағдарламалар. Швейцариялық дәлдікпен дұрыс тамақтанудың 47 жолын ашыңыз.","hero.cta.primary":"iOS үшін жүктеу","hero.cta.secondary":"Толығырақ",
+            "nav.how":"Қалай жұмыс істейді","nav.features":"Мүмкіндіктер","nav.programs":"Бағдарламалар","nav.pricing":"Бағалар","nav.influencers":"Авторларға","nav.experts":"Сарапшыларға","nav.download":"Жүктеп алу",
+            "store.apple.small":"Жүктеу","store.google.small":"ҚОЛ ЖЕТІМДІ",
+            "hero.badge":"Швейцарияда жасалған","hero.title":"Сізді <em>түсінетін</em> тамақтану","hero.subtitle":"ЖИ негізіндегі тамақ талдауы және дербес бағдарламалар. Швейцариялық дәлдікпен дұрыс тамақтанудың 47 жолын ашыңыз.","hero.trust":"Швейцария бойынша денсаулыққа мән беретіндер ұнатады",
+            "stats.programs":"Өмір салты бағдарламасы","stats.scan":"Бір тамақ скані","stats.langs":"Тіл","stats.privacy":"Швейцариялық құпиялық",
+            "how.tag":"Қалай жұмыс істейді","how.title":"Жақсы тамақтануға үш қадам","how.subtitle":"Күнделік жоқ. Болжам жоқ. Жай ғана суретке түсіріп, біліңіз.","how.s1.title":"Тамағыңызды суретке түсіріңіз","how.s1.desc":"Кез келген тағамды суретке түсіріңіз — үйде немесе мейрамханада.","how.s2.title":"Бірден талдау алыңыз","how.s2.desc":"ЖИ калория, макро және нутриенттерді секундта талдайды.","how.s3.title":"Жақсы әдеттер қалыптастырыңыз","how.s3.desc":"Дербес бағдарламаларды орындап, прогресіңізді бақылаңыз.",
             "features.tag":"Неге EatSense","features.title":"Ақылды тамақтану, оңай","features.subtitle":"Суретке түсіріңіз. Бірден талдау алыңыз. Жақсы шешім қабылдаңыз.","features.ai.title":"ЖИ тамақ талдауы","features.ai.desc":"Кез келген тағамды суретке түсіріп, секунд ішінде калория, макро, дәрумен бойынша толық талдау алыңыз.","features.biomarkers.title":"Биомаркерлерді интеграциялау","features.biomarkers.desc":"Анализ нәтижелерін тамақтану деректерімен байланыстырыңыз.","features.experts.title":"Сарапшылар маркетплейсі","features.experts.desc":"Шынайы деректеріңізді көретін сертификатталған нутрициологтармен хабарласыңыз.",
-            "programs.tag":"Өмір салты бағдарламалары","programs.title":"Өз тамақтану жолыңызды табыңыз","programs.subtitle":"Мәдениеттер мен өмір салттарынан шабыт алған таңдаулы философиялар.","programs.counter":"ерекше бағдарлама",
-            "pricing.tag":"Бағалар","pricing.title":"Жолыңызды таңдаңыз","pricing.subtitle":"Тегін бастаңыз. Дайын болғанда жаңартыңыз.",
+            "programs.tag":"Өмір салты бағдарламалары","programs.title":"Өз тамақтану жолыңызды табыңыз","programs.subtitle":"Мәдениеттер мен өмір салттарынан шабыт алған таңдаулы философиялар.","programs.counter":"ерекше бағдарлама","programs.c1.cat":"Тарихи","programs.c1.desc":"Алтын дәуір жұлдыздарынан шабыт алған талғампаз, порцияға мұқият тамақтану.","programs.c2.cat":"Жауынгер","programs.c2.desc":"Ақуызы мол, өңдеуі аз. Күш пен төзімділікке жанармай.","programs.c3.cat":"Мәдениет","programs.c3.desc":"Альпілік даналықпен теңгерімді, сапалы тамақтану.","programs.c4.cat":"Заманауи","programs.c4.desc":"Іштен нұрлы тері үшін сұлулыққа бағытталған тамақтану.","programs.c5.cat":"Лайфстайл","programs.c5.desc":"Бос емес мамандарға арналған жоғары өнімді тамақтану.","programs.c6.cat":"Рухани","programs.c6.desc":"Ораза кезінде сухур мен ифтарға оңтайландырылған тамақтану.",
+            "bio.tag":"Биомаркер интеллекті","bio.title":"Тамақтануды денсаулықпен байланыстырыңыз","bio.subtitle":"Зертханалық нәтижелеріңізді жүктеп, тамақтануыңыз ағзаға қалай әсер ететінін көріңіз.","bio.hba1c":"Қандағы қант бақылауы","bio.chol.name":"Холестерин","bio.chol.desc":"ЛПТП, ЛПЖП, триглицеридтер","bio.vitd.name":"D дәрумені","bio.vitd.desc":"Сүйек және иммунитет","bio.ferr":"Темір қоры","bio.crp":"Қабыну маркері","bio.b12":"Қуат және жүйке","bio.cal.name":"Кальций","bio.cal.desc":"Сүйек тығыздығы","bio.thy.name":"Қалқанша без","bio.thy.desc":"Зат алмасу тепе-теңдігі",
+            "tst.tag":"Сенімге құрылған","tst.title":"Сіздің нақты өміріңізге арналған","tst.subtitle":"Дәл, құпия әрі күнделікті өмірге жасалған.","tst.v1.title":"Сенуге болатын дәлдік","tst.v1.desc":"ЖИ бір фотодан калория, макро және нутриенттерді бағалайды — кез келген порцияны бір түртумен реттейсіз.","tst.v2.title":"Бастапқыдан құпия","tst.v2.desc":"Швейцарияда жасалған, GDPR-ге сай. Деректеріңіз — өзіңіздікі: нені әрі кіммен бөлісуді өзіңіз шешесіз.","tst.v3.title":"Қайда тамақтансаңыз да","tst.v3.desc":"Үйде немесе мейрамханада, 6 тілде — EatSense нақты өмірге сай, тек мінсіз күндерге емес.",
+            "pricing.tag":"Бағалар","pricing.title":"Жолыңызды таңдаңыз","pricing.subtitle":"Тегін бастаңыз. Дайын болғанда жаңартыңыз.","pricing.note":"Бағалар швейцариялық франкпен. Кез келген уақытта бас тартуға болады — жасырын төлемсіз.",
             "pricing.free.name":"Тегін","pricing.free.desc":"Бастау","pricing.free.period":"әрдайым","pricing.free.f1":"Күніне 3 сканер","pricing.free.f2":"Негізгі тамақтану деректері","pricing.free.f3":"7-күндік тарих","pricing.free.cta":"Бастау",
             "pricing.proAnnual.badge":"Ең танымал","pricing.proAnnual.name":"PRO Жылдық","pricing.proAnnual.desc":"Ең тиімді","pricing.proAnnual.period":"/жыл","pricing.proAnnual.f1":"Шексіз сканер","pricing.proAnnual.f2":"ЖИ тамақтану көмекшісі","pricing.proAnnual.f3":"Биомаркер трекингі","pricing.proAnnual.f4":"Барлық 47 бағдарлама","pricing.proAnnual.f5":"PDF есептер","pricing.proAnnual.cta":"PRO-ға жаңарту",
-            "pricing.proMonthly.name":"PRO Айлық","pricing.proMonthly.desc":"Икемді","pricing.proMonthly.period":"/ай","pricing.proMonthly.f1":"Шексіз сканер","pricing.proMonthly.f2":"ЖИ тамақтану көмекшісі","pricing.proMonthly.f3":"Биомаркер трекингі","pricing.proMonthly.f4":"Барлық 47 бағдарлама","pricing.proMonthly.cta":"PRO-ны сынау",
+            "pricing.proMonthly.name":"PRO Айлық","pricing.proMonthly.desc":"Икемді","pricing.proMonthly.period":"/ай","pricing.proMonthly.f1":"Шексіз сканер","pricing.proMonthly.f2":"ЖИ тамақтану көмекшісі","pricing.proMonthly.f3":"Биомаркер трекингі","pricing.proMonthly.f4":"Барлық 47 бағдарлама","pricing.proMonthly.cta":"PRO-ны сынау","pricing.student.badge":"Студентке","pricing.student.name":"PRO Студент","pricing.student.desc":"Расталған студенттерге","pricing.student.period":"/жыл","pricing.student.f1":"PRO-дағының бәрі","pricing.student.f2":"Шексіз сканер","pricing.student.f3":"Студенттік билет қажет","pricing.student.cta":"Студентке",
             "pricing.founders.badge":"Шектеулі","pricing.founders.name":"Founders Pass","pricing.founders.desc":"Өмір бойы қолжетімділік","pricing.founders.period":"бір реттік","pricing.founders.f1":"PRO-дағының бәрі","pricing.founders.f2":"Өмір бойы жаңартулар","pricing.founders.f3":"Негізін салушы белгісі","pricing.founders.f4":"Функцияларға ерте қолжетімділік","pricing.founders.cta":"Алу",
-            "influencers.title":"<em>Шабыт</em> болыңыз","influencers.subtitle":"Біз денсаулық пен фитнес авторларынан шабыт алған өмір салты бағдарламаларын жасаймыз. Сіздің философияңыз. Сіздің ұстанымдарыңыз. Біздің қосымшада.","influencers.b1":"Қосымшада тұрақты орын","influencers.b2":"Тегін өмірлік PRO қол жеткізу","influencers.b3":"Шабыт көзі ретінде көрсету","influencers.b4":"Сізден жұмыс талап етілмейді","influencers.cta":"Байланысу","influencers.card1.title":"Фитнес авторлары","influencers.card1.desc":"Жаттығу + тамақтану бірге","influencers.card2.title":"Нутрициологтар","influencers.card2.desc":"Ғылыми тәсілдер","influencers.card3.title":"Лайфстайл блогерлер","influencers.card3.desc":"Әл-ауқат философиясы","footer.tagline":"ЖИ-тамақтану, швейцариялық дәлдік. Не жейтініңізді түсініңіз.","footer.product":"Өнім","footer.company":"Компания","footer.legal":"Құқықтық ақпарат","footer.contact":"Байланыс","footer.privacy":"Құпиялылық саясаты","footer.terms":"Қолдану шарттары","footer.support":"Қолдау"
+            "influencers.title":"<em>Шабыт</em> болыңыз","influencers.subtitle":"Біз денсаулық пен фитнес авторларынан шабыт алған өмір салты бағдарламаларын жасаймыз. Сіздің философияңыз. Сіздің ұстанымдарыңыз. Біздің қосымшада.","influencers.b1":"Қосымшада тұрақты орын","influencers.b2":"Тегін өмірлік PRO қол жеткізу","influencers.b3":"Шабыт көзі ретінде көрсету","influencers.b4":"Сізден жұмыс талап етілмейді","influencers.cta":"Байланысу","influencers.card1.title":"Фитнес авторлары","influencers.card1.desc":"Жаттығу + тамақтану бірге","influencers.card2.title":"Нутрициологтар","influencers.card2.desc":"Ғылыми тәсілдер","influencers.card3.title":"Лайфстайл блогерлер","influencers.card3.desc":"Әл-ауқат философиясы",
+            "faq.tag":"Жиі сұрақтар","faq.title":"Сұрақтарға жауап","faq.q1":"EatSense тегін бе?","faq.a1":"Иә. Күніне 3 тағамды тегін, әрдайым сканерлей аласыз. PRO шексіз сканерлеу мен қосымша функцияларды ашады.","faq.q2":"ЖИ талдауы қаншалықты дәл?","faq.a2":"Біздің ЖИ бір фотодан калория мен макросты жоғары дәлдікпен бағалайды, ал порцияны әрдайым реттей аласыз.","faq.q3":"Қандай тілдер қолдау табады?","faq.a3":"EatSense ағылшын, неміс, француз, орыс, қазақ және испан тілдерінде қолжетімді.","faq.q4":"Деректерім құпия ма?","faq.a4":"Әрине. Біз швейцариялықпыз әрі GDPR талаптарына сәйкеспіз. Деректеріңіз — сіздікі, нені бөлісуді өзіңіз шешесіз.","faq.q5":"Нағыз нутрициологпен жұмыс істей аламын ба?","faq.a5":"Иә. Сарапшылар маркетплейсі сізді бөліскіңіз келетін деректерді көретін сертификатталған мамандармен байланыстырады.","faq.q6":"Android пен iPhone-да қолжетімді ме?","faq.a6":"Иә — EatSense iPhone үшін App Store-да және Android үшін Google Play-де бар.",
+            "cta.title":"Саналы тамақтануды бастаңыз","cta.subtitle":"EatSense жүктеп алып, әр тамақты түсінікке айналдырыңыз.",
+            "footer.tagline":"ЖИ-тамақтану, швейцариялық дәлдік. Не жейтініңізді түсініңіз.","footer.product":"Өнім","footer.company":"Компания","footer.legal":"Құқықтық ақпарат","footer.contact":"Байланыс","footer.privacy":"Құпиялылық саясаты","footer.terms":"Қолдану шарттары","footer.support":"Қолдау","footer.faq":"Жиі сұрақтар","footer.appstore":"App Store","footer.googleplay":"Google Play","footer.swiss":"Швейцарияда жасалған","footer.gdpr":"GDPR сәйкестігі"
           },
           es: {
-            "nav.features":"Funciones","nav.programs":"Programas","nav.pricing":"Precios","nav.influencers":"Para creadores","nav.experts":"Para expertos","nav.download":"Descargar",
-            "hero.badge":"Hecho en Suiza","hero.title":"Nutrición que te <em>entiende</em>","hero.subtitle":"Análisis de alimentos con IA y programas de estilo de vida personalizados. Descubre 47 formas de comer bien con precisión suiza.","hero.cta.primary":"Descargar para iOS","hero.cta.secondary":"Saber más",
+            "nav.how":"Cómo funciona","nav.features":"Funciones","nav.programs":"Programas","nav.pricing":"Precios","nav.influencers":"Para creadores","nav.experts":"Para expertos","nav.download":"Obtener la app",
+            "store.apple.small":"Descárgalo en el","store.google.small":"DISPONIBLE EN",
+            "hero.badge":"Hecho en Suiza","hero.title":"Nutrición que te <em>entiende</em>","hero.subtitle":"Análisis de alimentos con IA y programas de estilo de vida personalizados. Descubre 47 formas de comer bien con precisión suiza.","hero.trust":"Querido por personas conscientes de su salud en toda Suiza",
+            "stats.programs":"Programas de estilo de vida","stats.scan":"Por escaneo de comida","stats.langs":"Idiomas","stats.privacy":"Privacidad suiza",
+            "how.tag":"Cómo funciona","how.title":"Tres pasos para comer mejor","how.subtitle":"Sin diarios de comidas. Sin conjeturas. Solo fotografía y aprende.","how.s1.title":"Fotografía tu comida","how.s1.desc":"Haz una foto de cualquier plato — en casa o en un restaurante.","how.s2.title":"Obtén análisis al instante","how.s2.desc":"La IA desglosa calorías, macros y nutrientes en segundos.","how.s3.title":"Crea mejores hábitos","how.s3.desc":"Sigue programas personalizados y monitorea tu progreso con el tiempo.",
             "features.tag":"Por qué EatSense","features.title":"Nutrición inteligente sin esfuerzo","features.subtitle":"Haz una foto. Obtén análisis instantáneo. Toma mejores decisiones.","features.ai.title":"Análisis IA de comida","features.ai.desc":"Fotografía cualquier comida y recibe un desglose nutricional detallado en segundos: calorías, macros y vitaminas.","features.biomarkers.title":"Integración de biomarcadores","features.biomarkers.desc":"Conecta tus análisis de sangre con tus datos nutricionales.","features.experts.title":"Marketplace de expertos","features.experts.desc":"Conecta con nutricionistas certificados que ven tus datos reales.",
-            "programs.tag":"Programas de estilo de vida","programs.title":"Encuentra tu forma de comer","programs.subtitle":"Filosofías nutricionales seleccionadas, inspiradas en culturas y estilos de vida.","programs.counter":"programas únicos",
-            "pricing.tag":"Precios","pricing.title":"Elige tu camino","pricing.subtitle":"Empieza gratis. Actualiza cuando estés listo.",
+            "programs.tag":"Programas de estilo de vida","programs.title":"Encuentra tu forma de comer","programs.subtitle":"Filosofías nutricionales seleccionadas, inspiradas en culturas y estilos de vida.","programs.counter":"programas únicos","programs.c1.cat":"Histórico","programs.c1.desc":"Comidas elegantes y con porciones medidas, inspiradas en las estrellas de la época dorada.","programs.c2.cat":"Guerrero","programs.c2.desc":"Alto en proteínas, poco procesado. Combustible para fuerza y resistencia.","programs.c3.cat":"Cultura","programs.c3.desc":"Alimentación equilibrada y de calidad con sabiduría alpina.","programs.c4.cat":"Moderno","programs.c4.desc":"Nutrición de belleza para una piel radiante desde dentro.","programs.c5.cat":"Estilo de vida","programs.c5.desc":"Alimentación de alto rendimiento para profesionales ocupados.","programs.c6.cat":"Espiritual","programs.c6.desc":"Nutrición optimizada para Suhoor e Iftar durante el ayuno.",
+            "bio.tag":"Inteligencia de biomarcadores","bio.title":"Conecta dieta y salud","bio.subtitle":"Sube tus resultados de laboratorio y ve cómo tu alimentación afecta a tu cuerpo.","bio.hba1c":"Control de glucosa","bio.chol.name":"Colesterol","bio.chol.desc":"LDL, HDL, triglicéridos","bio.vitd.name":"Vitamina D","bio.vitd.desc":"Huesos e inmunidad","bio.ferr":"Reservas de hierro","bio.crp":"Marcador de inflamación","bio.b12":"Energía y nervios","bio.cal.name":"Calcio","bio.cal.desc":"Densidad ósea","bio.thy.name":"Tiroides","bio.thy.desc":"Equilibrio metabólico",
+            "tst.tag":"Hecho para la confianza","tst.title":"Pensado para cómo comes de verdad","tst.subtitle":"Preciso, privado y hecho para el día a día.","tst.v1.title":"Precisión confiable","tst.v1.desc":"La IA estima calorías, macros y nutrientes desde una sola foto — y ajustas cualquier porción con un toque.","tst.v2.title":"Privado por diseño","tst.v2.desc":"Hecho en Suiza y conforme al RGPD. Tus datos son tuyos — tú decides qué compartir y con quién.","tst.v3.title":"Donde sea que comas","tst.v3.desc":"En casa o en un restaurante, en 6 idiomas — EatSense se adapta a la vida real, no solo a los días perfectos.",
+            "pricing.tag":"Precios","pricing.title":"Elige tu camino","pricing.subtitle":"Empieza gratis. Actualiza cuando estés listo.","pricing.note":"Precios en francos suizos. Cancela cuando quieras — sin cargos ocultos.",
             "pricing.free.name":"Gratis","pricing.free.desc":"Empezar","pricing.free.period":"para siempre","pricing.free.f1":"3 escaneos al día","pricing.free.f2":"Datos básicos de nutrición","pricing.free.f3":"Historial de 7 días","pricing.free.cta":"Empezar",
             "pricing.proAnnual.badge":"Más popular","pricing.proAnnual.name":"PRO Anual","pricing.proAnnual.desc":"Mejor valor","pricing.proAnnual.period":"/año","pricing.proAnnual.f1":"Escaneos ilimitados","pricing.proAnnual.f2":"Asistente IA de nutrición","pricing.proAnnual.f3":"Seguimiento de biomarcadores","pricing.proAnnual.f4":"Los 47 programas","pricing.proAnnual.f5":"Informes PDF","pricing.proAnnual.cta":"Actualizar a PRO",
-            "pricing.proMonthly.name":"PRO Mensual","pricing.proMonthly.desc":"Flexible","pricing.proMonthly.period":"/mes","pricing.proMonthly.f1":"Escaneos ilimitados","pricing.proMonthly.f2":"Asistente IA de nutrición","pricing.proMonthly.f3":"Seguimiento de biomarcadores","pricing.proMonthly.f4":"Los 47 programas","pricing.proMonthly.cta":"Probar PRO",
+            "pricing.proMonthly.name":"PRO Mensual","pricing.proMonthly.desc":"Flexible","pricing.proMonthly.period":"/mes","pricing.proMonthly.f1":"Escaneos ilimitados","pricing.proMonthly.f2":"Asistente IA de nutrición","pricing.proMonthly.f3":"Seguimiento de biomarcadores","pricing.proMonthly.f4":"Los 47 programas","pricing.proMonthly.cta":"Probar PRO","pricing.student.badge":"Estudiante","pricing.student.name":"PRO Estudiante","pricing.student.desc":"Para estudiantes verificados","pricing.student.period":"/año","pricing.student.f1":"Todo lo de PRO","pricing.student.f2":"Escaneos ilimitados","pricing.student.f3":"Se requiere ID de estudiante","pricing.student.cta":"Plan estudiante",
             "pricing.founders.badge":"Limitado","pricing.founders.name":"Founders Pass","pricing.founders.desc":"Acceso de por vida","pricing.founders.period":"pago único","pricing.founders.f1":"Todo lo de PRO","pricing.founders.f2":"Actualizaciones de por vida","pricing.founders.f3":"Insignia de fundador","pricing.founders.f4":"Acceso anticipado","pricing.founders.cta":"Obtener",
-            "influencers.title":"Conviértete en una <em>Inspiración</em>","influencers.subtitle":"Creamos programas de estilo de vida inspirados en creadores de salud y fitness. Tu filosofía. Tus principios. En nuestra app.","influencers.b1":"Presencia permanente en la app","influencers.b2":"Acceso PRO de por vida gratis","influencers.b3":"Crédito como fuente de inspiración","influencers.b4":"No requiere trabajo de tu parte","influencers.cta":"Contáctanos","influencers.card1.title":"Creadores fitness","influencers.card1.desc":"Entrenamiento + nutrición combinados","influencers.card2.title":"Nutricionistas","influencers.card2.desc":"Enfoques científicos","influencers.card3.title":"Influencers de estilo de vida","influencers.card3.desc":"Filosofía de bienestar","footer.tagline":"Nutrición IA, precisión suiza. Entiende lo que comes.","footer.product":"Producto","footer.company":"Empresa","footer.legal":"Legal","footer.contact":"Contacto","footer.privacy":"Política de privacidad","footer.terms":"Términos de servicio","footer.support":"Soporte"
+            "influencers.title":"Conviértete en una <em>Inspiración</em>","influencers.subtitle":"Creamos programas de estilo de vida inspirados en creadores de salud y fitness. Tu filosofía. Tus principios. En nuestra app.","influencers.b1":"Presencia permanente en la app","influencers.b2":"Acceso PRO de por vida gratis","influencers.b3":"Crédito como fuente de inspiración","influencers.b4":"No requiere trabajo de tu parte","influencers.cta":"Contáctanos","influencers.card1.title":"Creadores fitness","influencers.card1.desc":"Entrenamiento + nutrición combinados","influencers.card2.title":"Nutricionistas","influencers.card2.desc":"Enfoques científicos","influencers.card3.title":"Influencers de estilo de vida","influencers.card3.desc":"Filosofía de bienestar",
+            "faq.tag":"Preguntas frecuentes","faq.title":"Respondemos tus preguntas","faq.q1":"¿EatSense es gratis?","faq.a1":"Sí. Puedes escanear 3 comidas al día gratis, para siempre. PRO desbloquea escaneos ilimitados y funciones avanzadas.","faq.q2":"¿Qué precisión tiene el análisis IA?","faq.a2":"Nuestra IA estima calorías y macros a partir de una sola foto con alta precisión, y siempre puedes ajustar las porciones.","faq.q3":"¿Qué idiomas son compatibles?","faq.a3":"EatSense está disponible en inglés, alemán, francés, ruso, kazajo y español.","faq.q4":"¿Mis datos son privados?","faq.a4":"Por supuesto. Somos suizos y cumplimos el RGPD. Tus datos son tuyos — tú controlas qué compartes.","faq.q5":"¿Puedo trabajar con un nutricionista real?","faq.a5":"Sí. El Marketplace de Expertos te conecta con profesionales certificados que pueden ver los datos que decidas compartir.","faq.q6":"¿Está disponible en Android y iPhone?","faq.a6":"Sí — EatSense está en la App Store para iPhone y en Google Play para Android.",
+            "cta.title":"Empieza a comer con intención","cta.subtitle":"Descarga EatSense y convierte cada comida en información.",
+            "footer.tagline":"Nutrición IA, precisión suiza. Entiende lo que comes.","footer.product":"Producto","footer.company":"Empresa","footer.legal":"Legal","footer.contact":"Contacto","footer.privacy":"Política de privacidad","footer.terms":"Términos de servicio","footer.support":"Soporte","footer.faq":"Preguntas frecuentes","footer.appstore":"App Store","footer.googleplay":"Google Play","footer.swiss":"Hecho en Suiza","footer.gdpr":"Conforme al RGPD"
           }
         };
         let currentLang='en';
-        function setLanguage(lang){currentLang=lang;document.documentElement.lang=lang;document.getElementById('currentLang').textContent=lang.toUpperCase();document.querySelectorAll('.lang-option').forEach(opt=>opt.classList.toggle('active',opt.dataset.lang===lang));document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(translations[lang]&&translations[lang][key])el.innerHTML=translations[lang][key];});localStorage.setItem('eatsense-lang',lang);}
-        document.addEventListener('DOMContentLoaded',()=>{const savedLang=localStorage.getItem('eatsense-lang');const browserLang=navigator.language.slice(0,2);setLanguage(savedLang||(SUPPORTED_LANGS.includes(browserLang)?browserLang:'en'));});
+        function setLanguage(lang){
+            if(!translations[lang]) lang='en';
+            currentLang=lang;
+            document.documentElement.lang=lang;
+            document.getElementById('currentLang').textContent=lang.toUpperCase();
+            document.querySelectorAll('.lang-option').forEach(opt=>opt.classList.toggle('active',opt.dataset.lang===lang));
+            document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(translations[lang]&&translations[lang][key])el.innerHTML=translations[lang][key];});
+            try{localStorage.setItem('eatsense-lang',lang);}catch(e){}
+        }
+        document.addEventListener('DOMContentLoaded',()=>{
+            let savedLang=null;try{savedLang=localStorage.getItem('eatsense-lang');}catch(e){}
+            const browserLang=(navigator.language||'en').slice(0,2);
+            setLanguage(savedLang||(SUPPORTED_LANGS.includes(browserLang)?browserLang:'en'));
+        });
         document.querySelectorAll('.lang-option').forEach(btn=>btn.addEventListener('click',()=>setLanguage(btn.dataset.lang)));
-        const nav=document.getElementById('nav');window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>50));
+        const nav=document.getElementById('nav');
+        window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>40),{passive:true});
         document.getElementById('mobileMenuBtn').addEventListener('click',()=>document.getElementById('navLinks').classList.toggle('active'));
-        const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1});
+        const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target);}}),{threshold:0.12});
         document.querySelectorAll('.fade-in').forEach(el=>observer.observe(el));
-        document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',function(e){e.preventDefault();const t=document.querySelector(this.getAttribute('href'));if(t){t.scrollIntoView({behavior:'smooth'});document.getElementById('navLinks').classList.remove('active');}}));
+        // Count-up animation for [data-count] when scrolled into view
+        const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        function animateCount(el){
+            const target=parseInt(el.dataset.count,10);if(isNaN(target))return;
+            const suffix=el.dataset.suffix||'';
+            if(reduceMotion){el.textContent=target+suffix;return;}
+            const dur=1400;const start=performance.now();
+            function tick(now){
+                const p=Math.min((now-start)/dur,1);
+                const eased=1-Math.pow(1-p,3);
+                el.textContent=Math.round(target*eased)+suffix;
+                if(p<1)requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        }
+        const countObs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){animateCount(e.target);countObs.unobserve(e.target);}}),{threshold:0.6});
+        document.querySelectorAll('[data-count]').forEach(el=>countObs.observe(el));
+        document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',function(e){const href=this.getAttribute('href');if(href==='#')return;const t=document.querySelector(href);if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'});document.getElementById('navLinks').classList.remove('active');}}));
     </script>
 </body>
 </html>

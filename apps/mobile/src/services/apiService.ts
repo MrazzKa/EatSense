@@ -1000,6 +1000,23 @@ class ApiService {
     });
   }
 
+  // GDPR: full export of personal data we hold for this user.
+  async exportMyData() {
+    return this.request('/users/export');
+  }
+
+  // ========== Disclaimer Consents (server-side record) ==========
+  async acceptDisclaimer(type: string) {
+    return this.request('/disclaimers/accept', {
+      method: 'POST',
+      body: JSON.stringify({ type }),
+    });
+  }
+
+  async getDisclaimerStatus() {
+    return this.request('/disclaimers/status');
+  }
+
   // Statistics
   async getStats(date?: any) {
     try {

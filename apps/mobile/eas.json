@@ -40,8 +40,8 @@
     },
     "production": {
       "distribution": "store",
-      "credentialsSource": "local",
       "ios": {
+        "credentialsSource": "local",
         "image": "macos-sequoia-15.6-xcode-26.1",
         "resourceClass": "m-medium",
         "cocoapods": "1.16.2",
@@ -53,6 +53,7 @@
         }
       },
       "android": {
+        "credentialsSource": "remote",
         "buildType": "app-bundle",
         "image": "ubuntu-24.04-jdk-21-ndk-27",
         "resourceClass": "medium"
@@ -67,6 +68,7 @@
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "535303723114-0bolq1ohgscmmfgnnk2i0sged4hktk5l.apps.googleusercontent.com",
         "EXPO_PUBLIC_ENABLE_EXPERTS": "true",
         "EXPO_PUBLIC_ENABLE_PHARMACY": "true",
+        "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": "AIzaSyDAPvqICKIGbPN6PfISA3LWsOz0js2g6mk",
         "COCOAPODS_NO_REPO_UPDATE": "true"
       }
     }

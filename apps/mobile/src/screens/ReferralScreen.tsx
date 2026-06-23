@@ -59,7 +59,7 @@ export default function ReferralScreen({ navigation }: ReferralScreenProps) {
 
     const handleShare = useCallback(async () => {
         if (!stats?.code || stats.code === '---') return;
-        const shareLink = `https://eatsense.app/r/${stats.code}`;
+        const shareLink = `https://www.eatsense.ch/r/${stats.code}`;
         const message = t('referral.shareMessage')?.replace('{{link}}', shareLink) ||
             `Join me on EatSense! Use my code ${stats.code} to support me — download: ${shareLink}`;
         try {

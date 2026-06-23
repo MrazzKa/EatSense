@@ -2099,7 +2099,25 @@
     "themeDark": "Dunkel",
     "themeMonochrome": "Mono",
     "themeRose": "Rosé",
-    "themeBeige": "Beige"
+    "themeBeige": "Beige",
+    "exportData": "Meine Daten exportieren",
+    "exportError": "Daten konnten nicht exportiert werden. Bitte versuchen Sie es erneut.",
+    "exportSaved": "Ihr Datenexport wurde im App-Ordner gespeichert.",
+    "myConsents": "Meine Einwilligungen",
+    "privacyDataHint": "Laden Sie eine Kopie Ihrer Daten herunter oder sehen Sie Ihre erteilten Einwilligungen ein.",
+    "myConsentsHint": "Hinweise und Einwilligungen, die Sie in der App akzeptiert haben.",
+    "noConsents": "Noch keine Einwilligungen erfasst.",
+    "consentTypes": {
+      "ai_assistant": "KI-Assistent",
+      "lifestyle_programs": "Lifestyle-Programme",
+      "biomarkers": "Biomarker-Tracking",
+      "medications": "Medikamente",
+      "experts_chat": "Experten-Chat",
+      "data_sharing_consent": "Datenweitergabe an Experten",
+      "food_scanning": "Lebensmittel-Scan",
+      "expert_marketplace": "Experten-Marktplatz",
+      "general_health_disclaimer": "Allgemeiner Gesundheitshinweis"
+    }
   },
   "recently": {
     "analyzing": "Analyzing...",
@@ -4505,7 +4523,14 @@
     "scanPermission": "Erlaube den Kamerazugriff, um den Apotheken-QR zu scannen.",
     "scanCodeTitle": "Apotheken-QR scannen",
     "scanCodeSub": "Richte deine Kamera auf den Code in der Apotheke.",
-    "connectHelp": "Fragen Sie in Ihrer Apotheke nach dem EatSense-Code oder QR — das Personal zeigt oder druckt ihn."
+    "connectHelp": "Fragen Sie in Ihrer Apotheke nach dem EatSense-Code oder QR — das Personal zeigt oder druckt ihn.",
+    "messagesFromPharmacy": "Nachrichten von der Apotheke",
+    "msgReason": {
+      "outOfStock": "Einige Medikamente sind derzeit nicht vorrätig.",
+      "prepayment": "Für die Bearbeitung Ihrer Bestellung ist eine Vorauszahlung erforderlich.",
+      "partial": "Ihre Bestellung ist nur teilweise verfügbar.",
+      "other": "Nachricht von der Apotheke"
+    }
   },
   "community": {
     "pickDateTime": "Datum & Uhrzeit wählen",

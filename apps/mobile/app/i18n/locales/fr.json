@@ -2367,7 +2367,25 @@
     "themeDark": "Sombre",
     "themeMonochrome": "Monochrome",
     "themeRose": "Rosé",
-    "themeBeige": "Sable"
+    "themeBeige": "Sable",
+    "exportData": "Exporter mes données",
+    "exportError": "Impossible d'exporter vos données. Veuillez réessayer.",
+    "exportSaved": "Votre export de données a été enregistré dans le dossier de l'application.",
+    "myConsents": "Mes consentements",
+    "privacyDataHint": "Téléchargez une copie de vos données ou consultez les consentements que vous avez donnés.",
+    "myConsentsHint": "Avertissements et consentements que vous avez acceptés dans l'application.",
+    "noConsents": "Aucun consentement enregistré pour le moment.",
+    "consentTypes": {
+      "ai_assistant": "Assistant IA",
+      "lifestyle_programs": "Programmes de style de vie",
+      "biomarkers": "Suivi des biomarqueurs",
+      "medications": "Médicaments",
+      "experts_chat": "Chat avec un expert",
+      "data_sharing_consent": "Partage de données avec les experts",
+      "food_scanning": "Analyse des aliments",
+      "expert_marketplace": "Place de marché des experts",
+      "general_health_disclaimer": "Avertissement général sur la santé"
+    }
   },
   "recently": {
     "analyzing": "Analyse en cours...",
@@ -4493,7 +4511,14 @@
     "scanPermission": "Autorisez l'accès à la caméra pour scanner le QR de la pharmacie.",
     "scanCodeTitle": "Scanner le QR de la pharmacie",
     "scanCodeSub": "Pointez votre caméra vers le code à la pharmacie.",
-    "connectHelp": "Demandez à votre pharmacie son code EatSense ou QR — le personnel peut vous le montrer ou l’imprimer."
+    "connectHelp": "Demandez à votre pharmacie son code EatSense ou QR — le personnel peut vous le montrer ou l’imprimer.",
+    "messagesFromPharmacy": "Messages de la pharmacie",
+    "msgReason": {
+      "outOfStock": "Certains médicaments sont actuellement en rupture de stock.",
+      "prepayment": "Un paiement anticipé est requis pour traiter votre commande.",
+      "partial": "Votre commande n'est que partiellement disponible.",
+      "other": "Message de la pharmacie"
+    }
   },
   "community": {
     "pickDateTime": "Choisir la date et l'heure",

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import disclaimers from './disclaimers.json';
+import ApiService from '../services/apiService';
 
 const DISCLAIMER_STORAGE_PREFIX = 'disclaimer_agreed_';
 
@@ -65,5 +66,13 @@ export const markDisclaimerViewed = async (key) => {
         await AsyncStorage.setItem(storageKey, 'true');
     } catch (error) {
         console.warn('[DisclaimerUtils] Error saving status', error);
+    }
+
+    // Also record the consent server-side so we have an auditable record and can
+    // surface it to the user (GDPR). Best-effort: never block the UI on this.
+    try {
+        await ApiService.acceptDisclaimer(key);
+    } catch (error) {
+        console.warn('[DisclaimerUtils] Server consent record failed (will retry on next accept)', error);
     }
 };

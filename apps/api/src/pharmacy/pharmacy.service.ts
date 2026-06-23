@@ -58,6 +58,69 @@ const LOW_STOCK_PUSH: Record<PushLang, { title: string; body: (name: string, day
   es: { title: 'Medicamento por agotarse', body: (n, d) => `${n} — quedan unos ${d} ${d === 1 ? 'día' : 'días'}. Toca para pedir una reposición.` },
 };
 
+// Reasons a pharmacy can pick when messaging a customer about their order.
+const PHARMACY_MESSAGE_REASONS = ['out_of_stock', 'prepayment', 'partial', 'other'] as const;
+type PharmacyMessageReason = (typeof PHARMACY_MESSAGE_REASONS)[number];
+
+// Localized push + in-app text shown to the CUSTOMER when the pharmacy sends a
+// message about their order. Recipient's language drives the choice (en fallback).
+const CLIENT_MESSAGE_PUSH: Record<PushLang, { title: (orderId: string) => string; reasons: Record<PharmacyMessageReason, string> }> = {
+  en: {
+    title: (id) => `Message about order #${id}`,
+    reasons: {
+      out_of_stock: 'Some medications are currently out of stock.',
+      prepayment: 'Prepayment is required to fulfil your order.',
+      partial: 'Your order is only partially available.',
+      other: 'The pharmacy has sent you a message.',
+    },
+  },
+  ru: {
+    title: (id) => `Сообщение по заказу №${id}`,
+    reasons: {
+      out_of_stock: 'Некоторых препаратов сейчас нет в наличии.',
+      prepayment: 'Для выполнения заказа требуется предоплата.',
+      partial: 'Ваш заказ доступен только частично.',
+      other: 'Аптека отправила вам сообщение.',
+    },
+  },
+  kk: {
+    title: (id) => `№${id} тапсырыс бойынша хабарлама`,
+    reasons: {
+      out_of_stock: 'Кейбір дәрілер қазір қоймада жоқ.',
+      prepayment: 'Тапсырысты орындау үшін алдын ала төлем қажет.',
+      partial: 'Тапсырысыңыз ішінара ғана қолжетімді.',
+      other: 'Дәріхана сізге хабарлама жіберді.',
+    },
+  },
+  fr: {
+    title: (id) => `Message concernant la commande n°${id}`,
+    reasons: {
+      out_of_stock: 'Certains médicaments sont actuellement en rupture de stock.',
+      prepayment: 'Un paiement anticipé est requis pour traiter votre commande.',
+      partial: "Votre commande n'est que partiellement disponible.",
+      other: 'La pharmacie vous a envoyé un message.',
+    },
+  },
+  de: {
+    title: (id) => `Nachricht zur Bestellung Nr. ${id}`,
+    reasons: {
+      out_of_stock: 'Einige Medikamente sind derzeit nicht vorrätig.',
+      prepayment: 'Für die Bearbeitung Ihrer Bestellung ist eine Vorauszahlung erforderlich.',
+      partial: 'Ihre Bestellung ist nur teilweise verfügbar.',
+      other: 'Die Apotheke hat Ihnen eine Nachricht gesendet.',
+    },
+  },
+  es: {
+    title: (id) => `Mensaje sobre el pedido n.º ${id}`,
+    reasons: {
+      out_of_stock: 'Algunos medicamentos están agotados actualmente.',
+      prepayment: 'Se requiere pago anticipado para tramitar tu pedido.',
+      partial: 'Tu pedido solo está disponible parcialmente.',
+      other: 'La farmacia te ha enviado un mensaje.',
+    },
+  },
+};
+
 // Pharmacy-facing email language. Swiss pilot → en | fr | de | it.
 type PharmaLang = 'en' | 'fr' | 'de' | 'it';
 function normalizePharmacyLang(raw: any): PharmaLang {
@@ -79,6 +142,10 @@ const PHARMA_I18N: Record<PharmaLang, Record<string, string>> = {
     forCustomer: 'for this customer.', checkOnline: 'Check pharmacy stock online:', statusUpdated: 'Status Updated!',
     orderMarked: 'has been marked as', closePage: 'You can close this page now.', notFound: 'Order Not Found',
     linkInvalid: 'This link is invalid or has expired.', invalidStatus: 'Invalid Status', invalidStatusBody: 'The requested status update is not valid.',
+    messageCustomer: 'Message customer', messagePageTitle: 'Send a message to the customer', messagePageLead: 'Let the customer know about their order. They receive it instantly in the app.',
+    reasonLabel: 'Reason', rOutOfStock: 'Out of stock', rPrepayment: 'Prepayment required', rPartial: 'Partially available', rOther: 'Other',
+    detailsLabel: 'Details (optional)', detailsPlaceholder: 'Add any details for the customer…', sendMessage: 'Send message',
+    messageSentTitle: 'Message sent', messageSentBody: 'The customer has been notified.', messageNeedReason: 'Please pick a reason or write a message.',
   },
   fr: {
     orderSubject: 'Nouvelle commande de médicaments de', newOrder: 'Nouvelle commande de médicaments', customer: 'Client', email: 'E-mail',
@@ -91,6 +158,10 @@ const PHARMA_I18N: Record<PharmaLang, Record<string, string>> = {
     forCustomer: 'pour ce client.', checkOnline: 'Vérifier le stock en ligne :', statusUpdated: 'Statut mis à jour !',
     orderMarked: 'a été marquée comme', closePage: 'Vous pouvez fermer cette page.', notFound: 'Commande introuvable',
     linkInvalid: 'Ce lien est invalide ou a expiré.', invalidStatus: 'Statut invalide', invalidStatusBody: "La mise à jour de statut demandée n'est pas valide.",
+    messageCustomer: 'Message au client', messagePageTitle: 'Envoyer un message au client', messagePageLead: 'Informez le client au sujet de sa commande. Il le reçoit instantanément dans l’application.',
+    reasonLabel: 'Motif', rOutOfStock: 'En rupture de stock', rPrepayment: 'Paiement anticipé requis', rPartial: 'Partiellement disponible', rOther: 'Autre',
+    detailsLabel: 'Détails (facultatif)', detailsPlaceholder: 'Ajoutez des détails pour le client…', sendMessage: 'Envoyer le message',
+    messageSentTitle: 'Message envoyé', messageSentBody: 'Le client a été notifié.', messageNeedReason: 'Veuillez choisir un motif ou écrire un message.',
   },
   de: {
     orderSubject: 'Neue Medikamentenbestellung von', newOrder: 'Neue Medikamentenbestellung', customer: 'Kunde', email: 'E-Mail',
@@ -103,6 +174,10 @@ const PHARMA_I18N: Record<PharmaLang, Record<string, string>> = {
     forCustomer: 'für diesen Kunden.', checkOnline: 'Bestand online prüfen:', statusUpdated: 'Status aktualisiert!',
     orderMarked: 'wurde markiert als', closePage: 'Sie können diese Seite jetzt schließen.', notFound: 'Bestellung nicht gefunden',
     linkInvalid: 'Dieser Link ist ungültig oder abgelaufen.', invalidStatus: 'Ungültiger Status', invalidStatusBody: 'Die angeforderte Statusänderung ist ungültig.',
+    messageCustomer: 'Kunde benachrichtigen', messagePageTitle: 'Nachricht an den Kunden senden', messagePageLead: 'Informieren Sie den Kunden über seine Bestellung. Er erhält sie sofort in der App.',
+    reasonLabel: 'Grund', rOutOfStock: 'Nicht vorrätig', rPrepayment: 'Vorauszahlung erforderlich', rPartial: 'Teilweise verfügbar', rOther: 'Sonstiges',
+    detailsLabel: 'Details (optional)', detailsPlaceholder: 'Details für den Kunden hinzufügen…', sendMessage: 'Nachricht senden',
+    messageSentTitle: 'Nachricht gesendet', messageSentBody: 'Der Kunde wurde benachrichtigt.', messageNeedReason: 'Bitte wählen Sie einen Grund oder schreiben Sie eine Nachricht.',
   },
   it: {
     orderSubject: 'Nuovo ordine di farmaci da', newOrder: 'Nuovo ordine di farmaci', customer: 'Cliente', email: 'E-mail',
@@ -115,6 +190,10 @@ const PHARMA_I18N: Record<PharmaLang, Record<string, string>> = {
     forCustomer: 'per questo cliente.', checkOnline: 'Controlla le scorte online:', statusUpdated: 'Stato aggiornato!',
     orderMarked: 'è stato contrassegnato come', closePage: 'Puoi chiudere questa pagina.', notFound: 'Ordine non trovato',
     linkInvalid: 'Questo link non è valido o è scaduto.', invalidStatus: 'Stato non valido', invalidStatusBody: "L'aggiornamento di stato richiesto non è valido.",
+    messageCustomer: 'Messaggio al cliente', messagePageTitle: 'Invia un messaggio al cliente', messagePageLead: 'Informa il cliente sul suo ordine. Lo riceve subito nell’app.',
+    reasonLabel: 'Motivo', rOutOfStock: 'Non disponibile', rPrepayment: 'Pagamento anticipato richiesto', rPartial: 'Parzialmente disponibile', rOther: 'Altro',
+    detailsLabel: 'Dettagli (facoltativo)', detailsPlaceholder: 'Aggiungi dettagli per il cliente…', sendMessage: 'Invia messaggio',
+    messageSentTitle: 'Messaggio inviato', messageSentBody: 'Il cliente è stato avvisato.', messageNeedReason: 'Scegli un motivo o scrivi un messaggio.',
   },
 };
 
@@ -324,7 +403,9 @@ export class PharmacyService {
   async adminGetPharmacyCodeQr(id: string) {
     const access = await this.prisma.pharmacyAccessCode.findUnique({ where: { id } });
     if (!access) throw new NotFoundException('Pharmacy code not found');
-    const base = process.env.PHARMACY_QR_BASE_URL || 'https://eatsense.ch/pharmacy';
+    // Use www (the apex eatsense.ch 301-redirects to www and drops the ?code= query,
+    // which would break the web fallback). The app intercepts this as a Universal Link.
+    const base = process.env.PHARMACY_QR_BASE_URL || 'https://www.eatsense.ch/pharmacy';
     const link = `${base}?code=${encodeURIComponent(access.code)}`;
     const dataUrl = await QRCode.toDataURL(link, { width: 512, margin: 2, errorCorrectionLevel: 'M' });
     return { code: access.code, pharmacyName: access.pharmacyName, link, dataUrl };
@@ -526,6 +607,139 @@ export class PharmacyService {
     );
   }
 
+  // ========== Pharmacy → Customer Messages (via email link) ==========
+
+  /** Push + record an in-app message from the pharmacy to the customer. */
+  private async notifyUserPharmacyMessage(userId: string, orderId: string, reason: PharmacyMessageReason, text: string) {
+    try {
+      const profile = await this.prisma.userProfile.findUnique({
+        where: { userId },
+        select: { preferences: true },
+      });
+      const lang = this.pickLang((profile?.preferences as any)?.language);
+      const tpl = CLIENT_MESSAGE_PUSH[lang];
+      const shortId = orderId.slice(-8).toUpperCase();
+      const reasonText = tpl.reasons[reason];
+      const body = text ? `${reasonText} ${text}`.trim() : reasonText;
+      await this.notifications.sendPushNotification(
+        userId,
+        tpl.title(shortId),
+        body,
+        { type: 'pharmacy_order_message', orderId, reason },
+      );
+    } catch (err) {
+      this.logger.warn(`[Pharmacy] Failed to push pharmacy message to user ${userId}: ${(err as any)?.message}`);
+    }
+  }
+
+  /** Renders the localized compose page the pharmacist opens from the email. */
+  async renderMessagePage(token: string): Promise<string> {
+    const order = await this.prisma.pharmacyOrder.findFirst({
+      where: { statusToken: token },
+      include: { pharmacyConnection: true },
+    });
+    if (!order) {
+      const T = PHARMA_I18N.en;
+      return this.buildStatusPageHtml(T.notFound, T.linkInvalid, 'error', 'en');
+    }
+    const lang = normalizePharmacyLang((order as any).pharmacyConnection?.language);
+    return this.buildMessageFormHtml(token, order.id, lang);
+  }
+
+  /** Handles the pharmacist's submitted message: persists it and notifies the customer. */
+  async submitOrderMessage(token: string, reason: string, text: string): Promise<string> {
+    const order = await this.prisma.pharmacyOrder.findFirst({
+      where: { statusToken: token },
+      include: { pharmacyConnection: true },
+    });
+    if (!order) {
+      const T = PHARMA_I18N.en;
+      return this.buildStatusPageHtml(T.notFound, T.linkInvalid, 'error', 'en');
+    }
+
+    const lang = normalizePharmacyLang((order as any).pharmacyConnection?.language);
+    const T = PHARMA_I18N[lang];
+
+    const safeReason: PharmacyMessageReason = (PHARMACY_MESSAGE_REASONS as readonly string[]).includes(reason)
+      ? (reason as PharmacyMessageReason)
+      : 'other';
+    const trimmed = (text || '').toString().trim().slice(0, 1000);
+
+    // Require either a meaningful reason or some free text.
+    if (safeReason === 'other' && !trimmed) {
+      return this.buildMessageFormHtml(token, order.id, lang, T.messageNeedReason);
+    }
+
+    const existing = Array.isArray((order as any).pharmacyMessages) ? (order as any).pharmacyMessages : [];
+    const entry = { reason: safeReason, text: trimmed, createdAt: new Date().toISOString() };
+
+    await this.prisma.pharmacyOrder.update({
+      where: { id: order.id },
+      data: { pharmacyMessages: [...existing, entry] as any },
+    });
+
+    this.notifyUserPharmacyMessage(order.userId, order.id, safeReason, trimmed).catch(() => {});
+
+    return this.buildStatusPageHtml(T.messageSentTitle, T.messageSentBody, 'success', lang);
+  }
+
+  private buildMessageFormHtml(token: string, orderId: string, lang: PharmaLang, errorMsg?: string): string {
+    const T = PHARMA_I18N[lang];
+    const baseUrl = this.apiBaseUrl;
+    const shortId = orderId.slice(-8).toUpperCase();
+    const reasonRows = [
+      { key: 'out_of_stock', label: T.rOutOfStock },
+      { key: 'prepayment', label: T.rPrepayment },
+      { key: 'partial', label: T.rPartial },
+      { key: 'other', label: T.rOther },
+    ]
+      .map(
+        (r, i) => `
+        <label style="display:flex; align-items:center; gap:10px; padding:12px 14px; border:1px solid #E5E7EB; border-radius:10px; margin-bottom:8px; cursor:pointer; font-size:15px; color:#111827;">
+          <input type="radio" name="reason" value="${r.key}" ${i === 0 ? 'checked' : ''} style="width:18px; height:18px; accent-color:#2563EB;">
+          ${r.label}
+        </label>`,
+      )
+      .join('');
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>${T.messagePageTitle} — EatSense</title>
+        <style>
+          body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F9FAFB; margin: 0; padding: 40px 16px; }
+          textarea { width:100%; box-sizing:border-box; min-height:96px; padding:12px 14px; border:1px solid #E5E7EB; border-radius:10px; font-size:15px; font-family:inherit; resize:vertical; }
+          button { width:100%; background:#2563EB; color:#fff; border:none; padding:14px; border-radius:10px; font-size:16px; font-weight:600; cursor:pointer; margin-top:16px; }
+        </style>
+      </head>
+      <body>
+        <div style="max-width: 480px; margin: 0 auto; background: #FFF; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); overflow: hidden;">
+          <div style="background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%); padding: 24px; text-align: center;">
+            <h1 style="color: #FFF; margin: 0; font-size: 22px;">EatSense</h1>
+          </div>
+          <div style="padding: 28px 24px;">
+            <h2 style="color:#111827; margin:0 0 4px; font-size:20px;">${T.messagePageTitle}</h2>
+            <p style="color:#6B7280; margin:0 0 4px; font-size:14px;">${T.messagePageLead}</p>
+            <p style="color:#9CA3AF; margin:0 0 20px; font-size:13px;">${T.orderId} #${shortId}</p>
+            ${errorMsg ? `<div style="background:#FEF2F2; color:#991B1B; border-radius:8px; padding:10px 14px; margin-bottom:16px; font-size:14px;">${errorMsg}</div>` : ''}
+            <form method="POST" action="${baseUrl}/pharmacy/orders/message">
+              <input type="hidden" name="token" value="${token}">
+              <p style="color:#374151; font-weight:600; font-size:14px; margin:0 0 10px;">${T.reasonLabel}</p>
+              ${reasonRows}
+              <p style="color:#374151; font-weight:600; font-size:14px; margin:18px 0 8px;">${T.detailsLabel}</p>
+              <textarea name="text" placeholder="${T.detailsPlaceholder}"></textarea>
+              <button type="submit">${T.sendMessage}</button>
+            </form>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
   // ========== Low Stock Notification ==========
 
   async sendLowStockAlert(userId: string, medicationName: string, dosage: string | null, remainingStock: number, lowStockThreshold: number, daysRemaining?: number) {
@@ -547,7 +761,7 @@ export class PharmacyService {
     const text = [
       `Low Stock Alert`,
       ``,
-      `Customer: ${userName} (${user.email})`,
+      `Customer: ${userName}`,
       `Medication: ${medicationName}${dosage ? ` (${dosage})` : ''}`,
       `Remaining: ${remainingStock} pills${daysRemaining != null ? ` (~${daysRemaining} days)` : ''}`,
       `Threshold: ${lowStockThreshold} days`,
@@ -656,7 +870,7 @@ export class PharmacyService {
     healthInfo: string;
     lang?: PharmaLang;
   }): string {
-    const { userName, userEmail, pharmacyName, orderId, statusToken, items, prescriptionUrl, notes, healthInfo } = params;
+    const { userName, pharmacyName, orderId, statusToken, items, prescriptionUrl, notes, healthInfo } = params;
     const baseUrl = this.apiBaseUrl;
     const T = PHARMA_I18N[params.lang || 'en'];
 
@@ -672,10 +886,6 @@ export class PharmacyService {
             <tr>
               <td style="padding: 6px 0; color: #6B7280; font-size: 14px; width: 100px;">${T.customer}</td>
               <td style="padding: 6px 0; color: #111827; font-size: 14px; font-weight: 600;">${userName}</td>
-            </tr>
-            <tr>
-              <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">${T.email}</td>
-              <td style="padding: 6px 0; color: #111827; font-size: 14px;">${userEmail}</td>
             </tr>
             <tr>
               <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">${T.pharmacy}</td>
@@ -748,6 +958,14 @@ export class PharmacyService {
               ✔ ${T.completed}
             </a>
           </div>
+
+          <!-- Message customer -->
+          <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #E5E7EB; text-align: center;">
+            <a href="${baseUrl}/pharmacy/orders/message?token=${statusToken}"
+               style="display: inline-block; background: #2563EB; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none;">
+              ✉️ ${T.messageCustomer}
+            </a>
+          </div>
         </div>
 
         ${this.emailFooter()}
@@ -764,7 +982,7 @@ export class PharmacyService {
     prescriptionUrl?: string;
     notes?: string;
   }): string {
-    const { userName, userEmail, pharmacyName, orderId, items, prescriptionUrl, notes } = params;
+    const { userName, pharmacyName, orderId, items, prescriptionUrl, notes } = params;
     const itemsList = items
       .map((item, i) => `${i + 1}. ${item.name}${item.dosage ? ` (${item.dosage})` : ''}${item.quantity ? ` — ${item.quantity}` : ''}`)
       .join('\n');
@@ -773,7 +991,6 @@ export class PharmacyService {
       `[EatSense] New Medication Order`,
       ``,
       `Customer: ${userName}`,
-      `Email: ${userEmail}`,
       `Pharmacy: ${pharmacyName}`,
       `Order ID: ${orderId}`,
       ``,
@@ -799,7 +1016,7 @@ export class PharmacyService {
     pharmacies: Array<{ pharmacyName: string; pharmacyWebsite?: string | null }>;
     lang?: PharmaLang;
   }): string {
-    const { userName, userEmail, medicationName, dosage, remainingStock, lowStockThreshold, daysRemaining, pharmacies } = params;
+    const { userName, medicationName, dosage, remainingStock, lowStockThreshold, daysRemaining, pharmacies } = params;
     const T = PHARMA_I18N[params.lang || 'en'];
     const websiteLinks = pharmacies
       .filter((p) => p.pharmacyWebsite)
@@ -821,10 +1038,6 @@ export class PharmacyService {
             <tr>
               <td style="padding: 8px 0; color: #6B7280; font-size: 14px; width: 120px;">${T.customer}</td>
               <td style="padding: 8px 0; color: #111827; font-size: 14px; font-weight: 600;">${userName}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; color: #6B7280; font-size: 14px;">${T.email}</td>
-              <td style="padding: 8px 0; color: #111827; font-size: 14px;">${userEmail}</td>
             </tr>
             <tr>
               <td style="padding: 8px 0; color: #6B7280; font-size: 14px;">${T.medication}</td>

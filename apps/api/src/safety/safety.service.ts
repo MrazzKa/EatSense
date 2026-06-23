@@ -25,10 +25,19 @@ export class SafetyService {
     async getDisclaimerStatus(userId: string) {
         const acceptances = await this.prisma.disclaimerAcceptance.findMany({
             where: { userId },
+            orderBy: { acceptedAt: 'desc' },
         });
 
+        // Map of type → true for quick boolean checks (back-compat) plus the
+        // full list with timestamps for the "My consents" screen.
+        const accepted: Record<string, boolean> = {};
+        for (const a of acceptances) accepted[a.type] = true;
+
         return {
-            experts_chat: acceptances.some(a => a.type === 'experts_chat'),
+            ...accepted,
+            // Back-compat: callers historically read `experts_chat` directly.
+            experts_chat: accepted['experts_chat'] === true,
+            acceptances: acceptances.map(a => ({ type: a.type, acceptedAt: a.acceptedAt })),
         };
     }
 

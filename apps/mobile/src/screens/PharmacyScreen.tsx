@@ -51,6 +51,12 @@ type Medication = {
   isActive: boolean;
 };
 
+type PharmacyMessage = {
+  reason: string;
+  text?: string;
+  createdAt: string;
+};
+
 type PharmacyOrder = {
   id: string;
   status: string;
@@ -59,6 +65,7 @@ type PharmacyOrder = {
   notes?: string;
   createdAt: string;
   pharmacyConnection?: PharmacyConnection;
+  pharmacyMessages?: PharmacyMessage[];
 };
 
 // ==================== CONNECT PHARMACY MODAL ====================
@@ -770,6 +777,16 @@ const PharmacyScreen: React.FC = () => {
     return labels[status] || status;
   };
 
+  const getMessageReasonLabel = (reason: string) => {
+    const labels: Record<string, string> = {
+      out_of_stock: t('pharmacy.msgReason.outOfStock', 'Some medications are currently out of stock.'),
+      prepayment: t('pharmacy.msgReason.prepayment', 'Prepayment is required to fulfil your order.'),
+      partial: t('pharmacy.msgReason.partial', 'Your order is only partially available.'),
+      other: t('pharmacy.msgReason.other', 'Message from the pharmacy'),
+    };
+    return labels[reason] || labels.other;
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Header */}
@@ -949,6 +966,26 @@ const PharmacyScreen: React.FC = () => {
                       <Text style={[styles.orderPrescriptionText, { color: colors.success || '#10B981' }]}>
                         {t('pharmacy.prescriptionAttached', 'Prescription attached')}
                       </Text>
+                    </View>
+                  )}
+                  {Array.isArray(order.pharmacyMessages) && order.pharmacyMessages.length > 0 && (
+                    <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border || '#E5E7EB' }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textSecondary, marginBottom: 6 }}>
+                        {t('pharmacy.messagesFromPharmacy', 'Messages from the pharmacy')}
+                      </Text>
+                      {order.pharmacyMessages.map((m, i) => (
+                        <View key={i} style={{ flexDirection: 'row', gap: 8, marginBottom: 8, padding: 10, borderRadius: 8, backgroundColor: (colors.primary || '#2563EB') + '12' }}>
+                          <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary || '#2563EB'} style={{ marginTop: 2 }} />
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ fontSize: 14, color: colors.textPrimary || colors.text }}>
+                              {getMessageReasonLabel(m.reason)}{m.text ? ` ${m.text}` : ''}
+                            </Text>
+                            <Text style={{ fontSize: 11, color: colors.textTertiary, marginTop: 2 }}>
+                              {(() => { try { return new Date(m.createdAt).toLocaleString(); } catch { return ''; } })()}
+                            </Text>
+                          </View>
+                        </View>
+                      ))}
                     </View>
                   )}
                 </View>

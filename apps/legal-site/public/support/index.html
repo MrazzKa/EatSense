@@ -1,368 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Support - EatSense</title>
+    <title>Support — EatSense</title>
+    <meta name="description" content="EatSense help centre: FAQ, contact and company information. Available in 6 languages.">
+    <meta name="theme-color" content="#1B4D3E">
+    <link rel="icon" href="/images/eatsense.png" sizes="any">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root{
+            --forest:#1B4D3E;--forest-light:#2D6B5A;--forest-dark:#143D31;
+            --cream:#FAFAF8;--cream-deep:#F3F1EC;--gold:#B8976A;--gold-light:#C9A97A;
+            --text:#1A1A1A;--text-2:#555;--muted:#888;--white:#fff;--border:#E8E8E8;
+            --shadow-sm:0 1px 3px rgba(20,40,33,.06);--shadow-md:0 12px 28px -10px rgba(20,40,33,.16);
+            --radius:16px;--font-display:'Cormorant Garamond',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif;
         }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: #f8f9fa;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            background: linear-gradient(135deg, #2D5A27 0%, #4A7C43 100%);
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
-        }
-
-        .logo {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .logo span {
-            color: #8BC34A;
-        }
-
-        header h1 {
-            font-size: 24px;
-            font-weight: 400;
-            opacity: 0.9;
-        }
-
-        main {
-            padding: 40px 0;
-        }
-
-        section {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        h2 {
-            color: #2D5A27;
-            margin-bottom: 20px;
-            font-size: 22px;
-        }
-
-        .faq-item {
-            border-bottom: 1px solid #eee;
-            padding: 20px 0;
-        }
-
-        .faq-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .faq-item:first-child {
-            padding-top: 0;
-        }
-
-        .faq-question {
-            font-weight: 600;
-            color: #2D5A27;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
-        .faq-answer {
-            color: #666;
-            font-size: 15px;
-        }
-
-        .contact-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .contact-item {
-            text-align: center;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .contact-item .icon {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-
-        .contact-item h3 {
-            color: #2D5A27;
-            margin-bottom: 5px;
-            font-size: 16px;
-        }
-
-        .contact-item a {
-            color: #4A7C43;
-            text-decoration: none;
-        }
-
-        .contact-item a:hover {
-            text-decoration: underline;
-        }
-
-        .contact-item p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .button {
-            display: inline-block;
-            background: #2D5A27;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 500;
-            margin-top: 15px;
-        }
-
-        .button:hover {
-            background: #4A7C43;
-        }
-
-        footer {
-            text-align: center;
-            padding: 30px;
-            color: #999;
-            font-size: 14px;
-        }
-
-        footer a {
-            color: #666;
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        .nav-links {
-            margin-top: 20px;
-        }
-
-        .nav-links a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            margin: 0 15px;
-            font-size: 14px;
-        }
-
-        .nav-links a:hover {
-            color: white;
-        }
-
-        .response-time {
-            background: #e8f5e9;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            margin-top: 20px;
-            color: #2D5A27;
-        }
-
-        @media (max-width: 600px) {
-            header {
-                padding: 30px 15px;
-            }
-
-            .logo {
-                font-size: 26px;
-            }
-
-            section {
-                padding: 20px;
-            }
-
-            .contact-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+        body{font-family:var(--font-body);color:var(--text);background:var(--white);line-height:1.7;-webkit-font-smoothing:antialiased}
+        ::selection{background:var(--forest);color:#fff}
+        .lnav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--border)}
+        .lnav-inner{max-width:1100px;margin:0 auto;padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+        .logo{display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--forest)}
+        .logo svg{width:34px;height:34px}
+        .logo-text{font-family:var(--font-display);font-size:1.35rem;font-weight:600;letter-spacing:-.02em}
+        .lnav-links{display:flex;align-items:center;gap:1.5rem}
+        .lnav-links a{text-decoration:none;color:var(--text-2);font-size:.9rem;transition:color .25s}
+        .lnav-links a:hover{color:var(--forest)}
+        .lnav-cta{padding:.55rem 1.15rem;background:var(--forest);color:#fff!important;border-radius:100px;font-weight:500;box-shadow:var(--shadow-sm)}
+        .lnav-cta:hover{background:var(--forest-light)}
+        .lang-dropdown{position:relative}
+        .lang-switcher{display:flex;align-items:center;gap:.4rem;padding:.45rem .85rem;background:var(--cream);border-radius:100px;border:1px solid var(--border);cursor:pointer;font-family:var(--font-body);font-size:.82rem;color:var(--text-2);transition:all .3s}
+        .lang-switcher:hover{border-color:var(--forest);color:var(--forest)}
+        .lang-options{position:absolute;top:100%;right:0;background:var(--white);border-radius:10px;border:1px solid var(--border);padding:.35rem;opacity:0;visibility:hidden;transform:translateY(8px);transition:all .3s;z-index:10;box-shadow:var(--shadow-md);min-width:150px}
+        .lang-dropdown:hover .lang-options{opacity:1;visibility:visible;transform:translateY(4px)}
+        .lang-option{display:block;width:100%;padding:.45rem .75rem;background:none;border:none;text-align:left;font-family:var(--font-body);font-size:.85rem;color:var(--text-2);cursor:pointer;border-radius:6px}
+        .lang-option:hover{background:var(--cream);color:var(--forest)}
+        .lang-option.active{color:var(--forest);font-weight:500}
+        .legal-hero{background:radial-gradient(900px 400px at 80% -20%,rgba(184,151,106,.12),transparent 60%),linear-gradient(180deg,var(--cream),var(--white));text-align:center;padding:4rem 1.5rem 3.5rem;border-bottom:1px solid var(--border)}
+        .legal-hero .tag{display:inline-block;font-size:.72rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem}
+        .legal-hero h1{font-family:var(--font-display);font-size:clamp(2rem,5vw,3rem);font-weight:500;color:var(--text);line-height:1.1}
+        .wrap{max-width:820px;margin:-1.75rem auto 4rem;padding:0 1.5rem}
+        .legal-section{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-md);padding:2.25rem 2.5rem;margin-bottom:1.5rem}
+        .legal-section h2{font-family:var(--font-display);color:var(--forest);font-size:1.6rem;font-weight:500;margin-bottom:1.25rem}
+        .legal-section p{color:var(--text-2)}
+        .legal-section a{color:var(--forest);text-decoration:underline;text-underline-offset:2px}
+        .faq-item{border-bottom:1px solid var(--border);padding:1.3rem 0}
+        .faq-item:first-child{padding-top:0}.faq-item:last-child{border-bottom:none;padding-bottom:0}
+        .faq-question{font-weight:600;color:var(--forest);margin-bottom:.5rem;font-size:1.05rem}
+        .faq-answer{color:var(--text-2);font-size:.97rem}
+        .contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}
+        .contact-item{text-align:center;padding:1.5rem;background:var(--cream);border-radius:12px;border:1px solid var(--border)}
+        .contact-item .icon{font-size:1.8rem;margin-bottom:.5rem}
+        .contact-item h3{color:var(--forest);margin:0 0 .3rem;font-size:1rem}
+        .contact-item a{color:var(--forest-light);text-decoration:none}
+        .contact-item a:hover{text-decoration:underline}
+        .contact-item p{color:var(--muted);font-size:.85rem;margin:.2rem 0 0}
+        .response-time{background:var(--cream);border:1px solid var(--border);padding:1rem;border-radius:10px;text-align:center;color:var(--forest);margin-top:1.25rem}
+        .lfooter{background:var(--text);color:#fff;padding:3rem 1.5rem 2rem;text-align:center}
+        .lfooter .logo{justify-content:center;color:#fff;margin-bottom:1rem}
+        .lfooter-links{display:flex;gap:1.25rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.25rem}
+        .lfooter-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.875rem}
+        .lfooter-links a:hover{color:#fff}
+        .lfooter-copy{color:rgba(255,255,255,.5);font-size:.8rem}
+        #cookie-banner{position:fixed;bottom:0;left:0;right:0;background:var(--forest-dark);color:#fff;padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem;z-index:9999;box-shadow:0 -2px 16px rgba(0,0,0,.2)}
+        #cookie-banner p{margin:0;font-size:.85rem;flex:1;min-width:240px}
+        #cookie-banner a{color:var(--gold-light)}
+        #cookie-banner button{background:var(--gold);color:#fff;border:none;padding:.6rem 1.3rem;border-radius:100px;cursor:pointer;font-weight:600;font-family:var(--font-body)}
+        @media(max-width:700px){.legal-section{padding:1.75rem 1.3rem}.lnav-links{gap:.7rem}.lnav-links a:not(.lnav-cta){display:none}.contact-grid{grid-template-columns:1fr}}
     </style>
 </head>
-
 <body>
-    <header>
-        <div class="logo">Eat<span>Sense</span></div>
-        <h1>Support Center</h1>
-        <nav class="nav-links">
-            <a href="/privacy">Privacy Policy</a>
-            <a href="/terms">Terms of Use</a>
-            <a href="/">Home</a>
-        </nav>
+    <nav class="lnav">
+        <div class="lnav-inner">
+            <a href="/" class="logo">
+                <svg viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#1B4D3E"/><path d="M10 26C10 26 12 17 18 17C24 17 26 26 26 26" stroke="#FAF8F5" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="13" r="1.5" fill="#B8976A"/><circle cx="22" cy="13" r="1.5" fill="#B8976A"/><circle cx="18" cy="10" r="1.5" fill="#B8976A"/></svg>
+                <span class="logo-text">EatSense</span>
+            </a>
+            <div class="lnav-links">
+                <a href="/privacy" data-i18n="nav.privacy">Privacy</a>
+                <a href="/terms" data-i18n="nav.terms">Terms</a>
+                <a href="/support" data-i18n="nav.support">Support</a>
+                <div class="lang-dropdown">
+                    <button class="lang-switcher" aria-label="Language"><span id="curLang">EN</span><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+                    <div class="lang-options"><button class="lang-option active" data-lang="en">English</button><button class="lang-option" data-lang="de">Deutsch</button><button class="lang-option" data-lang="fr">Français</button><button class="lang-option" data-lang="ru">Русский</button><button class="lang-option" data-lang="kk">Қазақша</button><button class="lang-option" data-lang="es">Español</button></div>
+                </div>
+                <a href="/#download" class="lnav-cta" data-i18n="nav.cta">Get the App</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="legal-hero">
+        <span class="tag" data-i18n="hero.tag">Help Centre</span>
+        <h1 data-i18n="hero.title">Support</h1>
     </header>
 
-    <main class="container">
-        <!-- FAQ Section -->
-        <section>
-            <h2>❓ Frequently Asked Questions</h2>
-
-            <div class="faq-item">
-                <div class="faq-question">How does AI food analysis work?</div>
-                <div class="faq-answer">Simply take a photo of your meal, and our AI will analyze it to estimate
-                    calories, protein, carbs, and fat. The analysis typically takes 2-3 seconds. You can always manually
-                    edit the results if needed.</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">How accurate is the food analysis?</div>
-                <div class="faq-answer">Our AI provides estimates based on image recognition. Accuracy depends on image
-                    quality, portion visibility, and food type. We recommend using the results as guidance and adjusting
-                    portions manually when needed. The more you use the app, the better you'll understand typical
-                    portion sizes.</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">What's included in the FREE plan?</div>
-                <div class="faq-answer">The FREE plan includes 3 food scans per day, basic nutrition tracking, and 7
-                    days of meal history. It's perfect for trying out the app and basic tracking needs.</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">What do I get with PRO?</div>
-                <div class="faq-answer">PRO unlocks unlimited food scans, full meal history, AI nutrition assistant,
-                    biomarker tracking, detailed reports, Lifestyle Programs, and priority support. Available as monthly
-                    (CHF 9.90), yearly (CHF 79), student yearly (CHF 49), or lifetime Founders Pass (CHF 99).</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">How do I cancel my subscription?</div>
-                <div class="faq-answer">Subscriptions are managed through your device's app store. On iPhone: Settings →
-                    Apple ID → Subscriptions → EatSense → Cancel. On Android: Play Store → Menu → Subscriptions →
-                    EatSense → Cancel. Cancellation takes effect at the end of your current billing period.</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">Can I get a refund?</div>
-                <div class="faq-answer">Refunds are handled by Apple App Store or Google Play Store according to their
-                    policies. To request a refund, contact Apple Support (reportaproblem.apple.com) or Google Play
-                    Support directly.</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">What are Lifestyle Programs?</div>
-                <div class="faq-answer">Lifestyle Programs are dietary inspiration guides based on cultural archetypes
-                    and wellness philosophies. They're designed for motivation and education, not as medical diet plans.
-                    Programs referencing public figures are creative interpretations, not actual celebrity diets.</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">Is my health data safe?</div>
-                <div class="faq-answer">Yes. Your data is encrypted and stored securely on servers in the European Union
-                    (Netherlands). We never sell your personal data. You can export or delete all your data at any time
-                    from the app settings. See our Privacy Policy for details.</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">How do I delete my account?</div>
-                <div class="faq-answer">Go to Settings → Account → Delete Account. This will permanently remove all your
-                    data from our servers immediately. This action cannot be undone.</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question">Does EatSense provide medical advice?</div>
-                <div class="faq-answer">No. EatSense is a nutrition tracking tool, not a medical device. Information
-                    provided is for general guidance only. Always consult healthcare professionals for medical
-                    decisions, especially regarding biomarkers, medications, or health conditions.</div>
-            </div>
+    <main class="wrap">
+        <section class="legal-section">
+            <h2 data-i18n="faq.title">Frequently Asked Questions</h2>
+            <div class="faq-item"><div class="faq-question" data-i18n="faq.q1">How does AI food analysis work?</div><div class="faq-answer" data-i18n="faq.a1">Simply take a photo of your meal, and our AI will analyze it to estimate calories, protein, carbs, and fat. The analysis typically takes a few seconds. You can always manually edit the results if needed.</div></div>
+            <div class="faq-item"><div class="faq-question" data-i18n="faq.q2">How accurate is the food analysis?</div><div class="faq-answer" data-i18n="faq.a2">Our AI provides estimates based on image recognition. Accuracy depends on image quality, portion visibility, and food type. Use the results as guidance and adjust portions manually when needed.</div></div>
+            <div class="faq-item"><div class="faq-question" data-i18n="faq.q3">What's included in the FREE plan?</div><div class="faq-answer" data-i18n="faq.a3">The FREE plan includes 3 food scans per day, basic nutrition tracking, and 7 days of meal history.</div></div>
+            <div class="faq-item"><div class="faq-question" data-i18n="faq.q4">What do I get with PRO?</div><div class="faq-answer" data-i18n="faq.a4">PRO unlocks unlimited food scans, full meal history, AI nutrition assistant, biomarker tracking, detailed reports, Lifestyle Programs, and priority support. Available as monthly (CHF 9), yearly (CHF 80), student yearly (CHF 45), or lifetime Founders Pass (CHF 90). Prices may vary by country.</div></div>
+            <div class="faq-item"><div class="faq-question" data-i18n="faq.q5">How do I cancel my subscription?</div><div class="faq-answer" data-i18n="faq.a5">Subscriptions are managed through your device's app store. iPhone: Settings → Apple ID → Subscriptions → EatSense → Cancel. Android: Play Store → Menu → Subscriptions → EatSense → Cancel.</div></div>
+            <div class="faq-item"><div class="faq-question" data-i18n="faq.q6">Can I get a refund?</div><div class="faq-answer" data-i18n="faq.a6">Refunds are handled by the Apple App Store or Google Play Store according to their policies.</div></div>
+            <div class="faq-item"><div class="faq-question" data-i18n="faq.q7">What are Lifestyle Programs?</div><div class="faq-answer" data-i18n="faq.a7">Lifestyle Programs are dietary inspiration guides based on cultural archetypes and wellness philosophies — for motivation and education, not medical diet plans.</div></div>
+            <div class="faq-item"><div class="faq-question" data-i18n="faq.q8">Is my health data safe?</div><div class="faq-answer" data-i18n="faq.a8">Yes. Your data is encrypted and stored securely on servers in the European Union. We never sell your personal data. You can export or delete all your data anytime in settings.</div></div>
+            <div class="faq-item"><div class="faq-question" data-i18n="faq.q9">How do I delete my account?</div><div class="faq-answer" data-i18n="faq.a9">Go to Settings → Account → Delete Account. This permanently removes all your data from our servers immediately.</div></div>
+            <div class="faq-item"><div class="faq-question" data-i18n="faq.q10">Does EatSense provide medical advice?</div><div class="faq-answer" data-i18n="faq.a10">No. EatSense is a nutrition tracking tool, not a medical device. Always consult healthcare professionals for medical decisions.</div></div>
         </section>
 
-        <!-- Contact Section -->
-        <section>
-            <h2>📬 Contact Us</h2>
-
+        <section class="legal-section">
+            <h2 data-i18n="contact.title">Contact Us</h2>
             <div class="contact-grid">
-                <div class="contact-item">
-                    <div class="icon">✉️</div>
-                    <h3>Email Support</h3>
-                    <a href="mailto:support@eatsense.ch">support@eatsense.ch</a>
-                    <p>For general questions</p>
-                </div>
-
-                <div class="contact-item">
-                    <div class="icon">🔒</div>
-                    <h3>Privacy Inquiries</h3>
-                    <a href="mailto:privacy@eatsense.ch">privacy@eatsense.ch</a>
-                    <p>Data protection requests</p>
-                </div>
-
-                <div class="contact-item">
-                    <div class="icon">🤝</div>
-                    <h3>Business & Partnerships</h3>
-                    <a href="mailto:info@eatsense.ch">info@eatsense.ch</a>
-                    <p>B2B inquiries</p>
-                </div>
+                <div class="contact-item"><div class="icon">✉️</div><h3 data-i18n="c.email.h">Email Support</h3><a href="mailto:support@eatsense.ch">support@eatsense.ch</a><p data-i18n="c.email.p">For general questions</p></div>
+                <div class="contact-item"><div class="icon">🔒</div><h3 data-i18n="c.privacy.h">Privacy Inquiries</h3><a href="mailto:privacy@eatsense.ch">privacy@eatsense.ch</a><p data-i18n="c.privacy.p">Data protection requests</p></div>
+                <div class="contact-item"><div class="icon">🤝</div><h3 data-i18n="c.biz.h">Business &amp; Partnerships</h3><a href="mailto:info@eatsense.ch">info@eatsense.ch</a><p data-i18n="c.biz.p">B2B inquiries</p></div>
             </div>
-
-            <div class="response-time">
-                📨 We typically respond within 24-48 hours on business days
-            </div>
+            <div class="response-time" data-i18n="contact.response">📨 We typically respond within 24–48 hours on business days</div>
         </section>
 
-        <!-- Company Info -->
-        <section>
-            <h2>🏢 Company Information</h2>
-            <p><strong>EatSense</strong></p>
-            <p>Aleksei Belov</p>
-            <p>Rue Pictet-de-Bock 6</p>
+        <section class="legal-section">
+            <h2 data-i18n="company.title">Company Information</h2>
+            <p><strong>TEMONAN Geneva Holdings Sàrl</strong></p>
+            <p>Rue Vignier 8</p>
             <p>1205 Geneva, Switzerland</p>
-            <br>
-            <p>Email: <a href="mailto:info@eatsense.ch">info@eatsense.ch</a></p>
-            <p>Website: <a href="https://eatsense.ch">eatsense.ch</a></p>
+            <p style="margin-top:.8rem"><span data-i18n="company.emailLabel">Email:</span> <a href="mailto:info@eatsense.ch">info@eatsense.ch</a></p>
+            <p><span data-i18n="company.webLabel">Website:</span> <a href="https://eatsense.ch">eatsense.ch</a></p>
         </section>
     </main>
 
-    <footer>
-        <p>&copy; 2026 EatSense. All rights reserved.</p>
-        <p style="margin-top: 10px;">
-            <a href="/privacy">Privacy Policy</a> ·
-            <a href="/terms">Terms of Use</a> ·
-            <a href="/support">Support</a>
-        </p>
-        <p style="margin-top: 15px; font-size: 12px;">Made with 🇨🇭 Swiss Precision in Geneva</p>
+    <footer class="lfooter">
+        <a href="/" class="logo">
+            <svg viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#2D6B5A"/><path d="M10 26C10 26 12 17 18 17C24 17 26 26 26 26" stroke="#FAF8F5" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="13" r="1.5" fill="#B8976A"/><circle cx="22" cy="13" r="1.5" fill="#B8976A"/><circle cx="18" cy="10" r="1.5" fill="#B8976A"/></svg>
+            <span class="logo-text">EatSense</span>
+        </a>
+        <div class="lfooter-links">
+            <a href="/" data-i18n="footer.home">Home</a>
+            <a href="/privacy" data-i18n="footer.privacy">Privacy Policy</a>
+            <a href="/terms" data-i18n="footer.terms">Terms of Use</a>
+            <a href="/support" data-i18n="footer.support">Support</a>
+        </div>
+        <p class="lfooter-copy" data-i18n="footer.copy">© 2026 EatSense · Geneva, Switzerland · Made with Swiss precision.</p>
     </footer>
-    <!-- Cookie Banner -->
-    <div id="cookie-banner"
-        style="position: fixed; bottom: 0; left: 0; right: 0; background: #2D5A27; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 9999; box-shadow: 0 -2px 10px rgba(0,0,0,0.2);">
-        <p style="margin: 0; font-size: 14px; flex: 1;">This website uses only essential cookies required for basic
-            functionality. We do not use tracking or advertising cookies. <a href="/privacy"
-                style="color: #8BC34A;">Learn more</a></p>
-        <button onclick="acceptCookies()"
-            style="background: #8BC34A; color: #2D5A27; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600;">OK</button>
+
+    <div id="cookie-banner">
+        <p data-i18n="cookie.text">This website uses only essential cookies required for basic functionality. We do not use tracking or advertising cookies. <a href="/privacy">Learn more</a></p>
+        <button onclick="acceptCookies()" data-i18n="cookie.ok">OK</button>
     </div>
+
     <script>
-        if (localStorage.getItem('cookiesAccepted')) {
-            document.getElementById('cookie-banner').style.display = 'none';
+        const SUP=['en','de','fr','ru','kk','es'];
+        const T={
+          en:{"nav.privacy":"Privacy","nav.terms":"Terms","nav.support":"Support","nav.cta":"Get the App","hero.tag":"Help Centre","hero.title":"Support","faq.title":"Frequently Asked Questions","faq.q1":"How does AI food analysis work?","faq.a1":"Simply take a photo of your meal, and our AI will analyze it to estimate calories, protein, carbs, and fat. The analysis typically takes a few seconds. You can always manually edit the results if needed.","faq.q2":"How accurate is the food analysis?","faq.a2":"Our AI provides estimates based on image recognition. Accuracy depends on image quality, portion visibility, and food type. Use the results as guidance and adjust portions manually when needed.","faq.q3":"What's included in the FREE plan?","faq.a3":"The FREE plan includes 3 food scans per day, basic nutrition tracking, and 7 days of meal history.","faq.q4":"What do I get with PRO?","faq.a4":"PRO unlocks unlimited food scans, full meal history, AI nutrition assistant, biomarker tracking, detailed reports, Lifestyle Programs, and priority support. Available as monthly (CHF 9), yearly (CHF 80), student yearly (CHF 45), or lifetime Founders Pass (CHF 90). Prices may vary by country.","faq.q5":"How do I cancel my subscription?","faq.a5":"Subscriptions are managed through your device's app store. iPhone: Settings → Apple ID → Subscriptions → EatSense → Cancel. Android: Play Store → Menu → Subscriptions → EatSense → Cancel.","faq.q6":"Can I get a refund?","faq.a6":"Refunds are handled by the Apple App Store or Google Play Store according to their policies.","faq.q7":"What are Lifestyle Programs?","faq.a7":"Lifestyle Programs are dietary inspiration guides based on cultural archetypes and wellness philosophies — for motivation and education, not medical diet plans.","faq.q8":"Is my health data safe?","faq.a8":"Yes. Your data is encrypted and stored securely on servers in the European Union. We never sell your personal data. You can export or delete all your data anytime in settings.","faq.q9":"How do I delete my account?","faq.a9":"Go to Settings → Account → Delete Account. This permanently removes all your data from our servers immediately.","faq.q10":"Does EatSense provide medical advice?","faq.a10":"No. EatSense is a nutrition tracking tool, not a medical device. Always consult healthcare professionals for medical decisions.","contact.title":"Contact Us","c.email.h":"Email Support","c.email.p":"For general questions","c.privacy.h":"Privacy Inquiries","c.privacy.p":"Data protection requests","c.biz.h":"Business & Partnerships","c.biz.p":"B2B inquiries","contact.response":"📨 We typically respond within 24–48 hours on business days","company.title":"Company Information","company.emailLabel":"Email:","company.webLabel":"Website:","footer.home":"Home","footer.privacy":"Privacy Policy","footer.terms":"Terms of Use","footer.support":"Support","footer.copy":"© 2026 EatSense · Geneva, Switzerland · Made with Swiss precision.","cookie.text":"This website uses only essential cookies required for basic functionality. We do not use tracking or advertising cookies. <a href=\"/privacy\">Learn more</a>","cookie.ok":"OK"},
+          de:{"nav.privacy":"Datenschutz","nav.terms":"Nutzung","nav.support":"Support","nav.cta":"App holen","hero.tag":"Hilfecenter","hero.title":"Support","faq.title":"Häufige Fragen","faq.q1":"Wie funktioniert die KI-Lebensmittelanalyse?","faq.a1":"Mach einfach ein Foto deiner Mahlzeit, und unsere KI schätzt Kalorien, Protein, Kohlenhydrate und Fett. Die Analyse dauert meist wenige Sekunden. Du kannst die Ergebnisse jederzeit manuell anpassen.","faq.q2":"Wie genau ist die Analyse?","faq.a2":"Unsere KI liefert Schätzungen auf Basis der Bilderkennung. Die Genauigkeit hängt von Bildqualität, sichtbarer Portion und Lebensmittelart ab. Nutze die Ergebnisse als Orientierung und passe Portionen bei Bedarf an.","faq.q3":"Was ist im FREE-Plan enthalten?","faq.a3":"Der FREE-Plan umfasst 3 Scans pro Tag, grundlegendes Tracking und 7 Tage Verlauf.","faq.q4":"Was bekomme ich mit PRO?","faq.a4":"PRO schaltet unbegrenzte Scans, vollen Verlauf, KI-Ernährungsassistent, Biomarker-Tracking, detaillierte Berichte, Lifestyle-Programme und Priority-Support frei. Verfügbar als Monat (CHF 9), Jahr (CHF 80), Studierende jährlich (CHF 45) oder lebenslanger Founders Pass (CHF 90). Preise können je nach Land variieren.","faq.q5":"Wie kündige ich mein Abo?","faq.a5":"Abos werden über den App-Store deines Geräts verwaltet. iPhone: Einstellungen → Apple-ID → Abonnements → EatSense → Kündigen. Android: Play Store → Menü → Abos → EatSense → Kündigen.","faq.q6":"Kann ich eine Rückerstattung erhalten?","faq.a6":"Rückerstattungen werden vom Apple App Store oder Google Play Store gemäß deren Richtlinien abgewickelt.","faq.q7":"Was sind Lifestyle-Programme?","faq.a7":"Lifestyle-Programme sind Ernährungs-Inspirationen auf Basis kultureller Archetypen und Wellness-Philosophien – zur Motivation und Bildung, keine medizinischen Diätpläne.","faq.q8":"Sind meine Gesundheitsdaten sicher?","faq.a8":"Ja. Deine Daten sind verschlüsselt und werden sicher auf Servern in der EU gespeichert. Wir verkaufen deine Daten nie. Du kannst sie jederzeit in den Einstellungen exportieren oder löschen.","faq.q9":"Wie lösche ich mein Konto?","faq.a9":"Gehe zu Einstellungen → Konto → Konto löschen. Dadurch werden alle deine Daten sofort dauerhaft von unseren Servern entfernt.","faq.q10":"Bietet EatSense medizinische Beratung?","faq.a10":"Nein. EatSense ist ein Ernährungs-Tool, kein Medizinprodukt. Konsultiere bei medizinischen Entscheidungen immer Fachpersonal.","contact.title":"Kontakt","c.email.h":"E-Mail-Support","c.email.p":"Für allgemeine Fragen","c.privacy.h":"Datenschutz-Anfragen","c.privacy.p":"Datenschutz-Anliegen","c.biz.h":"Business & Partnerschaften","c.biz.p":"B2B-Anfragen","contact.response":"📨 Wir antworten in der Regel innerhalb von 24–48 Stunden an Werktagen","company.title":"Unternehmensangaben","company.emailLabel":"E-Mail:","company.webLabel":"Website:","footer.home":"Start","footer.privacy":"Datenschutz","footer.terms":"Nutzungsbedingungen","footer.support":"Support","footer.copy":"© 2026 EatSense · Genf, Schweiz · Mit Schweizer Präzision gemacht.","cookie.text":"Diese Website verwendet nur essenzielle Cookies für die Grundfunktionen. Wir nutzen keine Tracking- oder Werbe-Cookies. <a href=\"/privacy\">Mehr erfahren</a>","cookie.ok":"OK"},
+          fr:{"nav.privacy":"Confidentialité","nav.terms":"Conditions","nav.support":"Support","nav.cta":"Obtenir l'app","hero.tag":"Centre d'aide","hero.title":"Support","faq.title":"Questions fréquentes","faq.q1":"Comment fonctionne l'analyse IA des aliments ?","faq.a1":"Prenez simplement une photo de votre repas, et notre IA estime calories, protéines, glucides et lipides. L'analyse prend généralement quelques secondes. Vous pouvez toujours ajuster les résultats manuellement.","faq.q2":"Quelle est la précision de l'analyse ?","faq.a2":"Notre IA fournit des estimations basées sur la reconnaissance d'image. La précision dépend de la qualité de la photo, de la visibilité de la portion et du type d'aliment. Utilisez les résultats comme guide et ajustez les portions si besoin.","faq.q3":"Qu'inclut le plan GRATUIT ?","faq.a3":"Le plan GRATUIT inclut 3 scans par jour, le suivi nutritionnel de base et 7 jours d'historique.","faq.q4":"Qu'est-ce que j'obtiens avec PRO ?","faq.a4":"PRO débloque les scans illimités, l'historique complet, l'assistant nutrition IA, le suivi des biomarqueurs, des rapports détaillés, les programmes lifestyle et le support prioritaire. Disponible en mensuel (CHF 9), annuel (CHF 80), étudiant annuel (CHF 45) ou Founders Pass à vie (CHF 90). Les prix peuvent varier selon le pays.","faq.q5":"Comment annuler mon abonnement ?","faq.a5":"Les abonnements se gèrent via l'app store de votre appareil. iPhone : Réglages → identifiant Apple → Abonnements → EatSense → Annuler. Android : Play Store → Menu → Abonnements → EatSense → Annuler.","faq.q6":"Puis-je obtenir un remboursement ?","faq.a6":"Les remboursements sont gérés par l'App Store d'Apple ou le Google Play Store selon leurs politiques.","faq.q7":"Que sont les programmes lifestyle ?","faq.a7":"Les programmes lifestyle sont des guides d'inspiration alimentaire basés sur des archétypes culturels et des philosophies bien-être — pour la motivation et l'éducation, pas des plans diététiques médicaux.","faq.q8":"Mes données de santé sont-elles en sécurité ?","faq.a8":"Oui. Vos données sont chiffrées et stockées en sécurité sur des serveurs dans l'Union européenne. Nous ne vendons jamais vos données. Vous pouvez les exporter ou les supprimer à tout moment dans les réglages.","faq.q9":"Comment supprimer mon compte ?","faq.a9":"Allez dans Réglages → Compte → Supprimer le compte. Cela supprime immédiatement et définitivement toutes vos données de nos serveurs.","faq.q10":"EatSense fournit-il des conseils médicaux ?","faq.a10":"Non. EatSense est un outil de suivi nutritionnel, pas un dispositif médical. Consultez toujours un professionnel de santé pour les décisions médicales.","contact.title":"Nous contacter","c.email.h":"Support e-mail","c.email.p":"Pour les questions générales","c.privacy.h":"Demandes de confidentialité","c.privacy.p":"Demandes de protection des données","c.biz.h":"Entreprises & partenariats","c.biz.p":"Demandes B2B","contact.response":"📨 Nous répondons généralement sous 24 à 48 heures les jours ouvrés","company.title":"Informations sur la société","company.emailLabel":"E-mail :","company.webLabel":"Site web :","footer.home":"Accueil","footer.privacy":"Politique de confidentialité","footer.terms":"Conditions d'utilisation","footer.support":"Support","footer.copy":"© 2026 EatSense · Genève, Suisse · Conçu avec la précision suisse.","cookie.text":"Ce site utilise uniquement des cookies essentiels au fonctionnement de base. Nous n'utilisons pas de cookies de suivi ou publicitaires. <a href=\"/privacy\">En savoir plus</a>","cookie.ok":"OK"},
+          ru:{"nav.privacy":"Конфиденциальность","nav.terms":"Условия","nav.support":"Поддержка","nav.cta":"Скачать","hero.tag":"Центр помощи","hero.title":"Поддержка","faq.title":"Частые вопросы","faq.q1":"Как работает ИИ-анализ еды?","faq.a1":"Просто сфотографируйте блюдо, и наш ИИ оценит калории, белки, углеводы и жиры. Анализ обычно занимает несколько секунд. Результаты всегда можно поправить вручную.","faq.q2":"Насколько точен анализ?","faq.a2":"Наш ИИ даёт оценки на основе распознавания изображения. Точность зависит от качества фото, видимости порции и типа еды. Используйте результат как ориентир и при необходимости корректируйте порции.","faq.q3":"Что входит в БЕСПЛАТНЫЙ план?","faq.a3":"Бесплатный план включает 3 сканирования в день, базовый трекинг питания и историю за 7 дней.","faq.q4":"Что даёт PRO?","faq.a4":"PRO открывает безлимит сканов, полную историю, ИИ-ассистента по питанию, трекинг биомаркеров, подробные отчёты, программы образа жизни и приоритетную поддержку. Доступно помесячно (CHF 9), за год (CHF 80), студентам за год (CHF 45) или пожизненный Founders Pass (CHF 90). Цены могут отличаться по странам.","faq.q5":"Как отменить подписку?","faq.a5":"Подписки управляются через магазин приложений вашего устройства. iPhone: Настройки → Apple ID → Подписки → EatSense → Отменить. Android: Play Store → Меню → Подписки → EatSense → Отменить.","faq.q6":"Можно ли вернуть деньги?","faq.a6":"Возвраты обрабатываются Apple App Store или Google Play Store согласно их правилам.","faq.q7":"Что такое программы образа жизни?","faq.a7":"Программы образа жизни — это вдохновляющие гиды по питанию на основе культурных архетипов и философий благополучия: для мотивации и образования, не медицинские диеты.","faq.q8":"Мои данные о здоровье в безопасности?","faq.a8":"Да. Ваши данные шифруются и хранятся на серверах в Европейском союзе. Мы никогда не продаём ваши данные. Вы можете экспортировать или удалить их в любой момент в настройках.","faq.q9":"Как удалить аккаунт?","faq.a9":"Откройте Настройки → Аккаунт → Удалить аккаунт. Это немедленно и навсегда удалит все ваши данные с наших серверов.","faq.q10":"Даёт ли EatSense медицинские советы?","faq.a10":"Нет. EatSense — инструмент трекинга питания, а не медицинское устройство. По медицинским вопросам всегда консультируйтесь со специалистами.","contact.title":"Связаться с нами","c.email.h":"Поддержка по email","c.email.p":"Общие вопросы","c.privacy.h":"Вопросы конфиденциальности","c.privacy.p":"Запросы по защите данных","c.biz.h":"Бизнес и партнёрство","c.biz.p":"B2B-запросы","contact.response":"📨 Обычно отвечаем в течение 24–48 часов в рабочие дни","company.title":"Реквизиты компании","company.emailLabel":"Email:","company.webLabel":"Сайт:","footer.home":"Главная","footer.privacy":"Политика конфиденциальности","footer.terms":"Условия использования","footer.support":"Поддержка","footer.copy":"© 2026 EatSense · Женева, Швейцария · Сделано со швейцарской точностью.","cookie.text":"Этот сайт использует только необходимые для базовой работы файлы cookie. Мы не используем трекинговые или рекламные cookie. <a href=\"/privacy\">Подробнее</a>","cookie.ok":"OK"},
+          kk:{"nav.privacy":"Құпиялық","nav.terms":"Шарттар","nav.support":"Қолдау","nav.cta":"Жүктеп алу","hero.tag":"Көмек орталығы","hero.title":"Қолдау","faq.title":"Жиі қойылатын сұрақтар","faq.q1":"ЖИ тамақ талдауы қалай жұмыс істейді?","faq.a1":"Тамағыңызды суретке түсіріңіз, біздің ЖИ калория, ақуыз, көмірсу мен майды бағалайды. Талдау әдетте бірнеше секунд алады. Нәтижелерді әрқашан қолмен түзете аласыз.","faq.q2":"Талдау қаншалықты дәл?","faq.a2":"Біздің ЖИ суретті тану негізінде бағалау береді. Дәлдік фото сапасына, порция көрінуіне және тағам түріне байланысты. Нәтижені бағдар ретінде пайдаланып, қажет болса порцияны түзетіңіз.","faq.q3":"ТЕГІН жоспарға не кіреді?","faq.a3":"Тегін жоспарға күніне 3 сканер, негізгі тамақтану трекингі және 7 күндік тарих кіреді.","faq.q4":"PRO не береді?","faq.a4":"PRO шексіз сканер, толық тарих, ЖИ тамақтану көмекшісі, биомаркер трекингі, толық есептер, өмір салты бағдарламалары және басым қолдау ашады. Айлық (CHF 9), жылдық (CHF 80), студенттік жылдық (CHF 45) немесе өмірлік Founders Pass (CHF 90). Бағалар елге қарай өзгеруі мүмкін.","faq.q5":"Жазылымды қалай тоқтатамын?","faq.a5":"Жазылымдар құрылғыңыздың қолданба дүкені арқылы басқарылады. iPhone: Параметрлер → Apple ID → Жазылымдар → EatSense → Тоқтату. Android: Play Store → Мәзір → Жазылымдар → EatSense → Тоқтату.","faq.q6":"Ақшаны қайтара аламын ба?","faq.a6":"Қайтарымдар Apple App Store немесе Google Play Store ережелеріне сай өңделеді.","faq.q7":"Өмір салты бағдарламалары дегеніміз не?","faq.a7":"Өмір салты бағдарламалары — мәдени архетиптер мен әл-ауқат философияларына негізделген тамақтану шабыты: мотивация мен білім үшін, медициналық диета емес.","faq.q8":"Денсаулық деректерім қауіпсіз бе?","faq.a8":"Иә. Деректеріңіз шифрланып, Еуропалық одақтағы серверлерде қауіпсіз сақталады. Біз деректеріңізді ешқашан сатпаймыз. Оларды кез келген уақытта параметрлерден экспорттай не жоя аласыз.","faq.q9":"Аккаунтты қалай жоямын?","faq.a9":"Параметрлер → Аккаунт → Аккаунтты жою бөліміне өтіңіз. Бұл барлық деректеріңізді серверлерден дереу әрі біржола жояды.","faq.q10":"EatSense медициналық кеңес бере ме?","faq.a10":"Жоқ. EatSense — тамақтану трекинг құралы, медициналық құрылғы емес. Медициналық шешімдер үшін әрқашан маманмен кеңесіңіз.","contact.title":"Бізбен байланыс","c.email.h":"Email қолдауы","c.email.p":"Жалпы сұрақтар","c.privacy.h":"Құпиялық сұраулары","c.privacy.p":"Деректерді қорғау сұраулары","c.biz.h":"Бизнес және серіктестік","c.biz.p":"B2B сұраулары","contact.response":"📨 Әдетте жұмыс күндері 24–48 сағат ішінде жауап береміз","company.title":"Компания туралы","company.emailLabel":"Email:","company.webLabel":"Сайт:","footer.home":"Басты бет","footer.privacy":"Құпиялылық саясаты","footer.terms":"Қолдану шарттары","footer.support":"Қолдау","footer.copy":"© 2026 EatSense · Женева, Швейцария · Швейцариялық дәлдікпен жасалған.","cookie.text":"Бұл сайт тек негізгі жұмыс үшін қажетті cookie файлдарын пайдаланады. Біз трекинг не жарнамалық cookie пайдаланбаймыз. <a href=\"/privacy\">Толығырақ</a>","cookie.ok":"OK"},
+          es:{"nav.privacy":"Privacidad","nav.terms":"Términos","nav.support":"Soporte","nav.cta":"Obtener la app","hero.tag":"Centro de ayuda","hero.title":"Soporte","faq.title":"Preguntas frecuentes","faq.q1":"¿Cómo funciona el análisis de comida con IA?","faq.a1":"Solo haz una foto de tu comida y nuestra IA estimará calorías, proteínas, carbohidratos y grasas. El análisis suele tardar unos segundos. Siempre puedes editar los resultados manualmente.","faq.q2":"¿Qué precisión tiene el análisis?","faq.a2":"Nuestra IA ofrece estimaciones basadas en reconocimiento de imágenes. La precisión depende de la calidad de la foto, la visibilidad de la porción y el tipo de alimento. Usa los resultados como guía y ajusta las porciones cuando sea necesario.","faq.q3":"¿Qué incluye el plan GRATIS?","faq.a3":"El plan GRATIS incluye 3 escaneos al día, seguimiento nutricional básico y 7 días de historial.","faq.q4":"¿Qué obtengo con PRO?","faq.a4":"PRO desbloquea escaneos ilimitados, historial completo, asistente de nutrición con IA, seguimiento de biomarcadores, informes detallados, programas de estilo de vida y soporte prioritario. Disponible mensual (CHF 9), anual (CHF 80), estudiante anual (CHF 45) o Founders Pass de por vida (CHF 90). Los precios pueden variar según el país.","faq.q5":"¿Cómo cancelo mi suscripción?","faq.a5":"Las suscripciones se gestionan en la tienda de apps de tu dispositivo. iPhone: Ajustes → ID de Apple → Suscripciones → EatSense → Cancelar. Android: Play Store → Menú → Suscripciones → EatSense → Cancelar.","faq.q6":"¿Puedo obtener un reembolso?","faq.a6":"Los reembolsos los gestiona la App Store de Apple o Google Play Store según sus políticas.","faq.q7":"¿Qué son los programas de estilo de vida?","faq.a7":"Los programas de estilo de vida son guías de inspiración alimentaria basadas en arquetipos culturales y filosofías de bienestar — para motivación y educación, no planes dietéticos médicos.","faq.q8":"¿Mis datos de salud están seguros?","faq.a8":"Sí. Tus datos están cifrados y se almacenan de forma segura en servidores de la Unión Europea. Nunca vendemos tus datos. Puedes exportarlos o eliminarlos en cualquier momento en los ajustes.","faq.q9":"¿Cómo elimino mi cuenta?","faq.a9":"Ve a Ajustes → Cuenta → Eliminar cuenta. Esto elimina de forma permanente e inmediata todos tus datos de nuestros servidores.","faq.q10":"¿EatSense ofrece asesoramiento médico?","faq.a10":"No. EatSense es una herramienta de seguimiento nutricional, no un dispositivo médico. Consulta siempre a profesionales de la salud para decisiones médicas.","contact.title":"Contáctanos","c.email.h":"Soporte por email","c.email.p":"Para preguntas generales","c.privacy.h":"Consultas de privacidad","c.privacy.p":"Solicitudes de protección de datos","c.biz.h":"Empresas y alianzas","c.biz.p":"Consultas B2B","contact.response":"📨 Solemos responder en 24–48 horas en días hábiles","company.title":"Información de la empresa","company.emailLabel":"Email:","company.webLabel":"Sitio web:","footer.home":"Inicio","footer.privacy":"Política de privacidad","footer.terms":"Términos de uso","footer.support":"Soporte","footer.copy":"© 2026 EatSense · Ginebra, Suiza · Hecho con precisión suiza.","cookie.text":"Este sitio solo usa cookies esenciales para el funcionamiento básico. No usamos cookies de seguimiento ni publicidad. <a href=\"/privacy\">Más información</a>","cookie.ok":"OK"}
+        };
+        function setLang(lang){
+            if(!T[lang])lang='en';
+            document.documentElement.lang=lang;
+            document.getElementById('curLang').textContent=lang.toUpperCase();
+            document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.dataset.i18n;if(T[lang][k]!=null)el.innerHTML=T[lang][k];});
+            document.querySelectorAll('.lang-option').forEach(function(o){o.classList.toggle('active',o.dataset.lang===lang);});
+            try{localStorage.setItem('eatsense-lang',lang);}catch(e){}
         }
-        function acceptCookies() {
-            localStorage.setItem('cookiesAccepted', 'true');
-            document.getElementById('cookie-banner').style.display = 'none';
-        }
+        document.querySelectorAll('.lang-option').forEach(function(b){b.addEventListener('click',function(){setLang(b.dataset.lang);});});
+        (function(){var s=null;try{s=localStorage.getItem('eatsense-lang');}catch(e){}var b=(navigator.language||'en').slice(0,2);setLang(s||(SUP.indexOf(b)>=0?b:'en'));})();
+        function acceptCookies(){try{localStorage.setItem('cookiesAccepted','true');}catch(e){}document.getElementById('cookie-banner').style.display='none';}
+        try{if(localStorage.getItem('cookiesAccepted')){document.getElementById('cookie-banner').style.display='none';}}catch(e){}
     </script>
 </body>
-
 </html>

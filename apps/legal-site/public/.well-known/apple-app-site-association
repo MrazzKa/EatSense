@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "73T7PB4F99.ch.eatsense.app",
+        "paths": [
+          "/pharmacy",
+          "/pharmacy/*",
+          "/v1/auth/magic/consume*"
+        ]
+      }
+    ]
+  }
+}

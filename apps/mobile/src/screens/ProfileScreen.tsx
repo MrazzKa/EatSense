@@ -11,6 +11,8 @@ import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import ApiService from '../services/apiService';
 import { localNotificationService } from '../services/localNotificationService';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
@@ -270,6 +272,49 @@ const ProfileScreen = () => {
     );
   }, [safeT, signOut]);
 
+  /* GDPR: export all personal data as a JSON file and share it */
+  const handleExportData = useCallback(async () => {
+    if (exportingData) return;
+    setExportingData(true);
+    try {
+      const data = await ApiService.exportMyData();
+      const json = JSON.stringify(data, null, 2);
+      const stamp = new Date().toISOString().slice(0, 10);
+      const dir = FileSystem.documentDirectory || FileSystem.cacheDirectory;
+      if (!dir) {
+        Alert.alert(safeT('common.error', 'Error'), safeT('profile.exportError', 'Could not export your data. Please try again.'));
+        return;
+      }
+      const fileUri = `${dir}eatsense-data-export-${stamp}.json`;
+      await FileSystem.writeAsStringAsync(fileUri, json, { encoding: FileSystem.EncodingType.UTF8 });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, { mimeType: 'application/json', dialogTitle: safeT('profile.exportData', 'Export my data') });
+      } else {
+        Alert.alert(safeT('profile.exportData', 'Export my data'), safeT('profile.exportSaved', 'Your data export was saved to the app folder.'));
+      }
+    } catch (error) {
+      console.error('[ProfileScreen] Error exporting data:', error);
+      Alert.alert(safeT('common.error', 'Error'), safeT('profile.exportError', 'Could not export your data. Please try again.'));
+    } finally {
+      setExportingData(false);
+    }
+  }, [exportingData, safeT]);
+
+  /* Open the "My consents" modal and load the server-recorded acceptances */
+  const handleOpenConsents = useCallback(async () => {
+    setConsentsVisible(true);
+    setConsentsLoading(true);
+    try {
+      const status: any = await ApiService.getDisclaimerStatus();
+      setConsents(Array.isArray(status?.acceptances) ? status.acceptances : []);
+    } catch (error) {
+      console.warn('[ProfileScreen] Failed to load consents', error);
+      setConsents([]);
+    } finally {
+      setConsentsLoading(false);
+    }
+  }, []);
+
   const [profile, setProfile] = useState({
     firstName: '',
     lastName: '',
@@ -330,6 +375,10 @@ const ProfileScreen = () => {
   const [editing, setEditing] = useState(false);
   const [showHealthDetails, setShowHealthDetails] = useState(false);
   const [showBiomarkerDisclaimer, setShowBiomarkerDisclaimer] = useState(false);
+  const [exportingData, setExportingData] = useState(false);
+  const [consentsVisible, setConsentsVisible] = useState(false);
+  const [consentsLoading, setConsentsLoading] = useState(false);
+  const [consents, setConsents] = useState<Array<{ type: string; acceptedAt: string }>>([]);
   const chevronRotation = useRef(new Animated.Value(0)).current;
 
   const initials = useMemo(() => {
@@ -2684,6 +2733,36 @@ const ProfileScreen = () => {
             </AppCard>
           )}
 
+          {/* Privacy & data (GDPR) */}
+          <AppCard style={styles.resetCard}>
+            <TouchableOpacity
+              onPress={handleExportData}
+              disabled={exportingData}
+              style={[styles.resetButton, { backgroundColor: (colors.primary || '#007AFF') + '10', borderWidth: 1, borderColor: (colors.primary || '#007AFF') + '30' }]}
+            >
+              {exportingData ? (
+                <ActivityIndicator size="small" color={colors.primary || '#007AFF'} />
+              ) : (
+                <Ionicons name="download-outline" size={20} color={colors.primary || '#007AFF'} />
+              )}
+              <Text style={[styles.resetButtonText, { color: colors.primary || '#007AFF' }]}>
+                {safeT('profile.exportData', 'Export my data')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleOpenConsents}
+              style={[styles.resetButton, { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.borderMuted || colors.border, marginTop: 10 }]}
+            >
+              <Ionicons name="shield-checkmark-outline" size={20} color={colors.textSecondary} />
+              <Text style={[styles.resetButtonText, { color: colors.textSecondary }]}>
+                {safeT('profile.myConsents', 'My consents')}
+              </Text>
+            </TouchableOpacity>
+            <Text style={{ textAlign: 'center', marginTop: 8, color: colors.textTertiary, fontSize: 12 }}>
+              {safeT('profile.privacyDataHint', 'Download a copy of your data or review the consents you have given.')}
+            </Text>
+          </AppCard>
+
           {/* Delete Account Button - Always Visible */}
           <AppCard style={styles.resetCard}>
             <TouchableOpacity
@@ -3057,6 +3136,58 @@ const ProfileScreen = () => {
         }}
         onCancel={() => setShowBiomarkerDisclaimer(false)}
       />
+
+      {/* My consents (server-recorded disclaimer acceptances) */}
+      <Modal
+        visible={consentsVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConsentsVisible(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setConsentsVisible(false)}
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 20 }}
+        >
+          <TouchableOpacity activeOpacity={1} style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 20, maxHeight: '75%' }}>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text, marginBottom: 4 }}>
+              {safeT('profile.myConsents', 'My consents')}
+            </Text>
+            <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 16 }}>
+              {safeT('profile.myConsentsHint', 'Disclaimers and consents you have accepted in the app.')}
+            </Text>
+            {consentsLoading ? (
+              <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 20 }} />
+            ) : consents.length === 0 ? (
+              <Text style={{ fontSize: 14, color: colors.textTertiary, marginVertical: 16, textAlign: 'center' }}>
+                {safeT('profile.noConsents', 'No consents recorded yet.')}
+              </Text>
+            ) : (
+              <ScrollView>
+                {consents.map((c) => (
+                  <View key={c.type} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderMuted || colors.border }}>
+                    <Ionicons name="checkmark-circle" size={20} color={colors.success || '#22C55E'} style={{ marginRight: 12 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600' }}>
+                        {safeT(`profile.consentTypes.${c.type}`, c.type.replace(/_/g, ' '))}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: colors.textTertiary, marginTop: 2 }}>
+                        {(() => { try { return new Date(c.acceptedAt).toLocaleString(); } catch { return ''; } })()}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+            <TouchableOpacity
+              onPress={() => setConsentsVisible(false)}
+              style={{ marginTop: 18, paddingVertical: 14, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center' }}
+            >
+              <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 16 }}>{safeT('common.close', 'Close')}</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </>
   );
 };

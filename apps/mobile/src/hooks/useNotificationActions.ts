@@ -330,7 +330,7 @@ export function useNotificationActions() {
         // Pharmacy order status updates (sent / processing / ready / completed)
         // open the Pharmacy screen where the order list lives.
         // While pharmacy is hidden, fall back to the medication schedule.
-        if (type === 'pharmacy_order_status') {
+        if (type === 'pharmacy_order_status' || type === 'pharmacy_order_message') {
             if (navigationCallback) navigationCallback(ENABLE_PHARMACY ? 'Pharmacy' : 'MedicationSchedule');
             return;
         }

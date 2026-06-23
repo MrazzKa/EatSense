@@ -35,6 +35,13 @@ export class UsersController {
     return this.usersService.deleteAccount(req.user.id);
   }
 
+  @Get('export')
+  @ApiOperation({ summary: 'Export all personal data we hold for the user (GDPR)' })
+  @ApiResponse({ status: 200, description: 'Full data export as JSON' })
+  async exportData(@Request() req: any) {
+    return this.usersService.getUserDataExport(req.user.id);
+  }
+
   @Get('stats')
   @ApiOperation({ summary: 'Get user statistics' })
   @ApiResponse({ status: 200, description: 'User statistics retrieved successfully' })
