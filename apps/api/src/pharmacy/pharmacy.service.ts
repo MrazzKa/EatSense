@@ -121,6 +121,62 @@ const CLIENT_MESSAGE_PUSH: Record<PushLang, { title: (orderId: string) => string
   },
 };
 
+// Reasons a pharmacy can give when cancelling/declining an order.
+const PHARMACY_CANCEL_REASONS = ['not_picked_up', 'cannot_fulfill', 'other'] as const;
+type PharmacyCancelReason = (typeof PHARMACY_CANCEL_REASONS)[number];
+
+// Localized push shown to the CUSTOMER when the pharmacy cancels their order.
+const CLIENT_CANCEL_PUSH: Record<PushLang, { title: (orderId: string) => string; reasons: Record<PharmacyCancelReason, string> }> = {
+  en: {
+    title: (id) => `Order #${id} cancelled`,
+    reasons: {
+      not_picked_up: 'It was not picked up in time.',
+      cannot_fulfill: 'The pharmacy could not fulfil it.',
+      other: 'The pharmacy cancelled this order.',
+    },
+  },
+  ru: {
+    title: (id) => `Заказ №${id} отменён`,
+    reasons: {
+      not_picked_up: 'Он не был получен вовремя.',
+      cannot_fulfill: 'Аптека не смогла его выполнить.',
+      other: 'Аптека отменила этот заказ.',
+    },
+  },
+  kk: {
+    title: (id) => `№${id} тапсырыс бас тартылды`,
+    reasons: {
+      not_picked_up: 'Ол уақытында алынбады.',
+      cannot_fulfill: 'Дәріхана оны орындай алмады.',
+      other: 'Дәріхана бұл тапсырыстан бас тартты.',
+    },
+  },
+  fr: {
+    title: (id) => `Commande n°${id} annulée`,
+    reasons: {
+      not_picked_up: "Elle n'a pas été récupérée à temps.",
+      cannot_fulfill: "La pharmacie n'a pas pu la traiter.",
+      other: 'La pharmacie a annulé cette commande.',
+    },
+  },
+  de: {
+    title: (id) => `Bestellung Nr. ${id} storniert`,
+    reasons: {
+      not_picked_up: 'Sie wurde nicht rechtzeitig abgeholt.',
+      cannot_fulfill: 'Die Apotheke konnte sie nicht ausführen.',
+      other: 'Die Apotheke hat diese Bestellung storniert.',
+    },
+  },
+  es: {
+    title: (id) => `Pedido n.º ${id} cancelado`,
+    reasons: {
+      not_picked_up: 'No se recogió a tiempo.',
+      cannot_fulfill: 'La farmacia no pudo completarlo.',
+      other: 'La farmacia canceló este pedido.',
+    },
+  },
+};
+
 // Pharmacy-facing email language. Swiss pilot → en | fr | de | it.
 type PharmaLang = 'en' | 'fr' | 'de' | 'it';
 function normalizePharmacyLang(raw: any): PharmaLang {
@@ -146,6 +202,11 @@ const PHARMA_I18N: Record<PharmaLang, Record<string, string>> = {
     reasonLabel: 'Reason', rOutOfStock: 'Out of stock', rPrepayment: 'Prepayment required', rPartial: 'Partially available', rOther: 'Other',
     detailsLabel: 'Details (optional)', detailsPlaceholder: 'Add any details for the customer…', sendMessage: 'Send message',
     messageSentTitle: 'Message sent', messageSentBody: 'The customer has been notified.', messageNeedReason: 'Please pick a reason or write a message.',
+    cancelOrder: 'Cancel order', cancelPageTitle: 'Cancel this order', cancelPageLead: 'Let the customer know why. They will be notified in the app.',
+    cancelReasonLabel: 'Reason for cancellation', cNotPicked: 'Customer did not pick it up', cCannotFulfill: 'Could not fulfil the order', cOther: 'Other',
+    cancelConfirm: 'Cancel order', orderCancelledTitle: 'Order cancelled', orderCancelledBody: 'The customer has been notified.',
+    noShowWarning: 'This customer did not pick up {n} previous order(s). Consider asking for prepayment.',
+    replyFromCustomer: 'Reply from the customer',
   },
   fr: {
     orderSubject: 'Nouvelle commande de médicaments de', newOrder: 'Nouvelle commande de médicaments', customer: 'Client', email: 'E-mail',
@@ -162,6 +223,11 @@ const PHARMA_I18N: Record<PharmaLang, Record<string, string>> = {
     reasonLabel: 'Motif', rOutOfStock: 'En rupture de stock', rPrepayment: 'Paiement anticipé requis', rPartial: 'Partiellement disponible', rOther: 'Autre',
     detailsLabel: 'Détails (facultatif)', detailsPlaceholder: 'Ajoutez des détails pour le client…', sendMessage: 'Envoyer le message',
     messageSentTitle: 'Message envoyé', messageSentBody: 'Le client a été notifié.', messageNeedReason: 'Veuillez choisir un motif ou écrire un message.',
+    cancelOrder: 'Annuler la commande', cancelPageTitle: 'Annuler cette commande', cancelPageLead: 'Indiquez la raison au client. Il sera notifié dans l’application.',
+    cancelReasonLabel: 'Motif d’annulation', cNotPicked: 'Le client ne l’a pas récupérée', cCannotFulfill: 'Impossible de traiter la commande', cOther: 'Autre',
+    cancelConfirm: 'Annuler la commande', orderCancelledTitle: 'Commande annulée', orderCancelledBody: 'Le client a été notifié.',
+    noShowWarning: 'Ce client n’a pas récupéré {n} commande(s) précédente(s). Envisagez un paiement anticipé.',
+    replyFromCustomer: 'Réponse du client',
   },
   de: {
     orderSubject: 'Neue Medikamentenbestellung von', newOrder: 'Neue Medikamentenbestellung', customer: 'Kunde', email: 'E-Mail',
@@ -178,6 +244,11 @@ const PHARMA_I18N: Record<PharmaLang, Record<string, string>> = {
     reasonLabel: 'Grund', rOutOfStock: 'Nicht vorrätig', rPrepayment: 'Vorauszahlung erforderlich', rPartial: 'Teilweise verfügbar', rOther: 'Sonstiges',
     detailsLabel: 'Details (optional)', detailsPlaceholder: 'Details für den Kunden hinzufügen…', sendMessage: 'Nachricht senden',
     messageSentTitle: 'Nachricht gesendet', messageSentBody: 'Der Kunde wurde benachrichtigt.', messageNeedReason: 'Bitte wählen Sie einen Grund oder schreiben Sie eine Nachricht.',
+    cancelOrder: 'Bestellung stornieren', cancelPageTitle: 'Diese Bestellung stornieren', cancelPageLead: 'Teilen Sie dem Kunden den Grund mit. Er wird in der App benachrichtigt.',
+    cancelReasonLabel: 'Stornierungsgrund', cNotPicked: 'Kunde hat sie nicht abgeholt', cCannotFulfill: 'Bestellung konnte nicht ausgeführt werden', cOther: 'Sonstiges',
+    cancelConfirm: 'Bestellung stornieren', orderCancelledTitle: 'Bestellung storniert', orderCancelledBody: 'Der Kunde wurde benachrichtigt.',
+    noShowWarning: 'Dieser Kunde hat {n} frühere Bestellung(en) nicht abgeholt. Erwägen Sie eine Vorauszahlung.',
+    replyFromCustomer: 'Antwort des Kunden',
   },
   it: {
     orderSubject: 'Nuovo ordine di farmaci da', newOrder: 'Nuovo ordine di farmaci', customer: 'Cliente', email: 'E-mail',
@@ -194,6 +265,11 @@ const PHARMA_I18N: Record<PharmaLang, Record<string, string>> = {
     reasonLabel: 'Motivo', rOutOfStock: 'Non disponibile', rPrepayment: 'Pagamento anticipato richiesto', rPartial: 'Parzialmente disponibile', rOther: 'Altro',
     detailsLabel: 'Dettagli (facoltativo)', detailsPlaceholder: 'Aggiungi dettagli per il cliente…', sendMessage: 'Invia messaggio',
     messageSentTitle: 'Messaggio inviato', messageSentBody: 'Il cliente è stato avvisato.', messageNeedReason: 'Scegli un motivo o scrivi un messaggio.',
+    cancelOrder: 'Annulla ordine', cancelPageTitle: 'Annulla questo ordine', cancelPageLead: 'Indica il motivo al cliente. Verrà avvisato nell’app.',
+    cancelReasonLabel: 'Motivo dell’annullamento', cNotPicked: 'Il cliente non lo ha ritirato', cCannotFulfill: 'Impossibile evadere l’ordine', cOther: 'Altro',
+    cancelConfirm: 'Annulla ordine', orderCancelledTitle: 'Ordine annullato', orderCancelledBody: 'Il cliente è stato avvisato.',
+    noShowWarning: 'Questo cliente non ha ritirato {n} ordine/i precedente/i. Valuta un pagamento anticipato.',
+    replyFromCustomer: 'Risposta del cliente',
   },
 };
 
@@ -501,6 +577,12 @@ export class PharmacyService {
     const profile = user?.userProfile as any;
     const healthInfo = this.extractHealthInfo(profile);
 
+    // How many of this customer's past orders the pharmacy cancelled because the
+    // customer never picked them up — surfaced as a no-show warning in the email.
+    const noShowCount = await this.prisma.pharmacyOrder.count({
+      where: { userId, cancelReason: 'not_picked_up' },
+    }).catch(() => 0);
+
     const orderEmailArgs = {
       userName,
       userEmail: user?.email || 'N/A',
@@ -511,6 +593,7 @@ export class PharmacyService {
       prescriptionUrl: dto.prescriptionUrl,
       notes: dto.notes,
       healthInfo,
+      noShowCount,
     };
 
     // Team copy is always English; the pharmacy copy is in the pharmacy's language.
@@ -740,6 +823,200 @@ export class PharmacyService {
     `;
   }
 
+  private escapeHtml(s: string): string {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // ========== Client → Pharmacy Reply ==========
+
+  /** Customer replies to the pharmacy from inside the app; we email the pharmacy (+team). */
+  async addClientReply(userId: string, orderId: string, rawText: string) {
+    const text = (rawText || '').toString().trim().slice(0, 1000);
+    if (!text) throw new NotFoundException('Message is empty.');
+
+    const order = await this.prisma.pharmacyOrder.findFirst({
+      where: { id: orderId, userId },
+      include: { pharmacyConnection: true, user: { include: { userProfile: true } } },
+    });
+    if (!order) throw new NotFoundException('Order not found');
+
+    const existing = Array.isArray((order as any).pharmacyMessages) ? (order as any).pharmacyMessages : [];
+    const entry = { from: 'client', text, createdAt: new Date().toISOString() };
+    const updated = await this.prisma.pharmacyOrder.update({
+      where: { id: order.id },
+      data: { pharmacyMessages: [...existing, entry] as any },
+      include: { pharmacyConnection: true },
+    });
+
+    const pharmacyLang = normalizePharmacyLang((order as any).pharmacyConnection?.language);
+    const up = (order as any).user?.userProfile;
+    const userName = up ? `${up.firstName || ''} ${up.lastName || ''}`.trim() || 'Customer' : 'Customer';
+    const shortId = order.id.slice(-8).toUpperCase();
+    const plain = `[EatSense] ${PHARMA_I18N.en.replyFromCustomer} — ${PHARMA_I18N.en.orderId} #${shortId}\n\n${userName}: ${text}`;
+
+    try {
+      const teamHtml = this.buildClientReplyEmail({ userName, orderId: order.id, text, lang: 'en' });
+      await this.mailer.sendEmail({ to: this.orderEmail, subject: `[EatSense] Customer reply — order #${shortId}`, text: plain, html: teamHtml, category: 'pharmacy' });
+    } catch (err) {
+      this.logger.error(`[Pharmacy] Failed to send client reply (team) for order ${order.id}:`, err);
+    }
+
+    const pharmacyEmail = (order as any).pharmacyConnection?.pharmacyEmail;
+    if (pharmacyEmail && this.forwardOrdersToPharmacy) {
+      try {
+        const pharmaHtml = this.buildClientReplyEmail({ userName, orderId: order.id, text, lang: pharmacyLang });
+        await this.mailer.sendEmail({ to: pharmacyEmail, subject: `[EatSense] ${PHARMA_I18N[pharmacyLang].replyFromCustomer} #${shortId}`, text: plain, html: pharmaHtml, category: 'pharmacy' });
+      } catch (err) {
+        this.logger.error(`[Pharmacy] Failed to send client reply to pharmacy ${pharmacyEmail}:`, err);
+      }
+    }
+
+    return updated;
+  }
+
+  private buildClientReplyEmail(params: { userName: string; orderId: string; text: string; lang?: PharmaLang }): string {
+    const T = PHARMA_I18N[params.lang || 'en'];
+    const shortId = params.orderId.slice(-8).toUpperCase();
+    return `
+      <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #FFFFFF; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+        ${this.emailHeader()}
+        <div style="padding: 28px 24px;">
+          <h2 style="color:#111827; margin:0 0 6px; font-size:20px;">${T.replyFromCustomer}</h2>
+          <p style="color:#9CA3AF; margin:0 0 18px; font-size:13px;">${T.orderId} #${shortId} · ${this.escapeHtml(params.userName)}</p>
+          <div style="padding: 14px 16px; background:#F3F4F6; border-radius:10px; border-left:4px solid #2563EB;">
+            <p style="color:#111827; margin:0; font-size:15px; line-height:1.6;">${this.escapeHtml(params.text)}</p>
+          </div>
+        </div>
+        ${this.emailFooter()}
+      </div>`;
+  }
+
+  // ========== Pharmacy Cancel / Decline (via email link) ==========
+
+  async renderCancelPage(token: string): Promise<string> {
+    const order = await this.prisma.pharmacyOrder.findFirst({
+      where: { statusToken: token },
+      include: { pharmacyConnection: true },
+    });
+    if (!order) { const T = PHARMA_I18N.en; return this.buildStatusPageHtml(T.notFound, T.linkInvalid, 'error', 'en'); }
+    const lang = normalizePharmacyLang((order as any).pharmacyConnection?.language);
+    return this.buildCancelFormHtml(token, order.id, lang);
+  }
+
+  async submitOrderCancel(token: string, reason: string, text: string): Promise<string> {
+    const order = await this.prisma.pharmacyOrder.findFirst({
+      where: { statusToken: token },
+      include: { pharmacyConnection: true },
+    });
+    if (!order) { const T = PHARMA_I18N.en; return this.buildStatusPageHtml(T.notFound, T.linkInvalid, 'error', 'en'); }
+
+    const lang = normalizePharmacyLang((order as any).pharmacyConnection?.language);
+    const T = PHARMA_I18N[lang];
+    const safeReason: PharmacyCancelReason = (PHARMACY_CANCEL_REASONS as readonly string[]).includes(reason)
+      ? (reason as PharmacyCancelReason)
+      : 'other';
+    const trimmed = (text || '').toString().trim().slice(0, 1000);
+
+    const existing = Array.isArray((order as any).pharmacyMessages) ? (order as any).pharmacyMessages : [];
+    const entry = { from: 'pharmacy', reason: `cancelled:${safeReason}`, text: trimmed, createdAt: new Date().toISOString() };
+
+    await this.prisma.pharmacyOrder.update({
+      where: { id: order.id },
+      data: {
+        status: 'cancelled',
+        cancelReason: safeReason,
+        cancelledAt: new Date(),
+        pharmacyMessages: [...existing, entry] as any,
+      },
+    });
+
+    this.notifyUserOrderCancelled(order.userId, order.id, safeReason, trimmed).catch(() => {});
+    return this.buildStatusPageHtml(T.orderCancelledTitle, T.orderCancelledBody, 'success', lang);
+  }
+
+  private async notifyUserOrderCancelled(userId: string, orderId: string, reason: PharmacyCancelReason, text: string) {
+    try {
+      const profile = await this.prisma.userProfile.findUnique({
+        where: { userId },
+        select: { preferences: true },
+      });
+      const lang = this.pickLang((profile?.preferences as any)?.language);
+      const tpl = CLIENT_CANCEL_PUSH[lang];
+      const shortId = orderId.slice(-8).toUpperCase();
+      const reasonText = tpl.reasons[reason];
+      const body = text ? `${reasonText} ${text}`.trim() : reasonText;
+      await this.notifications.sendPushNotification(
+        userId,
+        tpl.title(shortId),
+        body,
+        { type: 'pharmacy_order_status', orderId, status: 'cancelled' },
+      );
+    } catch (err) {
+      this.logger.warn(`[Pharmacy] Failed to push cancellation to user ${userId}: ${(err as any)?.message}`);
+    }
+  }
+
+  private buildCancelFormHtml(token: string, orderId: string, lang: PharmaLang, errorMsg?: string): string {
+    const T = PHARMA_I18N[lang];
+    const baseUrl = this.apiBaseUrl;
+    const shortId = orderId.slice(-8).toUpperCase();
+    const reasonRows = [
+      { key: 'not_picked_up', label: T.cNotPicked },
+      { key: 'cannot_fulfill', label: T.cCannotFulfill },
+      { key: 'other', label: T.cOther },
+    ]
+      .map(
+        (r, i) => `
+        <label style="display:flex; align-items:center; gap:10px; padding:12px 14px; border:1px solid #E5E7EB; border-radius:10px; margin-bottom:8px; cursor:pointer; font-size:15px; color:#111827;">
+          <input type="radio" name="reason" value="${r.key}" ${i === 0 ? 'checked' : ''} style="width:18px; height:18px; accent-color:#DC2626;">
+          ${r.label}
+        </label>`,
+      )
+      .join('');
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>${T.cancelPageTitle} — EatSense</title>
+        <style>
+          body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F9FAFB; margin: 0; padding: 40px 16px; }
+          textarea { width:100%; box-sizing:border-box; min-height:96px; padding:12px 14px; border:1px solid #E5E7EB; border-radius:10px; font-size:15px; font-family:inherit; resize:vertical; }
+          button { width:100%; background:#DC2626; color:#fff; border:none; padding:14px; border-radius:10px; font-size:16px; font-weight:600; cursor:pointer; margin-top:16px; }
+        </style>
+      </head>
+      <body>
+        <div style="max-width: 480px; margin: 0 auto; background: #FFF; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); overflow: hidden;">
+          <div style="background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%); padding: 24px; text-align: center;">
+            <h1 style="color: #FFF; margin: 0; font-size: 22px;">EatSense</h1>
+          </div>
+          <div style="padding: 28px 24px;">
+            <h2 style="color:#111827; margin:0 0 4px; font-size:20px;">${T.cancelPageTitle}</h2>
+            <p style="color:#6B7280; margin:0 0 4px; font-size:14px;">${T.cancelPageLead}</p>
+            <p style="color:#9CA3AF; margin:0 0 20px; font-size:13px;">${T.orderId} #${shortId}</p>
+            ${errorMsg ? `<div style="background:#FEF2F2; color:#991B1B; border-radius:8px; padding:10px 14px; margin-bottom:16px; font-size:14px;">${errorMsg}</div>` : ''}
+            <form method="POST" action="${baseUrl}/pharmacy/orders/cancel">
+              <input type="hidden" name="token" value="${token}">
+              <p style="color:#374151; font-weight:600; font-size:14px; margin:0 0 10px;">${T.cancelReasonLabel}</p>
+              ${reasonRows}
+              <p style="color:#374151; font-weight:600; font-size:14px; margin:18px 0 8px;">${T.detailsLabel}</p>
+              <textarea name="text" placeholder="${T.detailsPlaceholder}"></textarea>
+              <button type="submit">${T.cancelConfirm}</button>
+            </form>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
   // ========== Low Stock Notification ==========
 
   async sendLowStockAlert(userId: string, medicationName: string, dosage: string | null, remainingStock: number, lowStockThreshold: number, daysRemaining?: number) {
@@ -868,11 +1145,18 @@ export class PharmacyService {
     prescriptionUrl?: string;
     notes?: string;
     healthInfo: string;
+    noShowCount?: number;
     lang?: PharmaLang;
   }): string {
-    const { userName, pharmacyName, orderId, statusToken, items, prescriptionUrl, notes, healthInfo } = params;
+    const { userName, pharmacyName, orderId, statusToken, items, prescriptionUrl, notes, healthInfo, noShowCount } = params;
     const baseUrl = this.apiBaseUrl;
     const T = PHARMA_I18N[params.lang || 'en'];
+
+    const noShowBanner = (noShowCount && noShowCount > 0)
+      ? `<div style="margin-bottom: 20px; padding: 12px 16px; background: #FEF2F2; border-radius: 8px; border-left: 4px solid #DC2626;">
+           <p style="color: #991B1B; margin: 0; font-size: 14px; font-weight: 500;">${T.noShowWarning.replace('{n}', String(noShowCount))}</p>
+         </div>`
+      : '';
 
     return `
       <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #FFFFFF; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
@@ -880,6 +1164,7 @@ export class PharmacyService {
 
         <div style="padding: 28px 24px;">
           <h2 style="color: #111827; margin: 0 0 20px; font-size: 20px;">${T.newOrder}</h2>
+          ${noShowBanner}
 
           <!-- Customer info -->
           <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
@@ -923,7 +1208,7 @@ export class PharmacyService {
           ${prescriptionUrl ? `
             <div style="margin-bottom: 16px; padding: 12px 16px; background: #ECFDF5; border-radius: 8px; border-left: 4px solid #10B981;">
               <p style="color: #065F46; margin: 0; font-size: 14px; font-weight: 500;">
-                📋 ${T.prescriptionAttached}: <a href="${prescriptionUrl}" style="color: #059669; text-decoration: underline;">${T.viewPrescription}</a>
+                ${T.prescriptionAttached}: <a href="${prescriptionUrl}" style="color: #059669; text-decoration: underline;">${T.viewPrescription}</a>
               </p>
             </div>
           ` : ''}
@@ -937,7 +1222,7 @@ export class PharmacyService {
 
           ${healthInfo ? `
             <div style="margin-bottom: 16px; padding: 12px 16px; background: #FFF7ED; border-radius: 8px; border-left: 4px solid #F59E0B;">
-              <p style="color: #92400E; margin: 0 0 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">⚠️ ${T.healthInfo}</p>
+              <p style="color: #92400E; margin: 0 0 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">${T.healthInfo}</p>
               <p style="color: #78350F; margin: 0; font-size: 14px; line-height: 1.6;">${healthInfo}</p>
             </div>
           ` : ''}
@@ -947,23 +1232,27 @@ export class PharmacyService {
             <p style="color: #6B7280; margin: 0 0 12px; font-size: 13px;">${T.updateStatus}</p>
             <a href="${baseUrl}/pharmacy/orders/status?token=${statusToken}&status=processing"
                style="display: inline-block; background: #F59E0B; color: #FFFFFF; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; margin: 0 6px 8px;">
-              ⏳ ${T.processing}
+              ${T.processing}
             </a>
             <a href="${baseUrl}/pharmacy/orders/status?token=${statusToken}&status=ready"
                style="display: inline-block; background: #10B981; color: #FFFFFF; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; margin: 0 6px 8px;">
-              ✅ ${T.ready}
+              ${T.ready}
             </a>
             <a href="${baseUrl}/pharmacy/orders/status?token=${statusToken}&status=completed"
                style="display: inline-block; background: #6B7280; color: #FFFFFF; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; margin: 0 6px 8px;">
-              ✔ ${T.completed}
+              ${T.completed}
             </a>
           </div>
 
           <!-- Message customer -->
           <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #E5E7EB; text-align: center;">
             <a href="${baseUrl}/pharmacy/orders/message?token=${statusToken}"
-               style="display: inline-block; background: #2563EB; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none;">
-              ✉️ ${T.messageCustomer}
+               style="display: inline-block; background: #2563EB; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; margin: 0 6px 8px;">
+              ${T.messageCustomer}
+            </a>
+            <a href="${baseUrl}/pharmacy/orders/cancel?token=${statusToken}"
+               style="display: inline-block; background: #FFFFFF; color: #DC2626; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; border: 1px solid #FCA5A5; margin: 0 6px 8px;">
+              ${T.cancelOrder}
             </a>
           </div>
         </div>
@@ -1029,7 +1318,6 @@ export class PharmacyService {
 
         <div style="padding: 28px 24px;">
           <div style="background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: center;">
-            <p style="font-size: 32px; margin: 0 0 8px;">⚠️</p>
             <h2 style="color: #991B1B; margin: 0 0 4px; font-size: 18px;">${T.lowStockTitle}</h2>
             <p style="color: #B91C1C; margin: 0; font-size: 14px;">${T.lowStockLead}</p>
           </div>
@@ -1060,14 +1348,14 @@ export class PharmacyService {
 
           <div style="background: #F0FDF4; border-radius: 8px; padding: 14px 16px; border-left: 4px solid #22C55E;">
             <p style="color: #166534; margin: 0; font-size: 14px;">
-              💡 <strong>${T.suggested}:</strong> ${T.prepareRefill} ${medicationName}${dosage ? ` (${dosage})` : ''} ${T.forCustomer}
+              <strong>${T.suggested}:</strong> ${T.prepareRefill} ${medicationName}${dosage ? ` (${dosage})` : ''} ${T.forCustomer}
             </p>
           </div>
 
           ${websiteLinks ? `
             <div style="margin-top: 14px; padding: 12px 16px; background: #EFF6FF; border-radius: 8px;">
               <p style="margin: 0; font-size: 13px; color: #1E40AF;">
-                🌐 <strong>${T.checkOnline}</strong> ${websiteLinks}
+                <strong>${T.checkOnline}</strong> ${websiteLinks}
               </p>
             </div>
           ` : ''}
@@ -1081,7 +1369,10 @@ export class PharmacyService {
   private buildStatusPageHtml(title: string, message: string, type: 'success' | 'error', lang: PharmaLang = 'en'): string {
     const bgColor = type === 'success' ? '#ECFDF5' : '#FEF2F2';
     const textColor = type === 'success' ? '#065F46' : '#991B1B';
-    const icon = type === 'success' ? '✅' : '❌';
+    const accent = type === 'success' ? '#10B981' : '#DC2626';
+    const iconSvg = type === 'success'
+      ? `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="12" fill="${accent}"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+      : `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="12" fill="${accent}"/><path d="M8 8l8 8M16 8l-8 8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>`;
     const closeText = PHARMA_I18N[lang].closePage;
 
     return `
@@ -1102,7 +1393,7 @@ export class PharmacyService {
           </div>
           <div style="padding: 32px 24px; text-align: center;">
             <div style="background: ${bgColor}; border-radius: 12px; padding: 24px; margin-bottom: 16px;">
-              <p style="font-size: 40px; margin: 0 0 12px;">${icon}</p>
+              <div style="margin: 0 0 12px;">${iconSvg}</div>
               <h2 style="color: ${textColor}; margin: 0 0 8px; font-size: 20px;">${title}</h2>
               <p style="color: ${textColor}; margin: 0; font-size: 15px;">${message}</p>
             </div>

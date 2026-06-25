@@ -19,6 +19,9 @@ export class DietRecommendationsService {
     ) {
         this.openai = new OpenAI({
             apiKey: this.configService.get('OPENAI_API_KEY'),
+            // 2026-06-25: avoid node-fetch@2 gzip "Premature close" by requesting
+            // uncompressed responses (same transport bug that took Vision down).
+            defaultHeaders: { 'Accept-Encoding': 'identity' },
         });
     }
 

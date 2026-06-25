@@ -20,6 +20,7 @@ import * as Haptics from 'expo-haptics';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
+import { PLACE_CATEGORY_BY_KEY } from '../config/placeCategories';
 
 const POST_TYPE_I18N_MAP: Record<string, string> = {
   TEXT: 'text', PHOTO: 'photo', DIET_SHARE: 'dietShare', ACHIEVEMENT: 'achievement',
@@ -376,13 +377,30 @@ export default function CommunityPostDetailScreen() {
       return (
         <View style={[styles.metadataBox, { backgroundColor: '#4CAF5008', borderColor: colors.border }]}>
           {post.metadata.placeName && (
-            <Text style={[styles.metaTitle, { color: '#4CAF50' }]}>📍 {post.metadata.placeName}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name="location" size={18} color="#4CAF50" />
+              <Text style={[styles.metaTitle, { color: '#4CAF50' }]}>{post.metadata.placeName}</Text>
+            </View>
+          )}
+          {post.metadata.category && PLACE_CATEGORY_BY_KEY[post.metadata.category] && (
+            <Text style={[styles.metaDetail, { color: PLACE_CATEGORY_BY_KEY[post.metadata.category].color, fontWeight: '600' }]}>
+              {t(PLACE_CATEGORY_BY_KEY[post.metadata.category].labelKey, post.metadata.category)}
+            </Text>
           )}
           {post.metadata.address && (
             <Text style={[styles.metaDetail, { color: colors.textSecondary }]}>{post.metadata.address}</Text>
           )}
           {post.metadata?.rating > 0 && (
-            <Text style={styles.metaStars}>{'⭐'.repeat(Math.min(Number(post.metadata.rating) || 0, 5))}</Text>
+            <View style={{ flexDirection: 'row', marginTop: 4 }}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Ionicons
+                  key={star}
+                  name={star <= (Number(post.metadata.rating) || 0) ? 'star' : 'star-outline'}
+                  size={18}
+                  color={star <= (Number(post.metadata.rating) || 0) ? '#FFB300' : colors.textTertiary}
+                />
+              ))}
+            </View>
           )}
         </View>
       );

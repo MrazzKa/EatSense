@@ -1886,6 +1886,13 @@ class ApiService {
       body: JSON.stringify(payload),
     });
   }
+
+  async replyToPharmacyOrder(orderId: string, text: string) {
+    return this.request(`/pharmacy/orders/${orderId}/reply`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+  }
   // ========== Community ==========
 
   async getCommunityGroups(params?: { type?: string; search?: string }) {

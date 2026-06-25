@@ -6,6 +6,7 @@ import { useTheme, useDesignTokens } from '../../contexts/ThemeContext';
 import { useI18n } from '../../../app/i18n/hooks';
 import { resolveGroupName } from './GroupCard';
 import { CUISINE_BY_KEY } from '../../config/cuisines';
+import { PLACE_CATEGORY_BY_KEY } from '../../config/placeCategories';
 
 interface BestPlaceCardProps {
   post: any;
@@ -34,6 +35,7 @@ export function BestPlaceCard({
   const address = meta.address || '';
   const rating = meta.rating || 0;
   const cuisine = meta.cuisine ? CUISINE_BY_KEY[meta.cuisine] : null;
+  const category = meta.category ? PLACE_CATEGORY_BY_KEY[meta.category] : null;
   const hasMapPin = Number.isFinite(Number(meta.latitude)) && Number.isFinite(Number(meta.longitude));
   const avgRating = post.placeAvgRating;
   const reviewCount = post.placeReviewCount || 0;
@@ -116,9 +118,15 @@ export function BestPlaceCard({
         </View>
       )}
 
-      {/* Cuisine + map-pin chips */}
-      {(cuisine || hasMapPin) && (
+      {/* Category + cuisine + map-pin chips */}
+      {(category || cuisine || hasMapPin) && (
         <View style={styles.chipsRow}>
+          {category && (
+            <View style={[styles.chip, { backgroundColor: category.color + '1A' }]}>
+              <Ionicons name={category.icon as any} size={12} color={category.color} />
+              <Text style={[styles.chipText, { color: category.color }]}>{t(category.labelKey, category.key)}</Text>
+            </View>
+          )}
           {cuisine && (
             <View style={[styles.chip, { backgroundColor: colors.primary + '12' }]}>
               <Ionicons name={cuisine.icon as any} size={12} color={colors.primary} />

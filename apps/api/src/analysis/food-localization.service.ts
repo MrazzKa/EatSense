@@ -12,6 +12,8 @@ export class FoodLocalizationService {
     // Use OPENAI_API_KEY_MINI for fast translations, fallback to main key
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY_MINI || process.env.OPENAI_API_KEY,
+      // 2026-06-25: avoid node-fetch@2 gzip "Premature close" transport bug.
+      defaultHeaders: { 'Accept-Encoding': 'identity' },
     });
   }
 

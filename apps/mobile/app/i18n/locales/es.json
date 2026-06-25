@@ -554,7 +554,8 @@
     "options": "Opciones",
     "create": "Crear",
     "notNow": "Ahora no",
-    "allow": "Permitir"
+    "allow": "Permitir",
+    "sending": "Enviando…"
   },
   "dashboard": {
     "addFood": {
@@ -2854,7 +2855,8 @@
       "sent": "Enviado",
       "processing": "En proceso",
       "ready": "Listo",
-      "completed": "Completado"
+      "completed": "Completado",
+      "cancelled": "Cancelado"
     },
     "error": {
       "nameRequired": "El nombre de la farmacia es obligatorio",
@@ -2898,7 +2900,21 @@
       "prepayment": "Se requiere pago anticipado para tramitar tu pedido.",
       "partial": "Tu pedido solo está disponible parcialmente.",
       "other": "Mensaje de la farmacia"
-    }
+    },
+    "cancelReason": {
+      "notPickedUp": "Pedido cancelado: no se recogió a tiempo.",
+      "cannotFulfill": "Pedido cancelado: la farmacia no pudo completarlo.",
+      "other": "Pedido cancelado por la farmacia."
+    },
+    "conversation": "Conversación",
+    "you": "Tú",
+    "pharmacyLabel": "Farmacia",
+    "reply": "Responder",
+    "replyPlaceholder": "Escribe una respuesta a la farmacia…",
+    "sendReply": "Enviar",
+    "replySentTitle": "Respuesta enviada",
+    "replySentBody": "La farmacia ha sido notificada.",
+    "replyError": "No se pudo enviar tu respuesta. Inténtalo de nuevo."
   },
   "community": {
     "pickDateTime": "Elegir fecha y hora",
@@ -3080,7 +3096,8 @@
       "reviews": "reseñas",
       "city": "Ciudad",
       "cityRequired": "Añade la ciudad",
-      "cuisine": "Cocina"
+      "cuisine": "Cocina",
+      "category": "Tipo"
     },
     "guidelines": {
       "title": "Normas de la comunidad",
@@ -3211,7 +3228,16 @@
     "preview": {
       "details": "Detalles"
     },
-    "dateTimeLabel": "Fecha y hora"
+    "dateTimeLabel": "Fecha y hora",
+    "placeCategories": {
+      "restaurant": "Restaurante",
+      "cafe": "Café",
+      "gym": "Gimnasio",
+      "sports": "Deportes",
+      "health_shop": "Tienda saludable",
+      "park": "Parque",
+      "other": "Otro"
+    }
   },
   "mascot": {
     "setup": {

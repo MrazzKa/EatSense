@@ -189,9 +189,12 @@ export class VisionService {
   private readonly logger = new Logger(VisionService.name);
   private readonly openai: OpenAI;
 
-  // Retry configuration for Vision API calls
-  // DISABLED: No retries - just use longer timeout
-  private readonly MAX_RETRIES = 0;
+  // Retry configuration for Vision API calls.
+  // 2026-06-25: Re-enabled retries. With MAX_RETRIES=0 a single transient
+  // OpenAI transport drop ("Premature close" from node-fetch gzip) failed the
+  // ENTIRE analysis with no recovery — which took analysis fully down in prod.
+  // Configurable via VISION_MAX_RETRIES.
+  private readonly MAX_RETRIES = parseInt(process.env.VISION_MAX_RETRIES || '2', 10);
   private readonly RETRY_DELAY_MS = 500;
 
   constructor(private readonly cache: CacheService) {
@@ -202,7 +205,12 @@ export class VisionService {
     this.openai = new OpenAI({
       apiKey,
       timeout: VISION_TIMEOUT_MS, // Use constant (25s) instead of hardcoded 90s
-      maxRetries: 0, // No built-in retries
+      maxRetries: 0, // SDK-level retries off; we retry in the loop below (with logging + backoff)
+      // 2026-06-25: Disable gzip on responses. node-fetch@2.7.0 has a known
+      // "Premature close" bug while gunzipping OpenAI's response stream, which
+      // was failing every Vision call. Asking for identity encoding avoids that
+      // code path entirely (responses are small JSON, so no real cost).
+      defaultHeaders: { 'Accept-Encoding': 'identity' },
     });
   }
 
@@ -286,17 +294,36 @@ export class VisionService {
     if (!error) return false;
     const message = error.message?.toLowerCase() || '';
     const code = error.code?.toLowerCase() || '';
+    const name = error.name?.toLowerCase() || '';
+    // The transport error may be wrapped (OpenAI APIConnectionError → cause: FetchError).
+    const causeMessage = error.cause?.message?.toLowerCase() || '';
+    const causeName = error.cause?.name?.toLowerCase() || '';
+    const blob = `${message} ${causeMessage}`;
 
-    // Retry on timeout, network errors, and server errors
+    // Retry on timeout, network errors, transient transport drops, and server errors.
     return (
-      message.includes('timeout') ||
-      message.includes('timed out') ||
-      message.includes('no response') ||
-      message.includes('network') ||
-      message.includes('econnreset') ||
+      blob.includes('timeout') ||
+      blob.includes('timed out') ||
+      blob.includes('no response') ||
+      blob.includes('network') ||
+      blob.includes('econnreset') ||
+      // 2026-06-25: transient OpenAI connection drops that took analysis down.
+      blob.includes('premature close') ||
+      blob.includes('invalid response body') ||
+      blob.includes('socket hang up') ||
+      blob.includes('connection error') ||
+      blob.includes('fetch failed') ||
+      blob.includes('epipe') ||
+      blob.includes('aborted') ||
+      name === 'fetcherror' ||
+      causeName === 'fetcherror' ||
+      name === 'apiconnectionerror' ||
+      name === 'apiconnectiontimeouterror' ||
       code.includes('timeout') ||
       code === 'econnreset' ||
       code === 'etimedout' ||
+      code === 'epipe' ||
+      code === 'err_stream_premature_close' ||
       (error.status >= 500 && error.status < 600)
     );
   }

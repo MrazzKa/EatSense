@@ -52,7 +52,8 @@ type Medication = {
 };
 
 type PharmacyMessage = {
-  reason: string;
+  from?: 'pharmacy' | 'client';
+  reason?: string;
   text?: string;
   createdAt: string;
 };
@@ -637,6 +638,9 @@ const PharmacyScreen: React.FC = () => {
   const [codeInput, setCodeInput] = useState('');
   const [applyingCode, setApplyingCode] = useState(false);
   const [scannerVisible, setScannerVisible] = useState(false);
+  const [replyOrderId, setReplyOrderId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
 
   // Deep-link from a low-stock refill nudge (push or the "Order refill" button
   // on the medication card): open the order modal with the medication pre-filled.
@@ -671,6 +675,23 @@ const PharmacyScreen: React.FC = () => {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  const handleSendReply = useCallback(async (orderId: string) => {
+    const text = replyText.trim();
+    if (!text || sendingReply) return;
+    setSendingReply(true);
+    try {
+      await ApiService.replyToPharmacyOrder(orderId, text);
+      setReplyText('');
+      setReplyOrderId(null);
+      await loadData();
+      Alert.alert(t('pharmacy.replySentTitle', 'Reply sent'), t('pharmacy.replySentBody', 'The pharmacy has been notified.'));
+    } catch (e) {
+      Alert.alert(t('common.error', 'Error'), t('pharmacy.replyError', 'Could not send your reply. Please try again.'));
+    } finally {
+      setSendingReply(false);
+    }
+  }, [replyText, sendingReply, loadData, t]);
 
   const handleConnectPharmacy = async (data: any) => {
     try {
@@ -762,6 +783,7 @@ const PharmacyScreen: React.FC = () => {
       case 'processing': return colors.warning || '#F59E0B';
       case 'ready': return colors.success || '#10B981';
       case 'completed': return colors.textTertiary || '#9CA3AF';
+      case 'cancelled': return colors.error || '#DC2626';
       default: return colors.textSecondary || '#6B7280';
     }
   };
@@ -773,6 +795,7 @@ const PharmacyScreen: React.FC = () => {
       processing: t('pharmacy.status.processing', 'Processing'),
       ready: t('pharmacy.status.ready', 'Ready'),
       completed: t('pharmacy.status.completed', 'Completed'),
+      cancelled: t('pharmacy.status.cancelled', 'Cancelled'),
     };
     return labels[status] || status;
   };
@@ -783,6 +806,9 @@ const PharmacyScreen: React.FC = () => {
       prepayment: t('pharmacy.msgReason.prepayment', 'Prepayment is required to fulfil your order.'),
       partial: t('pharmacy.msgReason.partial', 'Your order is only partially available.'),
       other: t('pharmacy.msgReason.other', 'Message from the pharmacy'),
+      'cancelled:not_picked_up': t('pharmacy.cancelReason.notPickedUp', 'Order cancelled: it was not picked up in time.'),
+      'cancelled:cannot_fulfill': t('pharmacy.cancelReason.cannotFulfill', 'Order cancelled: the pharmacy could not fulfil it.'),
+      'cancelled:other': t('pharmacy.cancelReason.other', 'Order cancelled by the pharmacy.'),
     };
     return labels[reason] || labels.other;
   };
@@ -971,21 +997,81 @@ const PharmacyScreen: React.FC = () => {
                   {Array.isArray(order.pharmacyMessages) && order.pharmacyMessages.length > 0 && (
                     <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border || '#E5E7EB' }}>
                       <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textSecondary, marginBottom: 6 }}>
-                        {t('pharmacy.messagesFromPharmacy', 'Messages from the pharmacy')}
+                        {t('pharmacy.conversation', 'Conversation')}
                       </Text>
-                      {order.pharmacyMessages.map((m, i) => (
-                        <View key={i} style={{ flexDirection: 'row', gap: 8, marginBottom: 8, padding: 10, borderRadius: 8, backgroundColor: (colors.primary || '#2563EB') + '12' }}>
-                          <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary || '#2563EB'} style={{ marginTop: 2 }} />
-                          <View style={{ flex: 1 }}>
-                            <Text style={{ fontSize: 14, color: colors.textPrimary || colors.text }}>
-                              {getMessageReasonLabel(m.reason)}{m.text ? ` ${m.text}` : ''}
-                            </Text>
-                            <Text style={{ fontSize: 11, color: colors.textTertiary, marginTop: 2 }}>
-                              {(() => { try { return new Date(m.createdAt).toLocaleString(); } catch { return ''; } })()}
-                            </Text>
+                      {order.pharmacyMessages.map((m, i) => {
+                        const isClient = m.from === 'client';
+                        return (
+                          <View
+                            key={i}
+                            style={{
+                              flexDirection: 'row',
+                              gap: 8,
+                              marginBottom: 8,
+                              padding: 10,
+                              borderRadius: 8,
+                              alignSelf: isClient ? 'flex-end' : 'flex-start',
+                              maxWidth: '92%',
+                              backgroundColor: isClient ? (colors.success || '#10B981') + '18' : (colors.primary || '#2563EB') + '12',
+                            }}
+                          >
+                            <Ionicons
+                              name={isClient ? 'person-circle-outline' : 'medkit-outline'}
+                              size={16}
+                              color={isClient ? (colors.success || '#10B981') : (colors.primary || '#2563EB')}
+                              style={{ marginTop: 2 }}
+                            />
+                            <View style={{ flex: 1 }}>
+                              <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textTertiary, marginBottom: 2 }}>
+                                {isClient ? t('pharmacy.you', 'You') : t('pharmacy.pharmacyLabel', 'Pharmacy')}
+                              </Text>
+                              <Text style={{ fontSize: 14, color: colors.textPrimary || colors.text }}>
+                                {isClient ? (m.text || '') : `${getMessageReasonLabel(m.reason || 'other')}${m.text ? ` ${m.text}` : ''}`}
+                              </Text>
+                              <Text style={{ fontSize: 11, color: colors.textTertiary, marginTop: 2 }}>
+                                {(() => { try { return new Date(m.createdAt).toLocaleString(); } catch { return ''; } })()}
+                              </Text>
+                            </View>
+                          </View>
+                        );
+                      })}
+
+                      {/* Reply (variant 1): customer answers the pharmacy */}
+                      {replyOrderId === order.id ? (
+                        <View style={{ marginTop: 4 }}>
+                          <TextInput
+                            value={replyText}
+                            onChangeText={setReplyText}
+                            placeholder={t('pharmacy.replyPlaceholder', 'Write a reply to the pharmacy…')}
+                            placeholderTextColor={colors.textTertiary}
+                            multiline
+                            style={{ borderWidth: 1, borderColor: colors.border || '#E5E7EB', borderRadius: 8, padding: 10, minHeight: 60, color: colors.textPrimary || colors.text, backgroundColor: colors.cardBackground || colors.surface || '#F9FAFB' }}
+                          />
+                          <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                            <TouchableOpacity
+                              onPress={() => { setReplyOrderId(null); setReplyText(''); }}
+                              style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8, borderWidth: 1, borderColor: colors.border || '#E5E7EB' }}
+                            >
+                              <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{t('common.cancel', 'Cancel')}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() => handleSendReply(order.id)}
+                              disabled={sendingReply || !replyText.trim()}
+                              style={{ flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center', backgroundColor: (sendingReply || !replyText.trim()) ? (colors.border || '#E5E7EB') : (colors.primary || '#2563EB') }}
+                            >
+                              <Text style={{ color: '#FFF', fontWeight: '600' }}>{sendingReply ? t('common.sending', 'Sending…') : t('pharmacy.sendReply', 'Send reply')}</Text>
+                            </TouchableOpacity>
                           </View>
                         </View>
-                      ))}
+                      ) : (
+                        <TouchableOpacity
+                          onPress={() => { setReplyOrderId(order.id); setReplyText(''); }}
+                          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginTop: 2, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: colors.primary || '#2563EB' }}
+                        >
+                          <Ionicons name="arrow-undo-outline" size={16} color={colors.primary || '#2563EB'} />
+                          <Text style={{ color: colors.primary || '#2563EB', fontWeight: '600', fontSize: 13 }}>{t('pharmacy.reply', 'Reply')}</Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
                   )}
                 </View>

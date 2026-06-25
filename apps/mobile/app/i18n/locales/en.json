@@ -68,7 +68,8 @@
     "options": "Options",
     "create": "Create",
     "notNow": "Not now",
-    "allow": "Allow"
+    "allow": "Allow",
+    "sending": "Sending…"
   },
   "tooltips": {
     "scanMeal": {
@@ -4495,7 +4496,8 @@
       "sent": "Sent",
       "processing": "Processing",
       "ready": "Ready",
-      "completed": "Completed"
+      "completed": "Completed",
+      "cancelled": "Cancelled"
     },
     "error": {
       "nameRequired": "Pharmacy name is required",
@@ -4539,7 +4541,21 @@
       "prepayment": "Prepayment is required to fulfil your order.",
       "partial": "Your order is only partially available.",
       "other": "Message from the pharmacy"
-    }
+    },
+    "cancelReason": {
+      "notPickedUp": "Order cancelled: it was not picked up in time.",
+      "cannotFulfill": "Order cancelled: the pharmacy could not fulfil it.",
+      "other": "Order cancelled by the pharmacy."
+    },
+    "conversation": "Conversation",
+    "you": "You",
+    "pharmacyLabel": "Pharmacy",
+    "reply": "Reply",
+    "replyPlaceholder": "Write a reply to the pharmacy…",
+    "sendReply": "Send reply",
+    "replySentTitle": "Reply sent",
+    "replySentBody": "The pharmacy has been notified.",
+    "replyError": "Could not send your reply. Please try again."
   },
   "citations": {
     "screenTitle": "Scientific Sources & References",
@@ -4735,7 +4751,8 @@
       "reviews": "reviews",
       "city": "City",
       "cityRequired": "Please add the city",
-      "cuisine": "Cuisine"
+      "cuisine": "Cuisine",
+      "category": "Type"
     },
     "guidelines": {
       "title": "Community Guidelines",
@@ -4866,7 +4883,16 @@
     "preview": {
       "details": "Details"
     },
-    "dateTimeLabel": "Date & time"
+    "dateTimeLabel": "Date & time",
+    "placeCategories": {
+      "restaurant": "Restaurant",
+      "cafe": "Café",
+      "gym": "Gym",
+      "sports": "Sports",
+      "health_shop": "Health shop",
+      "park": "Park",
+      "other": "Other"
+    }
   },
   "mascot": {
     "setup": {

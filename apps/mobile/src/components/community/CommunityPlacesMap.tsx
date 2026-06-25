@@ -4,6 +4,7 @@ import MapView, { Marker, Polyline, PROVIDER_DEFAULT, Region } from 'react-nativ
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { cuisineIcon } from '../../config/cuisines';
+import { PLACE_CATEGORY_BY_KEY } from '../../config/placeCategories';
 import { isPastEvent } from './eventTime';
 
 const BALLOON_W = 232;
@@ -230,8 +231,15 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
         ))}
         {visiblePins.map(({ post, coord, kind }) => {
           const isEvent = kind === 'event';
-          const color = isEvent ? EVENT_COLOR : (colors.primary || '#4F46E5');
-          const icon = isEvent ? 'calendar' : (cuisineIcon(post.metadata?.cuisine) as any);
+          // Non-food places (gym, shop, park, …) get their category icon + colour;
+          // food places keep the cuisine icon with the app's primary colour.
+          const catDef = post.metadata?.category ? PLACE_CATEGORY_BY_KEY[post.metadata.category] : null;
+          const color = isEvent
+            ? EVENT_COLOR
+            : (catDef && !catDef.isFood ? catDef.color : (colors.primary || '#4F46E5'));
+          const icon = isEvent
+            ? 'calendar'
+            : ((catDef && !catDef.isFood ? catDef.icon : cuisineIcon(post.metadata?.cuisine)) as any);
           return (
             <Marker
               key={`${kind}-${post.id}`}

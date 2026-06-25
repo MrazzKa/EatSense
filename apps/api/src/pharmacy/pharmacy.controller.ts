@@ -53,6 +53,33 @@ export class PharmacyController {
     res.send(html);
   }
 
+  // ========== Public: Cancel / Decline Order via Email Link ==========
+
+  @Get('orders/cancel')
+  @ApiOperation({ summary: 'Render the cancel page for declining an order (no auth)' })
+  @ApiResponse({ status: 200, description: 'HTML cancel page' })
+  async renderCancelPage(@Query('token') token: string, @Res() res: Response) {
+    const html = await this.pharmacyService.renderCancelPage(token);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  }
+
+  @Post('orders/cancel')
+  @ApiOperation({ summary: 'Cancel/decline an order from the email link (no auth)' })
+  @ApiResponse({ status: 200, description: 'HTML confirmation page' })
+  async submitCancel(
+    @Body() body: { token?: string; reason?: string; text?: string },
+    @Res() res: Response,
+  ) {
+    const html = await this.pharmacyService.submitOrderCancel(
+      body?.token || '',
+      body?.reason || 'other',
+      body?.text || '',
+    );
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  }
+
   // ========== Protected: Connections ==========
 
   @Get('connections')
@@ -132,5 +159,18 @@ export class PharmacyController {
   @ApiResponse({ status: 200, description: 'Order details' })
   async getOrder(@Request() req: any, @Param('id') id: string) {
     return this.pharmacyService.getOrder(req.user.id, id);
+  }
+
+  @Post('orders/:id/reply')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Customer replies to the pharmacy about an order' })
+  @ApiResponse({ status: 201, description: 'Reply recorded and forwarded to the pharmacy' })
+  async replyToOrder(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() body: { text?: string },
+  ) {
+    return this.pharmacyService.addClientReply(req.user.id, id, body?.text || '');
   }
 }

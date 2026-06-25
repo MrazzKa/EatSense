@@ -24,6 +24,7 @@ import ApiService from '../services/apiService';
 import { useMascot } from '../contexts/MascotContext';
 import { resolveGroupName } from '../components/community/GroupCard';
 import { CUISINES } from '../config/cuisines';
+import { PLACE_CATEGORIES, DEFAULT_PLACE_CATEGORY, isFoodCategory } from '../config/placeCategories';
 import LocationPickerModal from '../components/community/LocationPickerModal';
 import RouteBuilderModal from '../components/community/RouteBuilderModal';
 import { DateTimeField } from '../components/community/DateTimeField';
@@ -88,6 +89,7 @@ export default function CreateCommunityPostScreen() {
   const [placeCity, setPlaceCity] = useState(initialCity);
   const [placeRating, setPlaceRating] = useState(0);
   const [cuisine, setCuisine] = useState<string | null>(null);
+  const [placeCategory, setPlaceCategory] = useState<string>(DEFAULT_PLACE_CATEGORY);
 
   // Map coordinates (places + events). Captured via the LocationPickerModal.
   const initialCoords = (route.params as any)?.initialCoords || null;
@@ -264,7 +266,9 @@ export default function CreateCommunityPostScreen() {
           address: placeAddress.trim(),
           city: placeCity.trim(),
           rating: placeRating || undefined,
-          cuisine: cuisine || undefined,
+          category: placeCategory,
+          // Cuisine only applies to food places (restaurant / café).
+          cuisine: isFoodCategory(placeCategory) ? (cuisine || undefined) : undefined,
           ...(coords ? { latitude: coords.latitude, longitude: coords.longitude } : {}),
         };
       }
@@ -315,7 +319,7 @@ export default function CreateCommunityPostScreen() {
     } finally {
       setSubmitting(false);
     }
-  }, [content, postType, selectedGroupId, eventTitle, eventAt, eventLocation, eventCity, eventCoords, imageUri, recipeName, ingredients, recipeSteps, prepTime, servings, placeName, placeAddress, placeCity, placeRating, cuisine, coords, routeName, routeActivity, routeCity, routeAt, builtRoute, addXp, navigation, t]);
+  }, [content, postType, selectedGroupId, eventTitle, eventAt, eventLocation, eventCity, eventCoords, imageUri, recipeName, ingredients, recipeSteps, prepTime, servings, placeName, placeAddress, placeCity, placeRating, cuisine, placeCategory, coords, routeName, routeActivity, routeCity, routeAt, builtRoute, addXp, navigation, t]);
 
   const isValid = (() => {
     if (!(selectedGroupId || groups.length === 0)) return false;
@@ -531,13 +535,13 @@ export default function CreateCommunityPostScreen() {
                 </View>
               </View>
 
-              {/* Cuisine selector */}
+              {/* Place category selector (restaurant, gym, shop, …) */}
               <Text style={[styles.label, { color: colors.textSecondary, marginTop: 12 }]}>
-                {t('community.bestPlaces.cuisine', 'Cuisine')}
+                {t('community.bestPlaces.category', 'Type')}
               </Text>
               <View style={styles.cuisineWrap}>
-                {CUISINES.map((c) => {
-                  const active = cuisine === c.key;
+                {PLACE_CATEGORIES.map((c) => {
+                  const active = placeCategory === c.key;
                   return (
                     <TouchableOpacity
                       key={c.key}
@@ -545,9 +549,9 @@ export default function CreateCommunityPostScreen() {
                         styles.cuisineChip,
                         { borderColor: active ? colors.primary : colors.border, backgroundColor: active ? (colors.primaryTint || colors.primary + '22') : 'transparent' },
                       ]}
-                      onPress={() => setCuisine(active ? null : c.key)}
+                      onPress={() => setPlaceCategory(c.key)}
                     >
-                      <Ionicons name={c.icon} size={14} color={active ? colors.primary : colors.textSecondary} />
+                      <Ionicons name={c.icon as any} size={14} color={active ? colors.primary : colors.textSecondary} />
                       <Text style={[styles.cuisineChipText, { color: active ? colors.primary : colors.textSecondary }]}>
                         {t(c.labelKey, c.key)}
                       </Text>
@@ -555,6 +559,35 @@ export default function CreateCommunityPostScreen() {
                   );
                 })}
               </View>
+
+              {/* Cuisine selector — only for food places (restaurant / café) */}
+              {isFoodCategory(placeCategory) && (
+                <>
+                  <Text style={[styles.label, { color: colors.textSecondary, marginTop: 12 }]}>
+                    {t('community.bestPlaces.cuisine', 'Cuisine')}
+                  </Text>
+                  <View style={styles.cuisineWrap}>
+                    {CUISINES.map((c) => {
+                      const active = cuisine === c.key;
+                      return (
+                        <TouchableOpacity
+                          key={c.key}
+                          style={[
+                            styles.cuisineChip,
+                            { borderColor: active ? colors.primary : colors.border, backgroundColor: active ? (colors.primaryTint || colors.primary + '22') : 'transparent' },
+                          ]}
+                          onPress={() => setCuisine(active ? null : c.key)}
+                        >
+                          <Ionicons name={c.icon} size={14} color={active ? colors.primary : colors.textSecondary} />
+                          <Text style={[styles.cuisineChipText, { color: active ? colors.primary : colors.textSecondary }]}>
+                            {t(c.labelKey, c.key)}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </>
+              )}
 
               {/* Location on map */}
               <TouchableOpacity

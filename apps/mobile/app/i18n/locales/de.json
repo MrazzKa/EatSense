@@ -917,7 +917,8 @@
     "options": "Optionen",
     "create": "Erstellen",
     "notNow": "Nicht jetzt",
-    "allow": "Erlauben"
+    "allow": "Erlauben",
+    "sending": "Senden…"
   },
   "dashboard": {
     "addFood": {
@@ -4486,7 +4487,8 @@
       "sent": "Gesendet",
       "processing": "In Bearbeitung",
       "ready": "Bereit",
-      "completed": "Abgeschlossen"
+      "completed": "Abgeschlossen",
+      "cancelled": "Storniert"
     },
     "error": {
       "nameRequired": "Apothekenname ist erforderlich",
@@ -4530,7 +4532,21 @@
       "prepayment": "Für die Bearbeitung Ihrer Bestellung ist eine Vorauszahlung erforderlich.",
       "partial": "Ihre Bestellung ist nur teilweise verfügbar.",
       "other": "Nachricht von der Apotheke"
-    }
+    },
+    "cancelReason": {
+      "notPickedUp": "Bestellung storniert: Sie wurde nicht rechtzeitig abgeholt.",
+      "cannotFulfill": "Bestellung storniert: die Apotheke konnte sie nicht ausführen.",
+      "other": "Bestellung von der Apotheke storniert."
+    },
+    "conversation": "Konversation",
+    "you": "Sie",
+    "pharmacyLabel": "Apotheke",
+    "reply": "Antworten",
+    "replyPlaceholder": "Schreiben Sie eine Antwort an die Apotheke…",
+    "sendReply": "Senden",
+    "replySentTitle": "Antwort gesendet",
+    "replySentBody": "Die Apotheke wurde benachrichtigt.",
+    "replyError": "Antwort konnte nicht gesendet werden. Bitte erneut versuchen."
   },
   "community": {
     "pickDateTime": "Datum & Uhrzeit wählen",
@@ -4712,7 +4728,8 @@
       "reviews": "Bewertungen",
       "city": "Stadt",
       "cityRequired": "Bitte Stadt hinzufügen",
-      "cuisine": "Küche"
+      "cuisine": "Küche",
+      "category": "Art"
     },
     "guidelines": {
       "title": "Community-Richtlinien",
@@ -4843,7 +4860,16 @@
     "preview": {
       "details": "Details"
     },
-    "dateTimeLabel": "Datum & Uhrzeit"
+    "dateTimeLabel": "Datum & Uhrzeit",
+    "placeCategories": {
+      "restaurant": "Restaurant",
+      "cafe": "Café",
+      "gym": "Fitnessstudio",
+      "sports": "Sport",
+      "health_shop": "Bioladen",
+      "park": "Park",
+      "other": "Sonstiges"
+    }
   },
   "mascot": {
     "setup": {

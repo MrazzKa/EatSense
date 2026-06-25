@@ -653,9 +653,12 @@ model PharmacyOrder {
   items                Json // [{name, dosage, quantity}]
   prescriptionUrl      String?             @map("prescription_url")
   notes                String?
-  // Messages the pharmacy sends to the customer via the email link
-  // (e.g. out of stock, prepayment required). [{reason, text, createdAt}]
+  // Two-way message thread between pharmacy and customer.
+  // [{from:'pharmacy'|'client', reason?, text, createdAt}]
   pharmacyMessages     Json?               @map("pharmacy_messages")
+  // Set when the pharmacy declines/closes the order from the email link.
+  cancelReason         String?             @map("cancel_reason") // not_picked_up | cannot_fulfill | other
+  cancelledAt          DateTime?           @map("cancelled_at")
   createdAt            DateTime            @default(now()) @map("created_at")
   updatedAt            DateTime            @updatedAt @map("updated_at")
 

@@ -47,6 +47,8 @@ export class HealthFeedbackAiService {
   constructor(private readonly cacheService: CacheService) {
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
+      // 2026-06-25: avoid node-fetch@2 gzip "Premature close" transport bug.
+      defaultHeaders: { 'Accept-Encoding': 'identity' },
     });
   }
 
