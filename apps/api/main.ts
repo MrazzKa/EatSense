@@ -7,15 +7,21 @@ import * as os from 'node:os';
 import { json, urlencoded } from 'express';
 
 function resolveCorsOrigins(): string | string[] {
+  // The marketing site (eatsense.ch) posts to /waitlist, so always keep its
+  // origins allowed even when an explicit CORS_ORIGINS list is configured.
+  const marketing = ['https://eatsense.ch', 'https://www.eatsense.ch'];
   const multi = process.env.CORS_ORIGINS;
   if (multi && multi.trim().length > 0) {
-    return multi
+    const list = multi
       .split(',')
       .map((origin) => origin.trim())
       .filter((origin) => origin.length > 0);
+    for (const m of marketing) if (!list.includes(m)) list.push(m);
+    return list;
   }
   if (process.env.CORS_ORIGIN && process.env.CORS_ORIGIN.trim().length > 0) {
-    return process.env.CORS_ORIGIN.trim();
+    const single = process.env.CORS_ORIGIN.trim();
+    return single === '*' ? '*' : Array.from(new Set([single, ...marketing]));
   }
   return '*';
 }

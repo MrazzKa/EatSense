@@ -2572,7 +2572,15 @@
       "appStoreLink": "Vous avez un code App Store ?",
       "appleOnlyTitle": "iOS uniquement",
       "appleOnlyMessage": "Les codes App Store ne peuvent être utilisés que sur iPhone/iPad."
-    }
+    },
+    "yourPlan": "Votre formule",
+    "planMonthly": "PRO Mensuel",
+    "planYearly": "PRO Annuel",
+    "planStudent": "PRO Étudiant",
+    "planFounder": "Fondateur",
+    "planWeekly": "PRO Hebdo",
+    "renewsOn": "Renouvellement",
+    "endsOn": "Actif jusqu’au"
   },
   "plan_yearly": "Annuel",
   "plan_student": "Étudiant",
@@ -4534,7 +4542,10 @@
     "sendReply": "Envoyer",
     "replySentTitle": "Réponse envoyée",
     "replySentBody": "La pharmacie a été notifiée.",
-    "replyError": "Impossible d'envoyer votre réponse. Veuillez réessayer."
+    "replyError": "Impossible d'envoyer votre réponse. Veuillez réessayer.",
+    "deleteOrderTitle": "Supprimer la commande ?",
+    "deleteOrderBody": "La commande sera retirée de votre historique. Action irréversible.",
+    "deleteOrderError": "Impossible de supprimer la commande. Veuillez réessayer."
   },
   "community": {
     "pickDateTime": "Choisir la date et l'heure",

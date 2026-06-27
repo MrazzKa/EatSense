@@ -52,6 +52,7 @@ import { SubscriptionsModule } from './src/subscriptions/subscriptions.module';
 import { PharmacyModule } from './src/pharmacy/pharmacy.module';
 import { CommunityModule } from './src/community/community.module';
 import { MascotModule } from './src/mascot/mascot.module';
+import { WaitlistModule } from './waitlist/waitlist.module';
 
 @Module({
   imports: [
@@ -136,6 +137,7 @@ import { MascotModule } from './src/mascot/mascot.module';
     PharmacyModule,
     CommunityModule,
     MascotModule,
+    WaitlistModule,
   ],
   controllers: [HealthController, AdminPanelController],
 })

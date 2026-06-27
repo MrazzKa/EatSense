@@ -727,6 +727,13 @@ export default function DashboardScreen() {
   const prevPendingAnalysesRef = React.useRef(pendingAnalyses);
   const completionRetryRef = React.useRef<any>(null);
 
+  // "Bridge" cards keep a just-completed meal visible until its real entry shows
+  // up in recentItems. AnalysisContext removes the completed card on a fixed 2.5s
+  // timer; if the backend dashboard cache lags past that, the card vanishes before
+  // the meal lands → "meal disappears for 2-3s". The bridge closes that gap.
+  const [bridgeAnalyses, setBridgeAnalyses] = React.useState<any[]>([]);
+  const bridgeTimersRef = React.useRef<Record<string, any>>({});
+
   // Clean up any pending completion-retry timer on unmount.
   useEffect(() => () => {
     if (completionRetryRef.current) clearTimeout(completionRetryRef.current);
@@ -743,6 +750,25 @@ export default function DashboardScreen() {
 
     if (completed.length > 0) {
       console.log('[Dashboard] Analysis completed, reloading data...');
+
+      // Keep a bridge card visible for each just-completed analysis until its real
+      // meal lands in recentItems (removed in the effect below). 15s safety fallback
+      // so a card can never get stuck if the meal never surfaces.
+      setBridgeAnalyses(prev => {
+        const have = new Set(prev.map((b: any) => b.analysisId));
+        const add = completed
+          .filter(a => a.analysisId && !have.has(a.analysisId))
+          .map(a => ({ ...a, status: 'completed', isCompletingAnimation: false }));
+        return add.length ? [...prev, ...add] : prev;
+      });
+      completed.forEach(a => {
+        if (!a.analysisId) return;
+        if (bridgeTimersRef.current[a.analysisId]) clearTimeout(bridgeTimersRef.current[a.analysisId]);
+        bridgeTimersRef.current[a.analysisId] = setTimeout(() => {
+          setBridgeAnalyses(prev => prev.filter((b: any) => b.analysisId !== a.analysisId));
+          delete bridgeTimersRef.current[a.analysisId];
+        }, 15000);
+      });
       // Force reload to get the new meal — then VERIFY it actually landed in
       // recentItems. The backend dashboard cache can lag a beat, so a single
       // reload may return stale data without the new meal → the pending card is
@@ -767,6 +793,28 @@ export default function DashboardScreen() {
 
     prevPendingAnalysesRef.current = pendingAnalyses;
   }, [pendingAnalyses, loadDashboardData]);
+
+  // Drop a bridge card the moment its real meal appears in recentItems (seamless
+  // hand-off: bridge → real card, no gap).
+  useEffect(() => {
+    if (bridgeAnalyses.length === 0) return;
+    const present = new Set((recentItems || []).map((i: any) => i.analysisId).filter(Boolean));
+    const landed = bridgeAnalyses.filter((b: any) => present.has(b.analysisId));
+    if (landed.length === 0) return;
+    setBridgeAnalyses(prev => prev.filter((b: any) => !present.has(b.analysisId)));
+    landed.forEach((b: any) => {
+      if (bridgeTimersRef.current[b.analysisId]) {
+        clearTimeout(bridgeTimersRef.current[b.analysisId]);
+        delete bridgeTimersRef.current[b.analysisId];
+      }
+    });
+  }, [recentItems, bridgeAnalyses]);
+
+  // Clear any outstanding bridge timers on unmount.
+  useEffect(() => () => {
+    Object.values(bridgeTimersRef.current).forEach((t: any) => clearTimeout(t));
+    bridgeTimersRef.current = {};
+  }, []);
 
   // Removed unused formatTime and formatDate functions
 
@@ -1193,6 +1241,32 @@ export default function DashboardScreen() {
               />
             ))
           )}
+
+          {/* Bridge cards: keep a completed meal visible until its real entry lands
+              in recentItems, so the card never disappears after analysis. */}
+          {bridgeAnalyses && bridgeAnalyses.length > 0 && (() => {
+            const recentIds = new Set((recentItems || []).map((i: any) => i.analysisId).filter(Boolean));
+            const stillPending = new Set(pendingAnalyses.map(a => a.analysisId));
+            const toShow = bridgeAnalyses.filter(
+              (b: any) => b.analysisId && !recentIds.has(b.analysisId) && !stillPending.has(b.analysisId)
+            );
+            return toShow.map((analysis: any) => (
+              <PendingMealCard
+                key={`bridge-${analysis.analysisId}`}
+                analysis={analysis}
+                onPress={() => {
+                  if (navigation && typeof navigation.navigate === 'function') {
+                    navigation.navigate('AnalysisResults', {
+                      analysisId: analysis.analysisId,
+                      status: 'completed',
+                      localPreviewUri: analysis.localPreviewUri,
+                    });
+                  }
+                }}
+                onDelete={() => setBridgeAnalyses(prev => prev.filter((b: any) => b.analysisId !== analysis.analysisId))}
+              />
+            ));
+          })()}
 
           {/* FIX #2: Removed justCompletedItems display - now showing only pendingAnalyses and recentItems */}
           {/* Completed meals - filter out items that are in pendingAnalyses to avoid duplicates */}

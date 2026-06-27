@@ -7,6 +7,7 @@ import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { ManualAnalysisCard } from '../components/ManualAnalysisCard';
 import LabResultsModal from '../components/LabResultsModal';
+import DisclaimerModal from '../components/common/DisclaimerModal';
 
 export default function HealthScreen() {
   const navigation = useNavigation<any>();
@@ -43,6 +44,12 @@ export default function HealthScreen() {
         visible={showLabResultsModal}
         onClose={() => setShowLabResultsModal(false)}
       />
+
+      {/* Records BIOMARKER health consent the first time the screen is opened.
+          The modal self-manages visibility; props are loosely typed (same
+          pattern as DietProgramsListScreen). */}
+      {/* @ts-ignore */}
+      <DisclaimerModal disclaimerKey="biomarkers" />
     </SafeAreaView>
   );
 }

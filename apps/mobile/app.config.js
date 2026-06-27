@@ -4,7 +4,7 @@ export default {
     name: "EatSense",
     slug: "eatsense",
     owner: "eatsense",
-    version: "2.0.66",
+    version: "2.0.67",
     orientation: "default",
     // EAS Update configuration
     updates: {
@@ -37,7 +37,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "84",
+      buildNumber: "85",
       developmentTeam: "73T7PB4F99",
       supportsTablet: false,
       infoPlist: {
@@ -80,7 +80,7 @@ export default {
 
     android: {
       package: "ch.eatsense.app",
-      versionCode: 120,
+      versionCode: 121,
       // Adaptive icon uses the purpose-built foreground (no wordmark, content
       // inside the safe zone) so Android's circular/squircle launcher masks
       // don't clip the "EatSense" text that lives in Logo.jpg. Background matches
@@ -148,6 +148,9 @@ export default {
       "expo-video",
       "expo-notifications",
       "expo-asset",
+      // react-native-iap ships amazon/play product flavors; Gradle 9 refuses to
+      // auto-pick, so we declare the 'store' dimension as 'play'. See plugin file.
+      "./plugins/withIapStoreFlavor",
       [
         "expo-apple-authentication",
         {

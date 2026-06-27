@@ -646,6 +646,14 @@ export class PharmacyService {
     return order;
   }
 
+  /** Let the customer remove one of their own orders from their history. */
+  async deleteOrder(userId: string, id: string) {
+    const order = await this.prisma.pharmacyOrder.findFirst({ where: { id, userId } });
+    if (!order) throw new NotFoundException('Order not found');
+    await this.prisma.pharmacyOrder.delete({ where: { id: order.id } });
+    return { success: true, id: order.id };
+  }
+
   // ========== Public Status Update (via email link) ==========
 
   async updateOrderStatusByToken(token: string, status: string): Promise<string> {

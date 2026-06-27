@@ -2572,7 +2572,15 @@
       "appStoreLink": "App Store коды бар ма?",
       "appleOnlyTitle": "Тек iOS",
       "appleOnlyMessage": "App Store кодтарын тек iPhone/iPad-та қолдануға болады."
-    }
+    },
+    "yourPlan": "Сіздің жоспарыңыз",
+    "planMonthly": "PRO Айлық",
+    "planYearly": "PRO Жылдық",
+    "planStudent": "PRO Студент",
+    "planFounder": "Негізін салушы",
+    "planWeekly": "PRO Апталық",
+    "renewsOn": "Жаңарады",
+    "endsOn": "Дейін белсенді"
   },
   "plan_yearly": "Жылдық",
   "plan_student": "Студент",
@@ -4534,7 +4542,10 @@
     "sendReply": "Жіберу",
     "replySentTitle": "Жауап жіберілді",
     "replySentBody": "Дәріхана хабарландырылды.",
-    "replyError": "Жауап жіберілмеді. Қайталап көріңіз."
+    "replyError": "Жауап жіберілмеді. Қайталап көріңіз.",
+    "deleteOrderTitle": "Тапсырысты жою?",
+    "deleteOrderBody": "Тапсырыс тарихтан жойылады. Қайтару мүмкін емес.",
+    "deleteOrderError": "Тапсырысты жою мүмкін болмады. Қайталап көріңіз."
   },
   "community": {
     "pickDateTime": "Күн мен уақытты таңдаңыз",

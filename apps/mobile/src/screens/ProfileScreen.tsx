@@ -1058,6 +1058,10 @@ const ProfileScreen = () => {
   // };
 
   const handleNotificationToggle = async (value) => {
+    // Optimistic: flip the switch instantly so it doesn't lag ~1.5s behind the
+    // async permission/schedule/API work. Reverted below on denial or error.
+    const prevDailyPushEnabled = notificationPreferences.dailyPushEnabled;
+    setNotificationPreferences(prev => ({ ...prev, dailyPushEnabled: Boolean(value) }));
     try {
       setNotificationSaving(true);
       const payload = {
@@ -1081,6 +1085,7 @@ const ProfileScreen = () => {
               safeT('profile.notificationsPermissionTitle', 'Permission Required'),
               safeT('profile.notificationsPermissionMessage', 'Please enable notifications in system settings to receive reminders.')
             );
+            setNotificationPreferences(prev => ({ ...prev, dailyPushEnabled: prevDailyPushEnabled }));
             return;
           }
         }
@@ -1128,6 +1133,7 @@ const ProfileScreen = () => {
       }));
     } catch (error) {
       console.error('Failed to update push preferences', error);
+      setNotificationPreferences(prev => ({ ...prev, dailyPushEnabled: prevDailyPushEnabled }));
       Alert.alert(
         safeT('profile.notificationsErrorTitle', 'Error'),
         safeT('profile.notificationsErrorMessage', 'Failed to update notifications')
@@ -1141,18 +1147,27 @@ const ProfileScreen = () => {
 
   // Smart tips: opt-in personalised reminders based on healthIssues.
   const saveSmartTips = async (partial: { smartTipsEnabled?: boolean; smartTipsHour?: number; smartTipsMinute?: number; smartTipsMedicalAllowed?: boolean; healthIssues?: string[] }) => {
+    const next = { ...notificationPreferences, ...partial };
+    const selectedIssues = Array.isArray(next.healthIssues) ? next.healthIssues : [];
+    const wantsEnable = Boolean(next.smartTipsEnabled);
+    if (wantsEnable && selectedIssues.length === 0) {
+      Alert.alert(
+        safeT('common.error', 'Error'),
+        safeT('profile.smartTips.pickIssueFirst', 'Pick at least one area below to enable smart tips.'),
+      );
+      return;
+    }
+    // Optimistic: reflect the toggle instantly instead of ~1.5s later; revert the
+    // touched keys if permission is denied or the save fails.
+    const prevPrefs = notificationPreferences;
+    const revertKeys = () => setNotificationPreferences(p => {
+      const r: any = { ...p };
+      Object.keys(partial).forEach(k => { r[k] = (prevPrefs as any)[k]; });
+      return r;
+    });
+    setNotificationPreferences(prev => ({ ...prev, ...partial }));
     try {
       setSmartTipsSaving(true);
-      const next = { ...notificationPreferences, ...partial };
-      const selectedIssues = Array.isArray(next.healthIssues) ? next.healthIssues : [];
-      const wantsEnable = Boolean(next.smartTipsEnabled);
-      if (wantsEnable && selectedIssues.length === 0) {
-        Alert.alert(
-          safeT('common.error', 'Error'),
-          safeT('profile.smartTips.pickIssueFirst', 'Pick at least one area below to enable smart tips.'),
-        );
-        return;
-      }
 
       const hasPermission = await localNotificationService.checkPermissions();
       if (wantsEnable && !hasPermission) {
@@ -1162,6 +1177,7 @@ const ProfileScreen = () => {
             safeT('profile.notificationsPermissionTitle', 'Permission Required'),
             safeT('profile.notificationsPermissionMessage', 'Please enable notifications in system settings to receive reminders.'),
           );
+          revertKeys();
           return;
         }
       }
@@ -1223,6 +1239,7 @@ const ProfileScreen = () => {
       }));
     } catch (err) {
       console.warn('Failed to update smart tips', err);
+      revertKeys();
       Alert.alert(
         safeT('common.error', 'Error'),
         safeT('profile.smartTips.saveFailed', 'Could not save smart tips settings'),
@@ -2514,7 +2531,7 @@ const ProfileScreen = () => {
                 onValueChange={(value) => handleNotificationToggle(value)}
                 trackColor={{ false: tokens.colors.borderMuted, true: tokens.colors.primary }}
                 thumbColor={tokens.states.primary.on}
-                disabled={notificationLoading || notificationSaving}
+                disabled={notificationLoading}
               />
             </View>
 
@@ -2558,7 +2575,7 @@ const ProfileScreen = () => {
                       onValueChange={(value) => saveSmartTips({ smartTipsEnabled: value })}
                       trackColor={{ false: tokens.colors.borderMuted, true: tokens.colors.primary }}
                       thumbColor={tokens.states.primary.on}
-                      disabled={!canEnableSmart || smartTipsSaving || notificationLoading}
+                      disabled={!canEnableSmart || notificationLoading}
                     />
                   </View>
                 );

@@ -693,6 +693,28 @@ const PharmacyScreen: React.FC = () => {
     }
   }, [replyText, sendingReply, loadData, t]);
 
+  const handleDeleteOrder = useCallback((orderId: string) => {
+    Alert.alert(
+      t('pharmacy.deleteOrderTitle', 'Delete order?'),
+      t('pharmacy.deleteOrderBody', 'This removes the order from your history. It cannot be undone.'),
+      [
+        { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+        {
+          text: t('common.delete', 'Delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await ApiService.deletePharmacyOrder(orderId);
+              await loadData();
+            } catch (e) {
+              Alert.alert(t('common.error', 'Error'), t('pharmacy.deleteOrderError', 'Could not delete the order. Please try again.'));
+            }
+          },
+        },
+      ],
+    );
+  }, [loadData, t]);
+
   const handleConnectPharmacy = async (data: any) => {
     try {
       if (editingPharmacy) {
@@ -968,10 +990,19 @@ const PharmacyScreen: React.FC = () => {
                     <Text style={[styles.orderDate, { color: colors.textSecondary }]}>
                       {new Date(order.createdAt).toLocaleDateString()}
                     </Text>
-                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) + '20' }]}>
-                      <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>
-                        {getStatusLabel(order.status)}
-                      </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                      <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) + '20' }]}>
+                        <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>
+                          {getStatusLabel(order.status)}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => handleDeleteOrder(order.id)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        accessibilityLabel={t('common.delete', 'Delete')}
+                      >
+                        <Ionicons name="trash-outline" size={18} color={colors.textTertiary || '#9CA3AF'} />
+                      </TouchableOpacity>
                     </View>
                   </View>
                   {order.pharmacyConnection && (

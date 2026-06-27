@@ -25,7 +25,7 @@ export const configSchema = Joi.object({
   NUTRITION_PROVIDER: Joi.string().valid('hybrid', 'openai', 'usda').default('hybrid'),
   NUTRITION_FEATURE_FALLBACK: Joi.boolean().default(true),
   NUTRITION_FEATURE_ENABLED: Joi.boolean().default(true),
-  FREE_DAILY_ANALYSES: Joi.number().integer().min(0).default(3),
+  FREE_DAILY_ANALYSES: Joi.number().integer().min(0).default(1),
   PRO_DAILY_ANALYSES: Joi.number().integer().min(0).default(25),
   DISABLE_LIMITS: Joi.boolean().default(false),
   ADMIN_BYPASS_LIMITS: Joi.boolean().default(false),

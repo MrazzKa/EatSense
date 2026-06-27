@@ -52,8 +52,9 @@ function formatPrice(amount: number, currency: string): string {
     return formatters[currency]?.(amount) || `${amount.toFixed(2)} ${currency}`;
 }
 
-// Subscription plans with daily limits
-// Free: 3, Student: 10, Paid: 9999 (effectively unlimited)
+// Subscription plans with daily limits.
+// Free is NOT seeded here — free users have no plan row and are limited client-side
+// to FREE_DAILY_ANALYSES (= 1). Student: 10, Paid/Founder: 9999 (effectively unlimited).
 const plans = [
     {
         name: 'weekly',

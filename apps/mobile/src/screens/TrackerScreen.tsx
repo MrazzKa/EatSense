@@ -107,8 +107,13 @@ export default function TrackerScreen() {
 
   const firstName = ((user as any)?.firstName || (user as any)?.userProfile?.firstName || '').toString().trim();
   const greetKey = (() => {
+    // Keep this in sync with DashboardScreen's buckets (night 22:00–05:00) so the
+    // two tabs never disagree (e.g. "good night" on Home vs "good morning" here).
     const h = new Date().getHours();
-    return h < 12 ? 'dashboard.greetingMorning' : h < 18 ? 'dashboard.greetingAfternoon' : 'dashboard.greetingEvening';
+    return (h >= 22 || h < 5) ? 'dashboard.greetingNight'
+      : h < 12 ? 'dashboard.greetingMorning'
+        : h < 18 ? 'dashboard.greetingAfternoon'
+          : 'dashboard.greetingEvening';
   })();
 
   // Today's habit completion (for the "Today" hero ring).

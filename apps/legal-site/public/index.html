@@ -7,8 +7,8 @@
     <meta name="description" content="Snap a photo, understand your food. AI-powered nutrition analysis, 47 lifestyle programs, biomarker tracking and certified experts. Swiss precision, made for everyday wellness.">
     <meta name="theme-color" content="#14181A">
     <link rel="canonical" href="https://eatsense.ch/">
-    <link rel="icon" href="/images/eatsense.png" sizes="any">
-    <link rel="apple-touch-icon" href="/images/eatsense.png">
+    <link rel="icon" href="/images/app-icon.png" sizes="any">
+    <link rel="apple-touch-icon" href="/images/app-icon.png">
 
     <!-- Open Graph / social sharing -->
     <meta property="og:type" content="website">
@@ -34,7 +34,7 @@
     <nav class="nav" id="nav">
         <div class="container nav-inner">
             <a href="/" class="logo" aria-label="EatSense home">
-                <svg class="logo-icon" viewBox="0 0 36 36" fill="none" aria-hidden="true"><rect width="36" height="36" rx="9" fill="#14181A"/><path d="M10 26C10 26 12 17 18 17C24 17 26 26 26 26" stroke="#FAF9F5" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="13" r="1.6" fill="#0FB678"/><circle cx="22" cy="13" r="1.6" fill="#0FB678"/><circle cx="18" cy="10" r="1.6" fill="#0FB678"/></svg>
+                <img class="logo-icon" src="/images/app-icon.png" alt="EatSense" width="36" height="36">
                 <span class="logo-text">EatSense</span>
             </a>
             <div class="nav-links" id="navLinks">
@@ -43,6 +43,7 @@
                 <a href="#programs" class="nav-link" data-i18n="nav.programs">Programs</a>
                 <a href="#pricing" class="nav-link" data-i18n="nav.pricing">Pricing</a>
                 <a href="/experts" class="nav-link" data-i18n="nav.experts">For Experts</a>
+                <a href="#download" class="btn btn-primary nav-menu-cta" data-i18n="nav.download">Get the App</a>
             </div>
             <div class="nav-actions">
                 <div class="lang">
@@ -64,6 +65,7 @@
             </div>
         </div>
     </nav>
+    <div class="nav-overlay" id="navOverlay" aria-hidden="true"></div>
 
     <!-- ===================== HERO ===================== -->
     <section class="hero">
@@ -288,7 +290,7 @@
                     <p class="pricing-desc" data-i18n="pricing.free.desc">Get started</p>
                     <div class="pricing-price"><span class="pricing-amount">CHF 0</span><span class="pricing-period" data-i18n="pricing.free.period">forever</span></div>
                     <ul class="pricing-features">
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.free.f1">3 scans per day</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.free.f1">1 scan per day</span></li>
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.free.f2">Basic nutrition data</span></li>
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="pricing.free.f3">7-day history</span></li>
                     </ul>
@@ -382,12 +384,28 @@
                 <h2 class="section-title" data-i18n="faq.title">Questions, answered</h2>
             </div>
             <div class="faq-list reveal">
-                <details class="faq-item"><summary data-i18n="faq.q1">Is EatSense free?</summary><div class="faq-answer" data-i18n="faq.a1">Yes. You can scan 3 meals a day for free, forever. PRO unlocks unlimited scans and advanced features.</div></details>
+                <details class="faq-item"><summary data-i18n="faq.q1">Is EatSense free?</summary><div class="faq-answer" data-i18n="faq.a1">Yes. You can scan 1 meal a day for free, forever. PRO unlocks unlimited scans and advanced features.</div></details>
                 <details class="faq-item"><summary data-i18n="faq.q2">How accurate is the AI analysis?</summary><div class="faq-answer" data-i18n="faq.a2">Our AI estimates calories and macros from a single photo with high accuracy, and you can always fine-tune portions.</div></details>
                 <details class="faq-item"><summary data-i18n="faq.q3">Which languages are supported?</summary><div class="faq-answer" data-i18n="faq.a3">EatSense is available in English, German, French, Russian, Kazakh and Spanish.</div></details>
                 <details class="faq-item"><summary data-i18n="faq.q4">Is my data private?</summary><div class="faq-answer" data-i18n="faq.a4">Absolutely. We're Swiss-built and GDPR-compliant. Your data is yours — you control exactly what you share.</div></details>
                 <details class="faq-item"><summary data-i18n="faq.q5">Can I work with a real nutritionist?</summary><div class="faq-answer" data-i18n="faq.a5">Yes. The Expert Marketplace connects you with certified professionals who can view the data you choose to share.</div></details>
                 <details class="faq-item"><summary data-i18n="faq.q6">Is it available on Android and iPhone?</summary><div class="faq-answer" data-i18n="faq.a6">Yes — EatSense is on the App Store for iPhone and on Google Play for Android.</div></details>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== WAITLIST (Android coming soon) ===================== -->
+    <section class="section waitlist" id="waitlist">
+        <div class="container">
+            <div class="waitlist-card reveal">
+                <span class="eyebrow" data-i18n="waitlist.tag">Coming soon</span>
+                <h2 class="waitlist-title" data-i18n="waitlist.title">Android is on the way</h2>
+                <p class="waitlist-sub" data-i18n="waitlist.subtitle">Join the waiting list and we'll let you know the moment EatSense lands on Google Play.</p>
+                <form class="waitlist-form" id="waitlistForm" novalidate>
+                    <input type="email" class="waitlist-input" id="waitlistEmail" required autocomplete="email" data-i18n-placeholder="waitlist.placeholder" placeholder="Your email">
+                    <button type="submit" class="btn btn-primary waitlist-btn" id="waitlistBtn" data-i18n="waitlist.cta">Join the waitlist</button>
+                </form>
+                <p class="waitlist-msg" id="waitlistMsg" role="status" aria-live="polite"></p>
             </div>
         </div>
     </section>
@@ -416,7 +434,7 @@
             <div class="footer-top">
                 <div class="footer-brand">
                     <a href="/" class="logo">
-                        <svg class="logo-icon" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="9" fill="#14181A"/><path d="M10 26C10 26 12 17 18 17C24 17 26 26 26 26" stroke="#FAF9F5" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="13" r="1.6" fill="#0FB678"/><circle cx="22" cy="13" r="1.6" fill="#0FB678"/><circle cx="18" cy="10" r="1.6" fill="#0FB678"/></svg>
+                        <img class="logo-icon" src="/images/app-icon.png" alt="EatSense" width="36" height="36">
                         <span class="logo-text">EatSense</span>
                     </a>
                     <p data-i18n="footer.tagline">AI nutrition, Swiss precision. Understand what you eat.</p>

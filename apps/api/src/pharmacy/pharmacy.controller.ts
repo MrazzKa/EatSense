@@ -173,4 +173,13 @@ export class PharmacyController {
   ) {
     return this.pharmacyService.addClientReply(req.user.id, id, body?.text || '');
   }
+
+  @Delete('orders/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Delete one of the customer's own orders from their history" })
+  @ApiResponse({ status: 200, description: 'Order deleted' })
+  async deleteOrder(@Request() req: any, @Param('id') id: string) {
+    return this.pharmacyService.deleteOrder(req.user.id, id);
+  }
 }

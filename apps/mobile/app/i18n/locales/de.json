@@ -2304,7 +2304,15 @@
       "appStoreLink": "Hast du einen App-Store-Code?",
       "appleOnlyTitle": "Nur iOS",
       "appleOnlyMessage": "App-Store-Codes können nur auf iPhone/iPad eingelöst werden."
-    }
+    },
+    "yourPlan": "Dein Plan",
+    "planMonthly": "PRO Monat",
+    "planYearly": "PRO Jahr",
+    "planStudent": "PRO Student",
+    "planFounder": "Founder",
+    "planWeekly": "PRO Woche",
+    "renewsOn": "Verlängert sich",
+    "endsOn": "Aktiv bis"
   },
   "tabs": {
     "articles": "Artikel",
@@ -4546,7 +4554,10 @@
     "sendReply": "Senden",
     "replySentTitle": "Antwort gesendet",
     "replySentBody": "Die Apotheke wurde benachrichtigt.",
-    "replyError": "Antwort konnte nicht gesendet werden. Bitte erneut versuchen."
+    "replyError": "Antwort konnte nicht gesendet werden. Bitte erneut versuchen.",
+    "deleteOrderTitle": "Bestellung löschen?",
+    "deleteOrderBody": "Die Bestellung wird aus deinem Verlauf entfernt. Das kann nicht rückgängig gemacht werden.",
+    "deleteOrderError": "Bestellung konnte nicht gelöscht werden. Bitte versuche es erneut."
   },
   "community": {
     "pickDateTime": "Datum & Uhrzeit wählen",

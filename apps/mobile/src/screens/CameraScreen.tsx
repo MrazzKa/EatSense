@@ -3,7 +3,7 @@ import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react'
 import { View, Text, StyleSheet, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
@@ -28,6 +28,11 @@ export default function CameraScreen() {
   const [facing, setFacing] = useState('back');
   const [flashMode, setFlashMode] = useState('off');
   const [showDescribeModal, setShowDescribeModal] = useState(false);
+  // Pause the live camera while the gallery picker / describe modal is open or the
+  // screen is unfocused — otherwise the preview keeps running behind them
+  // (confusing + battery drain).
+  const isFocused = useIsFocused();
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   // Camera always has black background — text/icons must always be white
   // regardless of theme (dark theme has onPrimary: '#0B1120' which is invisible on black)
@@ -193,6 +198,7 @@ export default function CameraScreen() {
   };
 
   const handleGalleryPick = async () => {
+    setGalleryOpen(true); // pause the camera preview behind the picker
     try {
       let perm = await ImagePicker.getMediaLibraryPermissionsAsync();
       if (!perm.granted && perm.canAskAgain) {
@@ -245,6 +251,7 @@ export default function CameraScreen() {
       }
     } finally {
       setIsLoading(false);
+      setGalleryOpen(false);
     }
   };
 
@@ -377,6 +384,7 @@ export default function CameraScreen() {
             zoom={zoomValue}
             enableZoomGesture={false}
             flash={flashMode}
+            active={isFocused && !galleryOpen && !showDescribeModal}
           >
             <LinearGradient
               colors={['rgba(0,0,0,0.65)', 'transparent', 'rgba(0,0,0,0.75)']}

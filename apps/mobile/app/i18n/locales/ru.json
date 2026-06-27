@@ -2467,7 +2467,15 @@
       "appStoreLink": "Есть код из App Store?",
       "appleOnlyTitle": "Только для iOS",
       "appleOnlyMessage": "Коды App Store можно активировать только на iPhone/iPad."
-    }
+    },
+    "yourPlan": "Ваш план",
+    "planMonthly": "PRO Месячный",
+    "planYearly": "PRO Годовой",
+    "planStudent": "PRO Студент",
+    "planFounder": "Основатель",
+    "planWeekly": "PRO Недельный",
+    "renewsOn": "Продление",
+    "endsOn": "Активно до"
   },
   "plan_yearly": "Год",
   "plan_student": "Студент",
@@ -4534,7 +4542,10 @@
     "sendReply": "Отправить",
     "replySentTitle": "Ответ отправлен",
     "replySentBody": "Аптека уведомлена.",
-    "replyError": "Не удалось отправить ответ. Попробуйте ещё раз."
+    "replyError": "Не удалось отправить ответ. Попробуйте ещё раз.",
+    "deleteOrderTitle": "Удалить заказ?",
+    "deleteOrderBody": "Заказ будет удалён из истории. Отменить нельзя.",
+    "deleteOrderError": "Не удалось удалить заказ. Попробуйте ещё раз."
   },
   "community": {
     "pickDateTime": "Выберите дату и время",

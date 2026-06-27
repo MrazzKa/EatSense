@@ -117,6 +117,7 @@ export default function SubscriptionScreen() {
     const [showStudentModal, setShowStudentModal] = useState(false);
     const [showStudentPlans, setShowStudentPlans] = useState(false); // Toggle for student plans visibility
     const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+    const [currentSub, setCurrentSub] = useState<any>(null);
     const [isTrialEligible, setIsTrialEligible] = useState(false);
     const [promoCode, setPromoCode] = useState('');
     const [redeemingPromo, setRedeemingPromo] = useState(false);
@@ -124,8 +125,11 @@ export default function SubscriptionScreen() {
     // Check if user has active subscription and trial eligibility
     React.useEffect(() => {
         ApiService.getCurrentSubscription()
-            .then(sub => setHasActiveSubscription(sub?.hasSubscription === true))
-            .catch(() => setHasActiveSubscription(false));
+            .then(sub => {
+                setHasActiveSubscription(sub?.hasSubscription === true);
+                setCurrentSub(sub?.subscription || null);
+            })
+            .catch(() => { setHasActiveSubscription(false); setCurrentSub(null); });
 
         ApiService.checkTrialEligibility()
             .then((result) => setIsTrialEligible(result?.eligible === true))
@@ -597,6 +601,37 @@ export default function SubscriptionScreen() {
                 <Text style={styles.subtitle}>
                     {t('subscription.subtitle') || 'Unlock all features and enjoy unlimited access'}
                 </Text>
+
+                {/* Current plan banner — makes it obvious which plan the user is on */}
+                {hasActiveSubscription && currentSub && (() => {
+                    const labels: Record<string, string> = {
+                        monthly: t('subscription.planMonthly', 'PRO Monthly'),
+                        yearly: t('subscription.planYearly', 'PRO Annual'),
+                        student: t('subscription.planStudent', 'PRO Student'),
+                        founder: t('subscription.planFounder', 'Founders'),
+                        weekly: t('subscription.planWeekly', 'PRO Weekly'),
+                    };
+                    const label = labels[currentSub.plan] || 'PRO';
+                    const primary = tokens.colors?.primary || '#4F46E5';
+                    return (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: primary, borderRadius: 16, padding: 16, marginBottom: 18 }}>
+                            <Ionicons name="checkmark-circle" size={26} color="#FFFFFF" />
+                            <View style={{ flex: 1 }}>
+                                <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                    {t('subscription.yourPlan', 'Your plan')}
+                                </Text>
+                                <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '800', marginTop: 2 }}>
+                                    EatSense {label}
+                                </Text>
+                                {currentSub.endDate ? (
+                                    <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 2 }}>
+                                        {(currentSub.autoRenew ? t('subscription.renewsOn', 'Renews') : t('subscription.endsOn', 'Active until')) + ' ' + new Date(currentSub.endDate).toLocaleDateString()}
+                                    </Text>
+                                ) : null}
+                            </View>
+                        </View>
+                    );
+                })()}
 
                 {/* Free Plan Card */}
                 <View style={styles.freePlanSection}>

@@ -31,6 +31,18 @@ const PHARMACIES: Array<{
     pharmacyWebsite: 'https://www.pharmacieplus.ch',
     language: 'fr',
   },
+  {
+    // Second pilot pharmacy. Email is intentionally OUR address (info@eatsense.ch)
+    // so the team can keep verifying the order flow before switching it to the
+    // pharmacy's real inbox. Details from maps.app.goo.gl/2QAvdtRbp4wqjQ21A.
+    code: 'PHARMACY-GENEVA-011',
+    pharmacyName: 'Pharmacie EAUXVIVES-Favon',
+    pharmacyEmail: 'info@eatsense.ch',
+    pharmacyAddress: 'Bd Georges-Favon 15, 1204 Genève, Switzerland',
+    pharmacyPhone: '+41 22 552 24 05',
+    pharmacyWebsite: 'https://www.pharmacie-eauxvives.ch',
+    language: 'fr',
+  },
 ];
 
 async function seedPharmacies() {

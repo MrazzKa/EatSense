@@ -2504,7 +2504,15 @@
       "appStoreLink": "Have an App Store code?",
       "appleOnlyTitle": "iOS only",
       "appleOnlyMessage": "App Store offer codes can only be redeemed on iPhone/iPad."
-    }
+    },
+    "yourPlan": "Your plan",
+    "planMonthly": "PRO Monthly",
+    "planYearly": "PRO Annual",
+    "planStudent": "PRO Student",
+    "planFounder": "Founders",
+    "planWeekly": "PRO Weekly",
+    "renewsOn": "Renews",
+    "endsOn": "Active until"
   },
   "plan_yearly": "Yearly",
   "plan_student": "Student",
@@ -4555,7 +4563,10 @@
     "sendReply": "Send reply",
     "replySentTitle": "Reply sent",
     "replySentBody": "The pharmacy has been notified.",
-    "replyError": "Could not send your reply. Please try again."
+    "replyError": "Could not send your reply. Please try again.",
+    "deleteOrderTitle": "Delete order?",
+    "deleteOrderBody": "This removes the order from your history. It cannot be undone.",
+    "deleteOrderError": "Could not delete the order. Please try again."
   },
   "citations": {
     "screenTitle": "Scientific Sources & References",

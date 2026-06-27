@@ -2274,7 +2274,15 @@
       "appStoreLink": "¿Tienes un código de App Store?",
       "appleOnlyTitle": "Solo iOS",
       "appleOnlyMessage": "Los códigos de App Store solo se pueden canjear en iPhone/iPad."
-    }
+    },
+    "yourPlan": "Tu plan",
+    "planMonthly": "PRO Mensual",
+    "planYearly": "PRO Anual",
+    "planStudent": "PRO Estudiante",
+    "planFounder": "Fundador",
+    "planWeekly": "PRO Semanal",
+    "renewsOn": "Se renueva",
+    "endsOn": "Activo hasta"
   },
   "tabs": {
     "articles": "Artículos",
@@ -2914,7 +2922,10 @@
     "sendReply": "Enviar",
     "replySentTitle": "Respuesta enviada",
     "replySentBody": "La farmacia ha sido notificada.",
-    "replyError": "No se pudo enviar tu respuesta. Inténtalo de nuevo."
+    "replyError": "No se pudo enviar tu respuesta. Inténtalo de nuevo.",
+    "deleteOrderTitle": "¿Eliminar pedido?",
+    "deleteOrderBody": "El pedido se eliminará de tu historial. No se puede deshacer.",
+    "deleteOrderError": "No se pudo eliminar el pedido. Inténtalo de nuevo."
   },
   "community": {
     "pickDateTime": "Elegir fecha y hora",

@@ -45,9 +45,12 @@ body.menu-open { overflow: hidden; }
 img { max-width: 100%; display: block; }
 a { color: inherit; }
 
-/* ---------------- Reveal animation ---------------- */
-.reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s var(--ease), transform .7s var(--ease); will-change: opacity, transform; }
-.reveal.in { opacity: 1; transform: none; }
+/* ---------------- Reveal animation ----------------
+   translate3d + backface-hidden keep it on the GPU compositor so cards don't
+   judder while Lenis momentum-scroll is running on iOS. No `will-change` here —
+   on many simultaneous elements it caused more jank than it solved. */
+.reveal { opacity: 0; transform: translate3d(0, 16px, 0); backface-visibility: hidden; transition: opacity .55s var(--ease), transform .55s var(--ease); }
+.reveal.in { opacity: 1; transform: translate3d(0, 0, 0); }
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   * { scroll-behavior: auto !important; }
@@ -107,7 +110,7 @@ em { font-style: normal; color: var(--accent); }
 }
 .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
-.logo-icon { width: 36px; height: 36px; flex-shrink: 0; }
+.logo-icon { width: 36px; height: 36px; flex-shrink: 0; border-radius: 9px; }
 .logo-text { font-family: var(--font-display); font-size: 1.32rem; font-weight: 600; letter-spacing: -.03em; }
 .nav-links { display: flex; align-items: center; gap: 30px; }
 .nav-link { text-decoration: none; color: var(--ink-2); font-size: .92rem; font-weight: 600; transition: color .25s ease; position: relative; }
@@ -115,6 +118,7 @@ em { font-style: normal; color: var(--accent); }
 .nav-link:hover { color: var(--ink); }
 .nav-link:hover::after { width: 100%; }
 .nav-actions { display: flex; align-items: center; gap: 14px; }
+.nav-menu-cta { display: none; } /* shown only inside the mobile slide-in menu */
 
 /* lang switcher */
 .lang { position: relative; }
@@ -139,6 +143,10 @@ em { font-style: normal; color: var(--accent); }
 }
 .lang-option:hover { background: var(--mint); color: var(--ink); }
 .lang-option.active { color: var(--accent-press); background: var(--mint); }
+
+/* Dimmed backdrop behind the mobile slide-in menu */
+.nav-overlay { position: fixed; inset: 0; background: rgba(20, 24, 26, .45); opacity: 0; visibility: hidden; transition: opacity .35s var(--ease), visibility .35s var(--ease); z-index: 140; }
+body.menu-open .nav-overlay { opacity: 1; visibility: visible; }
 
 .mobile-menu-btn { display: none; flex-direction: column; justify-content: center; gap: 5px; width: 44px; height: 44px; background: none; border: none; cursor: pointer; padding: 10px; }
 .mobile-menu-btn span { display: block; height: 2px; width: 100%; background: var(--ink); border-radius: 2px; transition: transform .3s var(--ease), opacity .3s var(--ease); }
@@ -320,6 +328,21 @@ em { font-style: normal; color: var(--accent); }
 .finalcta .store-badges { justify-content: center; }
 .finalcta .store-badge { background: var(--white); color: var(--ink); }
 
+/* ---------------- Waitlist ---------------- */
+.waitlist-card { background: var(--ink); color: #fff; border-radius: var(--radius-lg); padding: clamp(36px, 6vw, 64px); text-align: center; }
+.waitlist-card .eyebrow { color: var(--accent); }
+.waitlist-card .eyebrow::before { background: var(--accent); }
+.waitlist-title { font-family: var(--font-display); font-weight: 600; font-size: clamp(1.8rem, 4vw, 2.8rem); letter-spacing: -.02em; margin-top: 14px; line-height: 1.06; }
+.waitlist-sub { color: rgba(255, 255, 255, .72); margin: 14px auto 28px; max-width: 540px; font-size: 1.05rem; }
+.waitlist-form { display: flex; gap: 12px; max-width: 520px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
+.waitlist-input { flex: 1; min-width: 220px; padding: 14px 20px; border-radius: 100px; border: 1px solid rgba(255, 255, 255, .18); background: rgba(255, 255, 255, .08); color: #fff; font-family: var(--font-body); font-size: 1rem; }
+.waitlist-input::placeholder { color: rgba(255, 255, 255, .5); }
+.waitlist-input:focus { outline: none; border-color: var(--accent); background: rgba(255, 255, 255, .12); }
+.waitlist-btn { white-space: nowrap; }
+.waitlist-msg { margin-top: 16px; font-size: .95rem; min-height: 1.2em; }
+.waitlist-msg.ok { color: var(--accent); }
+.waitlist-msg.err { color: #FCA5A5; }
+
 /* ---------------- Footer ---------------- */
 .footer { background: var(--base-2); padding: 64px 0 32px; }
 .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; padding-bottom: 40px; border-bottom: 1px solid var(--line); }
@@ -349,13 +372,18 @@ em { font-style: normal; color: var(--accent); }
   .footer-top { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 720px) {
+  /* Full-screen menu sliding down from the top: large centered tap targets. */
   .nav-links {
-    position: fixed; inset: 0 0 0 auto; width: min(320px, 84vw); flex-direction: column;
-    align-items: flex-start; gap: 22px; background: var(--white); padding: 100px 32px 32px;
-    transform: translateX(110%); transition: transform .4s var(--ease); box-shadow: var(--shadow-lg); z-index: 150;
+    position: fixed; inset: 0; width: 100%; height: 100dvh; flex-direction: column;
+    align-items: center; justify-content: center; gap: 26px; background: var(--base);
+    padding: 88px 24px 40px; transform: translateY(-100%); opacity: 0;
+    transition: transform .42s var(--ease), opacity .42s var(--ease); z-index: 180;
+    pointer-events: none;
   }
-  .nav-links.active { transform: translateX(0); }
-  .nav-link { font-size: 1.1rem; }
+  .nav-links.active { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  .nav-link { font-family: var(--font-display); font-weight: 500; font-size: 1.7rem; color: var(--ink); }
+  .nav-link::after { display: none; }
+  .nav-menu-cta { display: inline-flex; margin-top: 18px; font-size: 1.05rem; padding: 1rem 2.2rem; }
   .mobile-menu-btn { display: flex; z-index: 210; position: relative; }
   .nav-actions .nav-cta { display: none; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 28px; }

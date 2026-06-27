@@ -1893,6 +1893,10 @@ class ApiService {
       body: JSON.stringify({ text }),
     });
   }
+
+  async deletePharmacyOrder(orderId: string) {
+    return this.request(`/pharmacy/orders/${orderId}`, { method: 'DELETE' });
+  }
   // ========== Community ==========
 
   async getCommunityGroups(params?: { type?: string; search?: string }) {
