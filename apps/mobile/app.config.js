@@ -131,7 +131,9 @@ export default {
           android: {
             minSdkVersion: 24,
             targetSdkVersion: 35,
-            compileSdkVersion: 35
+            // androidx 1.11/1.17 (pulled by RN 0.83 deps) require compiling against
+            // API 36; build-tools 36 is already on the EAS image.
+            compileSdkVersion: 36
           }
         }
       ],

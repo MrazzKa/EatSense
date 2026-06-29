@@ -76,7 +76,9 @@ const NON_FOOD_KEYWORDS = [
 // Calorie ranges per 100g for food categories
 const CALORIE_RANGES: Record<string, { min: number; max: number; typical: number; keywords: string[] }> = {
   // Vegetables (very low calorie)
-  'leafy_greens': { min: 10, max: 30, typical: 20, keywords: ['lettuce', 'spinach', 'салат', 'шпинат', 'зелень', 'leaf', 'greens'] },
+  // NOTE: 'салат'/'salad' intentionally excluded — composite salads (Olivier, Caesar,
+  // mayo/dressing-heavy) are NOT leafy greens and must not be clamped to ~20 kcal/100g.
+  'leafy_greens': { min: 10, max: 30, typical: 20, keywords: ['lettuce', 'spinach', 'шпинат', 'leaf', 'greens'] },
   'watery_vegetables': { min: 10, max: 25, typical: 15, keywords: ['cucumber', 'огурец', 'celery', 'сельдерей', 'radish', 'редис'] },
   'root_vegetables_raw': { min: 25, max: 50, typical: 40, keywords: ['carrot raw', 'морковь сырая', 'beet raw', 'свекла сырая'] },
   'vegetables_cooked': { min: 20, max: 60, typical: 35, keywords: ['broccoli', 'брокколи', 'cauliflower', 'цветная капуста', 'zucchini', 'кабачок', 'eggplant', 'баклажан'] },
@@ -178,6 +180,25 @@ const CALORIE_RANGES: Record<string, { min: number; max: number; typical: number
   'nuts': { min: 550, max: 700, typical: 600, keywords: ['nut', 'орех', 'almond', 'миндаль', 'walnut', 'грецкий', 'peanut', 'арахис', 'cashew', 'кешью'] },
   'seeds': { min: 500, max: 600, typical: 550, keywords: ['seed', 'семечки', 'sunflower seed', 'подсолнечные семечки', 'pumpkin seed', 'тыквенные семечки'] },
 };
+
+// Low-calorie plant categories whose ranges assume RAW/plain produce. A calorie-adding
+// preparation (frying/roasting in oil, breading) legitimately pushes them far above the
+// raw range, so we must NOT clamp those down — only GPT "sees" the added oil.
+const LOW_CAL_PLANT_CATEGORIES = new Set<string>([
+  'leafy_greens', 'watery_vegetables', 'root_vegetables_raw', 'vegetables_cooked',
+  'tomato', 'berries', 'apple', 'banana', 'citrus', 'tropical', 'grapes',
+]);
+
+// Preparations that materially ADD calories (oil/fat/sugar) vs the raw ingredient.
+const CALORIE_ADDING_PREP_KEYWORDS = [
+  'fried', 'deep-fried', 'deep fried', 'pan-fried', 'pan fried', 'stir-fried', 'stir fried',
+  'sauteed', 'sautéed', 'roasted', 'breaded', 'battered', 'tempura', 'glazed', 'candied',
+  'caramelized', 'caramelised', 'buttered', 'creamed', 'gratin', 'confit',
+  'жарен', 'обжар', 'зажар', 'фритюр', 'панир', 'кляр', 'запеч', 'карамелизир', 'глазир', 'пассеров',
+];
+function hasCalorieAddingPrep(nameLower: string): boolean {
+  return CALORIE_ADDING_PREP_KEYWORDS.some((kw) => nameLower.includes(kw));
+}
 
 // Minimum realistic portions by category
 const MIN_PORTIONS: Record<string, number> = {
@@ -317,16 +338,27 @@ export class AnalysisValidatorService {
     const kcalPer100 = (item.nutrients.calories / item.portion_g) * 100;
     const nameLower = item.name.toLowerCase();
 
+    const isPrepared = hasCalorieAddingPrep(nameLower);
+
     // Find matching food category
     for (const [category, range] of Object.entries(CALORIE_RANGES)) {
       const matches = range.keywords.some(kw => nameLower.includes(kw.toLowerCase()));
       if (matches) {
+        // Fried/roasted/breaded plant foods legitimately exceed their raw range —
+        // trust the (oil-aware) GPT estimate instead of clamping it down.
+        if (isPrepared && LOW_CAL_PLANT_CATEGORIES.has(category)) {
+          break;
+        }
+
         // Allow 30% tolerance
         const minAllowed = range.min * 0.7;
         const maxAllowed = range.max * 1.3;
 
         if (kcalPer100 < minAllowed || kcalPer100 > maxAllowed) {
-          const correctedCalories = Math.round((range.typical * item.portion_g) / 100);
+          // Clamp to the violated bound (not `typical`) — a 200→35 jump was far more
+          // wrong than the original. Pull just inside the plausible range instead.
+          const boundPer100 = kcalPer100 > maxAllowed ? range.max : range.min;
+          const correctedCalories = Math.round((boundPer100 * item.portion_g) / 100);
 
           return {
             issue: {
@@ -334,7 +366,7 @@ export class AnalysisValidatorService {
               itemName: item.name,
               issueType: 'impossible_calories',
               severity: 'warning',
-              message: `${item.name}: ${kcalPer100.toFixed(0)} kcal/100g is outside expected range (${range.min}-${range.max}). Auto-corrected to ${range.typical} kcal/100g.`,
+              message: `${item.name}: ${kcalPer100.toFixed(0)} kcal/100g is outside expected range (${range.min}-${range.max}). Auto-corrected to ${boundPer100} kcal/100g.`,
               originalValue: item.nutrients.calories,
               correctedValue: correctedCalories,
               autoFixed: true,

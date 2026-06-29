@@ -99,6 +99,20 @@ em { font-style: normal; color: var(--accent); }
 .store-badge-text { display: flex; flex-direction: column; line-height: 1.1; text-align: left; }
 .store-badge-text small { font-size: .62rem; letter-spacing: .04em; opacity: .8; text-transform: uppercase; }
 .store-badge-text strong { font-size: 1.02rem; font-weight: 700; }
+/* "Soon" ribbon on the Google Play badge (Android not live yet → anchors to #waitlist) */
+.store-badge--soon { position: relative; }
+.store-badge--soon::after {
+  content: "Soon"; position: absolute; top: -8px; right: -8px;
+  background: var(--accent); color: #fff; font-size: .58rem; font-weight: 800;
+  letter-spacing: .04em; text-transform: uppercase; line-height: 1;
+  padding: 4px 7px; border-radius: 999px; box-shadow: var(--shadow-sm);
+}
+/* "Android" nav link gets a small dot to hint it's a separate track */
+.nav-link--soon { display: inline-flex; align-items: center; gap: 6px; }
+.nav-link--soon::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+}
 
 /* ---------------- Nav ---------------- */
 .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; padding: 18px 0; transition: padding .4s var(--ease), background .4s var(--ease), box-shadow .4s var(--ease), backdrop-filter .4s var(--ease); }

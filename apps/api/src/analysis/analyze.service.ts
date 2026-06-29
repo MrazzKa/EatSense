@@ -282,6 +282,26 @@ export class AnalyzeService {
     return this.CANONICAL_NUTRITION[nameLower] || null;
   }
 
+  // Preparations that materially ADD calories (oil/fat/sugar) vs the raw/plain
+  // ingredient. When present, the raw CANONICAL_NUTRITION values must NOT override
+  // the GPT estimate — only GPT "sees" the added oil. e.g. fried eggplant.
+  private static readonly CALORIE_ADDING_PREP = [
+    'fried', 'deep-fried', 'deep fried', 'pan-fried', 'pan fried', 'stir-fried', 'stir fried',
+    'sauteed', 'sautéed', 'saute', 'sauté', 'roasted', 'breaded', 'battered', 'tempura',
+    'glazed', 'candied', 'caramelized', 'caramelised', 'buttered', 'creamed', 'gratin', 'au gratin', 'confit',
+    'жарен', 'обжар', 'зажар', 'во фритюре', 'фритюр', 'панир', 'в кляре', 'кляр',
+    'запеч', 'карамелизир', 'глазир', 'пассеров',
+  ];
+
+  /**
+   * True when the item NAME indicates a calorie-adding preparation. Combined at the
+   * call site with structured cookingMethodHints (oil/butter/breading/sauce/sugar).
+   */
+  private nameHasCalorieAddingPrep(name?: string): boolean {
+    const hay = (name || '').toLowerCase();
+    return AnalyzeService.CALORIE_ADDING_PREP.some((kw) => hay.includes(kw));
+  }
+
   private readonly FOOD_SYNONYMS: Map<string, string> = new Map([
     // Яйца
     ['egg', 'egg'], ['яйц', 'egg'], ['желток', 'egg'], ['белок яйц', 'egg'],
@@ -387,6 +407,18 @@ export class AnalyzeService {
     return (value || '').trim().toLowerCase();
   }
 
+  /**
+   * Whole-word/phrase match — true only when `kw` appears as a standalone token,
+   * not as a substring of a larger word. Prevents false positives like
+   * "watermelon".includes("water") or "steak".includes("tea") that would
+   * misclassify solid foods as water/drinks. Unicode-aware (works for cyrillic).
+   */
+  private hasWholeWord(haystack: string, kw: string): boolean {
+    if (!haystack || !kw) return false;
+    const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}([^\\p{L}\\p{N}]|$)`, 'u').test(haystack);
+  }
+
   private getNormalizedFoodKey(name: string): string {
     const lower = name.toLowerCase();
 
@@ -462,19 +494,27 @@ export class AnalyzeService {
       'газированная вода',
     ];
 
-    const isWaterByName = waterKeywords.some((kw) => n.includes(kw));
-    const isWaterByCategory = c.includes('water');
+    // Match keywords as WHOLE words/phrases, not substrings. Otherwise compound
+    // foods like "watermelon" / "watercress" (which contain "water") get wrongly
+    // canonicalized to plain water with 0 kcal. See bug: watermelon → "Water".
+    const isWaterByName = waterKeywords.some((kw) => this.hasWholeWord(n, kw));
+    const isWaterByCategory = this.hasWholeWord(c, 'water') || this.hasWholeWord(c, 'вода');
 
     if (!isWaterByName && !isWaterByCategory) {
       return null;
     }
 
-    // Negative indicators: contains flavoring/sweetening keywords
+    // Negative indicators: contains flavoring/sweetening keywords, or is a
+    // compound food that merely contains the word "water" (coconut water,
+    // tonic water, water chestnut, rose water, barley water…) but is NOT plain water.
     const excludeKeywords = [
       'juice', 'cola', 'soda', 'lemonade', 'sweet', 'syrup', 'flavor', 'flavored',
       'сок', 'лимонад', 'газировка', 'со вкусом', 'подслащ', 'сироп',
       'vitamin', 'electrolyte', 'sports drink', 'energy',
       'витамин', 'электролит', 'спортивный напиток',
+      'coconut', 'tonic', 'barley', 'chestnut', 'rose', 'aloe',
+      'melon', 'cress', 'spinach', 'lily', 'milk',
+      'кокос', 'тоник', 'роз', 'молоч', 'молоко',
     ];
 
     const hasExcludeKeyword = excludeKeywords.some((kw) => n.includes(kw));
@@ -1112,6 +1152,17 @@ export class AnalyzeService {
       const category = (component as any).category;
       const volume_ml = (component as any).volume_ml;
 
+      // Calorie-adding preparation (fried/roasted/breaded/oily/sugary/dressed)? If so,
+      // raw canonical values must NOT override the oil-aware GPT estimate (fixes
+      // "fried eggplant = 25 kcal/100g"). Computed once, reused across branches below.
+      const cookHints = this.extractCookingMethodHints(component);
+      const hasAddedFatPrep =
+        this.nameHasCalorieAddingPrep(name) ||
+        cookHints?.method === 'fried' || cookHints?.method === 'deep_fried' ||
+        !!cookHints?.hasVisibleOil || !!cookHints?.hasCreamOrButter ||
+        !!cookHints?.hasBreadingOrBatter || !!cookHints?.hasSauceOrDressing ||
+        !!cookHints?.looksSugary;
+
       // FAST PATH: For simple well-known products with high-confidence GPT estimates,
       // skip provider queries entirely. This significantly speeds up analysis.
       const useGptFastPath = process.env.USE_GPT_FAST_PATH !== 'false'; // Enabled by default
@@ -1127,8 +1178,8 @@ export class AnalyzeService {
         const nutritionConfidence = (component as any).nutritionConfidence ?? 0;
         const hasGoodEstimate = estNutrients?.calories > 0 && nutritionConfidence >= 0.75;
 
-        // FIX 3: Check canonical data first
-        const canonical = this.getCanonicalNutrition(name);
+        // FIX 3: Check canonical data first (skip for fried/roasted/etc — raw values would undercount)
+        const canonical = hasAddedFatPrep ? null : this.getCanonicalNutrition(name);
 
         if (isSimple && (hasGoodEstimate || canonical)) {
           const portionG = est_portion_g && est_portion_g > 0 ? est_portion_g : this.getCategoryDefaultPortion((component as any).category_hint);
@@ -1326,7 +1377,7 @@ export class AnalyzeService {
 
       // Detect if component is likely a drink based on name
       const componentNameLower = component.name.toLowerCase();
-      const isDrinkComponent = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
+      const isDrinkComponent = this.DRINK_KEYWORDS.some(keyword => this.hasWholeWord(componentNameLower, keyword));
       const expectedCategory: 'drink' | 'solid' | 'unknown' = isDrinkComponent ? 'drink' : 'unknown';
 
       // Build lookup context with mode for name-match validation
@@ -1373,7 +1424,7 @@ export class AnalyzeService {
         // Canonical safety-net: for common foods / veg / fruit, trusted per-100g values
         // beat raw GPT estimates and cost nothing (in-memory, no network). Falls back to
         // GPT estimates when there's no canonical entry.
-        const canonicalGpt = this.getCanonicalNutrition(component.name);
+        const canonicalGpt = hasAddedFatPrep ? null : this.getCanonicalNutrition(component.name);
         const gptNutrients: Nutrients = canonicalGpt
           ? {
             calories: Math.round((canonicalGpt.calories || 0) * portionScale),
@@ -1489,8 +1540,9 @@ export class AnalyzeService {
       let nutrients = this.calculateNutrientsFromCanonical(canonicalFood.per100g, portionG);
 
       // FIX 5: Override provider results with canonical values if huge discrepancy
-      // This catches cases like "cooked cauliflower" being matched to "fried cauliflower" 
-      const canonicalOverride = this.getCanonicalNutrition(component.name);
+      // This catches cases like "cooked cauliflower" being matched to "fried cauliflower"
+      // Skip for calorie-adding prep — raw canonical would undercount fried/roasted items.
+      const canonicalOverride = hasAddedFatPrep ? null : this.getCanonicalNutrition(component.name);
       if (canonicalOverride) {
         const providerKcal = nutrients.calories;
         const canonicalKcal = canonicalOverride.calories * (portionG / 100);
@@ -1690,7 +1742,7 @@ export class AnalyzeService {
       debug.components!.push({ type: 'no_match', vision: component, error: error.message });
       // Only use fallback for non-beverages
       const componentNameLower = component.name.toLowerCase();
-      const isBeverage = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
+      const isBeverage = this.DRINK_KEYWORDS.some(keyword => this.hasWholeWord(componentNameLower, keyword));
       if (!isBeverage) {
         await this.addVisionFallback(component, items, debug, locale);
       }
@@ -3261,7 +3313,7 @@ export class AnalyzeService {
       (item.name || item.originalName || item.label || '').toLowerCase()
     ).join(' ');
 
-    return this.DRINK_KEYWORDS.some(keyword => itemNames.includes(keyword));
+    return this.DRINK_KEYWORDS.some(keyword => this.hasWholeWord(itemNames, keyword));
   }
 
   /**
@@ -4443,7 +4495,7 @@ export class AnalyzeService {
         // 2) Если не напиток — обычный пайплайн (NutritionOrchestrator)
         // Detect if it's a drink
         const nameLower = name.toLowerCase();
-        const isDrinkComponent = this.DRINK_KEYWORDS.some(keyword => nameLower.includes(keyword));
+        const isDrinkComponent = this.DRINK_KEYWORDS.some(keyword => this.hasWholeWord(nameLower, keyword));
         const expectedCategory: 'drink' | 'solid' | 'unknown' = isDrinkComponent ? 'drink' : 'unknown';
         const contextWithCategory = { ...lookupContext, expectedCategory };
 
