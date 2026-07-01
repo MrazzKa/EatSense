@@ -2800,7 +2800,7 @@ const ProfileScreen = () => {
           <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border, paddingBottom: 20 }]}>
             <View style={[styles.legalCard, { backgroundColor: colors.surface, borderColor: colors.borderMuted }]}>
               <TouchableOpacity
-                onPress={() => Linking.openURL('https://eatsense.ch/privacy')}
+                onPress={() => Linking.openURL('https://www.eatsense.ch/privacy')}
                 style={styles.legalRow}
               >
                 <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
@@ -2815,7 +2815,7 @@ const ProfileScreen = () => {
               <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
 
               <TouchableOpacity
-                onPress={() => Linking.openURL('https://eatsense.ch/terms')}
+                onPress={() => Linking.openURL('https://www.eatsense.ch/terms')}
                 style={styles.legalRow}
               >
                 <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
@@ -2830,7 +2830,7 @@ const ProfileScreen = () => {
               <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
 
               <TouchableOpacity
-                onPress={() => Linking.openURL('https://eatsense.ch/')}
+                onPress={() => Linking.openURL('https://www.eatsense.ch/')}
                 style={styles.legalRow}
               >
                 <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
@@ -2860,7 +2860,7 @@ const ProfileScreen = () => {
               <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
 
               <TouchableOpacity
-                onPress={() => Linking.openURL('https://eatsense.ch/support')}
+                onPress={() => Linking.openURL('https://www.eatsense.ch/support')}
                 style={styles.legalRow}
               >
                 <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>

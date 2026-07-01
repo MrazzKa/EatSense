@@ -94,6 +94,74 @@ export class AuthService {
     return this.googleClient;
   }
 
+  /**
+   * Fixed credentials for app-store reviewers (Google Play / App Store).
+   * OTP login is one-time and email-delivered, so a reviewer cannot receive the
+   * code. This grants a single whitelisted email a static, reusable code,
+   * configured via env (REVIEWER_TEST_EMAIL + REVIEWER_TEST_OTP). Disabled unless
+   * both are set. Only affects that exact email — every other user is unchanged.
+   */
+  private getReviewerCredentials(): { email: string; code: string } | null {
+    const email = (process.env.REVIEWER_TEST_EMAIL || '').trim().toLowerCase();
+    const code = (process.env.REVIEWER_TEST_OTP || '').trim();
+    if (!email || !code) return null;
+    return { email, code };
+  }
+
+  /**
+   * True when `email` is the reviewer test account. When `code` is provided it
+   * must also match the fixed reviewer OTP; pass no code to check the email only
+   * (used by requestOtp to skip email dispatch).
+   */
+  private isReviewerLogin(email: string, code?: string): boolean {
+    const creds = this.getReviewerCredentials();
+    if (!creds) return false;
+    if (this.normalizeEmail(email) !== creds.email) return false;
+    if (code === undefined) return true;
+    return code.trim().toUpperCase() === creds.code.toUpperCase();
+  }
+
+  /**
+   * Idempotently grant the reviewer account an active Pro subscription so paid
+   * sections are reviewable without any purchase. Never throws — a failure here
+   * must not block login.
+   */
+  private async ensureReviewerPro(userId: string): Promise<void> {
+    try {
+      const active = await this.prisma.userSubscription.findFirst({
+        where: { userId, status: 'ACTIVE', endDate: { gt: new Date() } },
+      });
+      if (active) return;
+
+      const plan =
+        (await this.prisma.subscriptionPlan.findFirst({ where: { name: 'yearly' } })) ||
+        (await this.prisma.subscriptionPlan.findFirst({
+          where: { isActive: true },
+          orderBy: { durationDays: 'desc' },
+        }));
+      if (!plan) {
+        this.logger.warn('[AuthService] ensureReviewerPro: no subscription plan found, skipping grant');
+        return;
+      }
+
+      const endDate = new Date(Date.now() + 3650 * 24 * 60 * 60 * 1000); // ~10 years
+      await this.prisma.userSubscription.create({
+        data: {
+          userId,
+          planId: plan.id,
+          currency: 'USD',
+          pricePaid: 0,
+          status: 'ACTIVE',
+          endDate,
+          autoRenew: false,
+        },
+      });
+      this.logger.log(`[AuthService] ensureReviewerPro: granted Pro (${plan.name}) to reviewer ${userId}`);
+    } catch (error) {
+      this.logger.error(`[AuthService] ensureReviewerPro failed: ${error instanceof Error ? error.message : 'unknown error'}`);
+    }
+  }
+
   async register(_: RegisterDto) {
     throw new BadRequestException('Password registration is disabled. Use email code login.');
   }
@@ -247,6 +315,16 @@ export class AuthService {
     const normalizedEmail = this.normalizeEmail(requestOtpDto.email);
     const sanitizedIp = this.sanitizeIp(clientIp);
 
+    // Reviewer test account uses a fixed code — no email to send, no rate limit.
+    if (this.isReviewerLogin(normalizedEmail)) {
+      this.logger.log(`[AuthService] Reviewer test login requested for ${this.maskEmail(normalizedEmail)} - skipping email dispatch`);
+      return {
+        message: 'If this email is registered, we just sent a 6-digit code.',
+        retryAfter: OTP_EMAIL_COOLDOWN_SECONDS,
+        expiresIn: OTP_TTL_SECONDS,
+      };
+    }
+
     await this.enforceOtpRateLimits(normalizedEmail, sanitizedIp);
 
     const otpCode = this.otpService.generateOtp();
@@ -284,22 +362,33 @@ export class AuthService {
     const normalizedEmail = this.normalizeEmail(verifyOtpDto.email);
     this.logger.log(`[AuthService] verifyOtp() - normalized email: ${this.maskEmail(normalizedEmail)}`);
 
-    this.logger.log(`[AuthService] verifyOtp() - verifying OTP code...`);
-    const status = await this.otpService.verifyOtp(normalizedEmail, verifyOtpDto.code);
-    this.logger.log(`[AuthService] verifyOtp() - OTP verification status: ${status}`);
+    // Reviewer test account: accept the fixed code without touching Redis/OTP store.
+    const isReviewerLogin = this.isReviewerLogin(normalizedEmail, verifyOtpDto.code);
+    if (isReviewerLogin) {
+      this.logger.log(`[AuthService] verifyOtp() - reviewer test bypass accepted for ${this.maskEmail(normalizedEmail)}`);
+    } else {
+      this.logger.log(`[AuthService] verifyOtp() - verifying OTP code...`);
+      const status = await this.otpService.verifyOtp(normalizedEmail, verifyOtpDto.code);
+      this.logger.log(`[AuthService] verifyOtp() - OTP verification status: ${status}`);
 
-    if (status === 'expired') {
-      this.logger.warn(`[AuthService] verifyOtp() - OTP expired for ${this.maskEmail(normalizedEmail)}`);
-      throw new BadRequestException({ message: 'Verification code expired. Request a new one.', code: 'OTP_EXPIRED' });
-    }
-    if (status === 'invalid') {
-      this.logger.warn(`[AuthService] verifyOtp() - OTP invalid for ${this.maskEmail(normalizedEmail)}`);
-      throw new BadRequestException({ message: 'Incorrect verification code. Check the email and try again.', code: 'OTP_INVALID' });
+      if (status === 'expired') {
+        this.logger.warn(`[AuthService] verifyOtp() - OTP expired for ${this.maskEmail(normalizedEmail)}`);
+        throw new BadRequestException({ message: 'Verification code expired. Request a new one.', code: 'OTP_EXPIRED' });
+      }
+      if (status === 'invalid') {
+        this.logger.warn(`[AuthService] verifyOtp() - OTP invalid for ${this.maskEmail(normalizedEmail)}`);
+        throw new BadRequestException({ message: 'Incorrect verification code. Check the email and try again.', code: 'OTP_INVALID' });
+      }
     }
 
     this.logger.log(`[AuthService] verifyOtp() - OTP valid, calling findOrCreateUser()...`);
     const user = await this.findOrCreateUser(normalizedEmail);
     this.logger.log(`[AuthService] verifyOtp() - user found/created: id=${user.id}, email=${this.maskEmail(user.email)}`);
+
+    // Give the reviewer account full (paid) access so every section is reviewable.
+    if (isReviewerLogin) {
+      await this.ensureReviewerPro(user.id);
+    }
 
     this.logger.log(`[AuthService] verifyOtp() - calling generateTokens()...`);
     const tokens = await this.generateTokens(user.id, user.email);

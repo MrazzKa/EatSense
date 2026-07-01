@@ -1,10 +1,12 @@
 import { Linking, Alert } from 'react-native';
 
+// NOTE: use the www. host. The apex (eatsense.ch) 301-redirects to www but
+// drops the path, dumping every /privacy, /terms, /support link on the homepage.
 export const LEGAL_URLS = {
-    privacy: 'https://eatsense.ch/privacy',
-    terms: 'https://eatsense.ch/terms',
-    support: 'https://eatsense.ch/support',
-    about: 'https://eatsense.ch/',
+    privacy: 'https://www.eatsense.ch/privacy',
+    terms: 'https://www.eatsense.ch/terms',
+    support: 'https://www.eatsense.ch/support',
+    about: 'https://www.eatsense.ch/',
 };
 
 export const openLegalLink = async (type) => {

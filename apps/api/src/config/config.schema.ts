@@ -30,6 +30,11 @@ export const configSchema = Joi.object({
   DISABLE_LIMITS: Joi.boolean().default(false),
   ADMIN_BYPASS_LIMITS: Joi.boolean().default(false),
   ADMIN_SECRET: Joi.string().optional().allow(''),
+  // App-store reviewer test account: a single whitelisted email that logs in
+  // with a fixed, reusable OTP (one-time email codes can't reach a reviewer).
+  // Both must be set to enable; affects only this exact email.
+  REVIEWER_TEST_EMAIL: Joi.string().optional().allow(''),
+  REVIEWER_TEST_OTP: Joi.string().optional().allow(''),
   ASSISTANT_FLOWS_ENABLED: Joi.boolean().default(true),
   SENDGRID_API_KEY: Joi.string().optional().allow(''),
   MAIL_PROVIDER: Joi.string().valid('SMTP', 'SENDGRID').default('SMTP'),
