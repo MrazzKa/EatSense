@@ -1078,6 +1078,48 @@ export class CommunityService {
 
   // ==================== BEST PLACES ====================
 
+  /**
+   * Public (no-auth) list of approved BEST_PLACES that have map coordinates, for
+   * the marketing site map. Unlike getBestPlaces it is not scoped to a user's
+   * country community and returns only safe, public fields. Hides pending/rejected.
+   */
+  async getPublicBestPlaces(limit = 200) {
+    const posts = await this.prisma.communityPost.findMany({
+      where: {
+        type: 'BEST_PLACES' as any,
+        AND: [
+          { NOT: { metadata: { path: ['moderationStatus'], equals: 'pending' } } },
+          { NOT: { metadata: { path: ['moderationStatus'], equals: 'rejected' } } },
+        ],
+      },
+      include: { _count: { select: { likes: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: Math.min(Math.max(limit, 1), 500),
+    });
+
+    return posts
+      .map((p) => {
+        const m = (p.metadata as any) || {};
+        const lat = Number(m.latitude);
+        const lng = Number(m.longitude);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+        return {
+          id: p.id,
+          placeName: m.placeName || null,
+          address: m.address || null,
+          city: m.city || null,
+          cuisine: m.cuisine || null,
+          category: m.placeCategory || null,
+          rating: typeof m.placeRating === 'number' ? m.placeRating : null,
+          note: (p.content || '').toString().slice(0, 400) || null,
+          latitude: lat,
+          longitude: lng,
+          likes: p._count?.likes ?? 0,
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
+  }
+
   async getBestPlaces(userId: string, page: number, limit: number, groupId?: string, city?: string) {
     const skip = (page - 1) * limit;
     const countryGroup = await this.ensureUserCountryCommunity(userId);

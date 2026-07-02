@@ -129,6 +129,133 @@
     }
   };
 
+  /* ---- Supplementary i18n (map / blog / ambassadors), merged into translations ---- */
+  var EXTRA_I18N = {
+    en: {
+      "nav.map":"Map","nav.blog":"Blog",
+      "map.tag":"Community map","map.title":"Good places, on the map",
+      "map.subtitle":"Discover healthy spots our community loves across Switzerland — and add your own.",
+      "map.suggest":"Suggest a place","map.cancel":"Cancel",
+      "map.hint":"Tap the map to drop a pin where the place is.",
+      "map.form.name":"Place name","map.form.city":"City","map.form.note":"Why is it good? (optional)",
+      "map.form.email":"Your email (optional)","map.form.submit":"Send suggestion",
+      "map.form.nopin":"No pin yet — tap the map","map.form.pinset":"Pin set ✓",
+      "map.needname":"Please add the place name.","map.success":"Thanks! We'll review your suggestion.",
+      "map.error":"Something went wrong. Please try again.","map.empty":"No places yet — be the first to suggest one!",
+      "map.rating":"rating"
+    },
+    de: {
+      "nav.map":"Karte","nav.blog":"Blog",
+      "map.tag":"Community-Karte","map.title":"Gute Orte auf der Karte",
+      "map.subtitle":"Entdecke gesunde Orte, die unsere Community in der ganzen Schweiz liebt — und füge deine eigenen hinzu.",
+      "map.suggest":"Ort vorschlagen","map.cancel":"Abbrechen",
+      "map.hint":"Tippe auf die Karte, um eine Markierung zu setzen.",
+      "map.form.name":"Name des Ortes","map.form.city":"Stadt","map.form.note":"Warum ist er gut? (optional)",
+      "map.form.email":"Deine E-Mail (optional)","map.form.submit":"Vorschlag senden",
+      "map.form.nopin":"Noch keine Markierung — tippe auf die Karte","map.form.pinset":"Markierung gesetzt ✓",
+      "map.needname":"Bitte gib den Namen des Ortes an.","map.success":"Danke! Wir prüfen deinen Vorschlag.",
+      "map.error":"Etwas ist schiefgelaufen. Bitte versuche es erneut.","map.empty":"Noch keine Orte — schlage den ersten vor!",
+      "map.rating":"Bewertung"
+    },
+    fr: {
+      "nav.map":"Carte","nav.blog":"Blog",
+      "map.tag":"Carte communautaire","map.title":"Les bons endroits, sur la carte",
+      "map.subtitle":"Découvrez les lieux sains que notre communauté adore en Suisse — et ajoutez les vôtres.",
+      "map.suggest":"Proposer un lieu","map.cancel":"Annuler",
+      "map.hint":"Touchez la carte pour placer un repère.",
+      "map.form.name":"Nom du lieu","map.form.city":"Ville","map.form.note":"Pourquoi est-il bien ? (facultatif)",
+      "map.form.email":"Votre e-mail (facultatif)","map.form.submit":"Envoyer",
+      "map.form.nopin":"Pas encore de repère — touchez la carte","map.form.pinset":"Repère placé ✓",
+      "map.needname":"Veuillez indiquer le nom du lieu.","map.success":"Merci ! Nous examinerons votre suggestion.",
+      "map.error":"Une erreur s'est produite. Veuillez réessayer.","map.empty":"Aucun lieu pour l'instant — soyez le premier !",
+      "map.rating":"note"
+    },
+    ru: {
+      "nav.map":"Карта","nav.blog":"Блог",
+      "map.tag":"Карта сообщества","map.title":"Хорошие места на карте",
+      "map.subtitle":"Открывайте полезные места, которые любит наше сообщество по всей Швейцарии — и добавляйте свои.",
+      "map.suggest":"Предложить место","map.cancel":"Отмена",
+      "map.hint":"Нажмите на карту, чтобы поставить метку.",
+      "map.form.name":"Название места","map.form.city":"Город","map.form.note":"Чем оно хорошо? (необязательно)",
+      "map.form.email":"Ваш e-mail (необязательно)","map.form.submit":"Отправить",
+      "map.form.nopin":"Метки пока нет — нажмите на карту","map.form.pinset":"Метка поставлена ✓",
+      "map.needname":"Укажите название места.","map.success":"Спасибо! Мы рассмотрим ваше предложение.",
+      "map.error":"Что-то пошло не так. Попробуйте ещё раз.","map.empty":"Мест пока нет — предложите первым!",
+      "map.rating":"рейтинг"
+    },
+    kk: {
+      "nav.map":"Карта","nav.blog":"Блог",
+      "map.tag":"Қауымдастық картасы","map.title":"Жақсы орындар картада",
+      "map.subtitle":"Қауымдастығымыз Швейцария бойынша ұнататын пайдалы орындарды ашыңыз — және өзіңіздікін қосыңыз.",
+      "map.suggest":"Орын ұсыну","map.cancel":"Болдырмау",
+      "map.hint":"Белгі қою үшін картаны түртіңіз.",
+      "map.form.name":"Орын атауы","map.form.city":"Қала","map.form.note":"Несімен жақсы? (міндетті емес)",
+      "map.form.email":"E-mail (міндетті емес)","map.form.submit":"Жіберу",
+      "map.form.nopin":"Белгі жоқ — картаны түртіңіз","map.form.pinset":"Белгі қойылды ✓",
+      "map.needname":"Орын атауын көрсетіңіз.","map.success":"Рақмет! Ұсынысыңызды қараймыз.",
+      "map.error":"Бірдеңе дұрыс болмады. Қайталап көріңіз.","map.empty":"Әзірге орын жоқ — бірінші болып ұсыныңыз!",
+      "map.rating":"рейтинг"
+    },
+    es: {
+      "nav.map":"Mapa","nav.blog":"Blog",
+      "map.tag":"Mapa comunitario","map.title":"Buenos lugares, en el mapa",
+      "map.subtitle":"Descubre lugares saludables que nuestra comunidad adora en Suiza — y añade los tuyos.",
+      "map.suggest":"Sugerir un lugar","map.cancel":"Cancelar",
+      "map.hint":"Toca el mapa para colocar un marcador.",
+      "map.form.name":"Nombre del lugar","map.form.city":"Ciudad","map.form.note":"¿Por qué es bueno? (opcional)",
+      "map.form.email":"Tu correo (opcional)","map.form.submit":"Enviar",
+      "map.form.nopin":"Aún sin marcador — toca el mapa","map.form.pinset":"Marcador colocado ✓",
+      "map.needname":"Indica el nombre del lugar.","map.success":"¡Gracias! Revisaremos tu sugerencia.",
+      "map.error":"Algo salió mal. Inténtalo de nuevo.","map.empty":"Aún no hay lugares — ¡sé el primero!",
+      "map.rating":"valoración"
+    }
+  };
+  var EXTRA_I18N_2 = {
+    en: {
+      "blog.tag":"Blog","blog.title":"Eat with understanding","blog.subtitle":"Practical, science-grounded nutrition — no fads, no guilt.","blog.all":"Read the blog",
+      "amb.tag":"Ambassadors","amb.form.title":"Apply to become an ambassador",
+      "amb.form.name":"Your name","amb.form.email":"Email","amb.form.social":"Instagram / TikTok / website","amb.form.message":"Tell us about you (optional)","amb.form.submit":"Apply",
+      "amb.success":"Thanks! We'll be in touch soon.","amb.error":"Something went wrong. Please try again.","amb.needfields":"Please add your name and email."
+    },
+    de: {
+      "blog.tag":"Blog","blog.title":"Iss mit Verständnis","blog.subtitle":"Praktische, wissenschaftlich fundierte Ernährung — ohne Diäten-Hype, ohne schlechtes Gewissen.","blog.all":"Zum Blog",
+      "amb.tag":"Botschafter","amb.form.title":"Werde Botschafter",
+      "amb.form.name":"Dein Name","amb.form.email":"E-Mail","amb.form.social":"Instagram / TikTok / Website","amb.form.message":"Erzähl uns von dir (optional)","amb.form.submit":"Bewerben",
+      "amb.success":"Danke! Wir melden uns bald.","amb.error":"Etwas ist schiefgelaufen. Bitte versuche es erneut.","amb.needfields":"Bitte gib Namen und E-Mail an."
+    },
+    fr: {
+      "blog.tag":"Blog","blog.title":"Manger en comprenant","blog.subtitle":"Une nutrition pratique et fondée sur la science — sans régimes ni culpabilité.","blog.all":"Voir le blog",
+      "amb.tag":"Ambassadeurs","amb.form.title":"Devenir ambassadeur",
+      "amb.form.name":"Votre nom","amb.form.email":"E-mail","amb.form.social":"Instagram / TikTok / site web","amb.form.message":"Parlez-nous de vous (facultatif)","amb.form.submit":"Postuler",
+      "amb.success":"Merci ! Nous vous contacterons bientôt.","amb.error":"Une erreur s'est produite. Veuillez réessayer.","amb.needfields":"Veuillez indiquer votre nom et votre e-mail."
+    },
+    ru: {
+      "blog.tag":"Блог","blog.title":"Есть осознанно","blog.subtitle":"Практичная нутрициология на научной основе — без диет-хайпа и чувства вины.","blog.all":"Читать блог",
+      "amb.tag":"Амбассадоры","amb.form.title":"Стать амбассадором",
+      "amb.form.name":"Ваше имя","amb.form.email":"E-mail","amb.form.social":"Instagram / TikTok / сайт","amb.form.message":"Расскажите о себе (необязательно)","amb.form.submit":"Оставить заявку",
+      "amb.success":"Спасибо! Скоро свяжемся с вами.","amb.error":"Что-то пошло не так. Попробуйте ещё раз.","amb.needfields":"Укажите имя и e-mail."
+    },
+    kk: {
+      "blog.tag":"Блог","blog.title":"Саналы тамақтаныңыз","blog.subtitle":"Ғылымға негізделген практикалық тамақтану — диета қуалаусыз және кінәсіз.","blog.all":"Блогты оқу",
+      "amb.tag":"Амбассадорлар","amb.form.title":"Амбассадор болу",
+      "amb.form.name":"Атыңыз","amb.form.email":"E-mail","amb.form.social":"Instagram / TikTok / сайт","amb.form.message":"Өзіңіз туралы айтыңыз (міндетті емес)","amb.form.submit":"Өтініш қалдыру",
+      "amb.success":"Рақмет! Жақында хабарласамыз.","amb.error":"Бірдеңе дұрыс болмады. Қайталап көріңіз.","amb.needfields":"Атыңыз бен e-mail көрсетіңіз."
+    },
+    es: {
+      "blog.tag":"Blog","blog.title":"Come con conocimiento","blog.subtitle":"Nutrición práctica y con base científica — sin dietas de moda ni culpa.","blog.all":"Leer el blog",
+      "amb.tag":"Embajadores","amb.form.title":"Hazte embajador",
+      "amb.form.name":"Tu nombre","amb.form.email":"Correo","amb.form.social":"Instagram / TikTok / sitio web","amb.form.message":"Cuéntanos sobre ti (opcional)","amb.form.submit":"Postular",
+      "amb.success":"¡Gracias! Te contactaremos pronto.","amb.error":"Algo salió mal. Inténtalo de nuevo.","amb.needfields":"Indica tu nombre y correo."
+    }
+  };
+  [EXTRA_I18N, EXTRA_I18N_2].forEach(function (extra) {
+    Object.keys(extra).forEach(function (l) {
+      if (!translations[l]) translations[l] = {};
+      var src = extra[l];
+      for (var k in src) { if (Object.prototype.hasOwnProperty.call(src, k)) translations[l][k] = src[k]; }
+    });
+  });
+
   var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var $ = function (sel, ctx) { return (ctx || document).querySelector(sel); };
   var $$ = function (sel, ctx) { return Array.prototype.slice.call((ctx || document).querySelectorAll(sel)); };
@@ -347,6 +474,131 @@
     });
   }
 
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  /* ---------------- Community places map (Leaflet + OpenStreetMap) ---------------- */
+  function initMap() {
+    var el = document.getElementById('placesMap');
+    if (!el || typeof window.L === 'undefined') return; // degrade gracefully if Leaflet is unavailable
+    var L = window.L;
+    var API = 'https://eatsense-production.up.railway.app';
+    function d(key) { var dd = translations[currentLang] || translations.en; return dd[key] || key; }
+
+    var map = L.map(el, { scrollWheelZoom: false }).setView([46.8, 8.23], 8); // Switzerland
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    setTimeout(function () { map.invalidateSize(); }, 300);
+
+    fetch(API + '/community/public/best-places?limit=300')
+      .then(function (r) { return r.ok ? r.json() : { data: [] }; })
+      .then(function (res) {
+        var places = (res && res.data) || [];
+        var bounds = [];
+        places.forEach(function (p) {
+          if (typeof p.latitude !== 'number' || typeof p.longitude !== 'number') return;
+          var rate = p.rating ? '<span class="mp-rate">★ ' + esc(p.rating) + '</span>' : '';
+          var sub = [p.city, p.cuisine].filter(Boolean).map(esc).join(' · ');
+          var note = p.note ? '<div class="mp-note">' + esc(p.note) + '</div>' : '';
+          var html = '<div class="mp-pop"><strong>' + esc(p.placeName || 'Place') + '</strong>' + rate +
+            (sub ? '<div class="mp-sub">' + sub + '</div>' : '') + note + '</div>';
+          L.marker([p.latitude, p.longitude]).addTo(map).bindPopup(html);
+          bounds.push([p.latitude, p.longitude]);
+        });
+        if (bounds.length > 1) { try { map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 }); } catch (e) {} }
+      })
+      .catch(function () {});
+
+    var suggestBtn = document.getElementById('suggestPlaceBtn');
+    var formWrap = document.getElementById('suggestForm');
+    var coordsLabel = document.getElementById('sp_coords');
+    var pinMarker = null, pinLatLng = null;
+    if (!suggestBtn || !formWrap) return;
+
+    suggestBtn.addEventListener('click', function () {
+      if (formWrap.hasAttribute('hidden')) { formWrap.removeAttribute('hidden'); suggestBtn.textContent = d('map.cancel'); }
+      else { formWrap.setAttribute('hidden', ''); suggestBtn.textContent = d('map.suggest'); }
+    });
+    map.on('click', function (e) {
+      if (formWrap.hasAttribute('hidden')) return;
+      pinLatLng = e.latlng;
+      if (pinMarker) pinMarker.setLatLng(e.latlng);
+      else { pinMarker = L.marker(e.latlng, { draggable: true }).addTo(map); pinMarker.on('dragend', function (ev) { pinLatLng = ev.target.getLatLng(); }); }
+      if (coordsLabel) { coordsLabel.textContent = d('map.form.pinset'); coordsLabel.classList.add('set'); }
+    });
+    formWrap.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var msg = document.getElementById('suggestMsg'); msg.className = 'waitlist-msg';
+      var name = (document.getElementById('sp_name').value || '').trim();
+      if (!name) { msg.textContent = d('map.needname'); msg.classList.add('err'); return; }
+      var payload = {
+        placeName: name,
+        city: (document.getElementById('sp_city').value || '').trim(),
+        note: (document.getElementById('sp_note').value || '').trim(),
+        email: (document.getElementById('sp_email').value || '').trim()
+      };
+      if (pinLatLng) { payload.latitude = pinLatLng.lat; payload.longitude = pinLatLng.lng; }
+      var submitBtn = formWrap.querySelector('button[type="submit"]'); submitBtn.disabled = true;
+      fetch(API + '/community/public/suggest-place', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      })
+        .then(function (r) { if (!r.ok) throw new Error('bad'); return r.json().catch(function () { return {}; }); })
+        .then(function () {
+          msg.textContent = d('map.success'); msg.classList.add('ok'); formWrap.reset();
+          if (pinMarker) { map.removeLayer(pinMarker); pinMarker = null; pinLatLng = null; }
+          if (coordsLabel) { coordsLabel.textContent = d('map.form.nopin'); coordsLabel.classList.remove('set'); }
+        })
+        .catch(function () { msg.textContent = d('map.error'); msg.classList.add('err'); })
+        .finally(function () { submitBtn.disabled = false; });
+    });
+  }
+
+  /* ---------------- Blog teaser (landing) ---------------- */
+  function initBlogTeaser() {
+    var grid = document.getElementById('blogTeaser');
+    if (!grid || !window.EATSENSE_BLOG) return;
+    var posts = window.EATSENSE_BLOG.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }).slice(0, 3);
+    function cover(h) { return 'linear-gradient(135deg, hsl(' + h + ',52%,42%), hsl(' + ((h + 26) % 360) + ',58%,32%))'; }
+    grid.innerHTML = posts.map(function (p) {
+      return '<a class="blog-card" href="/blog/?post=' + encodeURIComponent(p.slug) + '">' +
+        '<div class="blog-cover" style="background:' + cover(p.hue || 152) + '"><span class="blog-chip">' + esc(p.tag) + '</span></div>' +
+        '<div class="blog-card-body"><h3>' + esc(p.title) + '</h3><p>' + esc(p.excerpt) + '</p></div></a>';
+    }).join('');
+  }
+
+  /* ---------------- Ambassador application form ---------------- */
+  function initAmbassadorForm() {
+    var form = document.getElementById('ambForm');
+    if (!form) return;
+    var API = 'https://eatsense-production.up.railway.app';
+    var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    function d(key) { var dd = translations[currentLang] || translations.en; return dd[key] || key; }
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var msg = document.getElementById('ambMsg'); msg.className = 'waitlist-msg';
+      var name = (document.getElementById('amb_name').value || '').trim();
+      var email = (document.getElementById('amb_email').value || '').trim();
+      if (!name || !EMAIL_RE.test(email)) { msg.textContent = d('amb.needfields'); msg.classList.add('err'); return; }
+      var payload = {
+        name: name, email: email,
+        social: (document.getElementById('amb_social').value || '').trim(),
+        message: (document.getElementById('amb_message').value || '').trim()
+      };
+      var btn = form.querySelector('button[type="submit"]'); btn.disabled = true;
+      fetch(API + '/community/public/ambassador-apply', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      })
+        .then(function (r) { if (!r.ok) throw new Error('bad'); return r.json().catch(function () { return {}; }); })
+        .then(function () { msg.textContent = d('amb.success'); msg.classList.add('ok'); form.reset(); })
+        .catch(function () { msg.textContent = d('amb.error'); msg.classList.add('err'); })
+        .finally(function () { btn.disabled = false; });
+    });
+  }
+
   /* ---------------- Boot ---------------- */
   function boot() {
     initLang();
@@ -355,6 +607,9 @@
     initReveals();
     initSmoothScroll();
     initWaitlist();
+    initMap();
+    initBlogTeaser();
+    initAmbassadorForm();
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);

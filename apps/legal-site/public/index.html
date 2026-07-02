@@ -27,6 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preload" as="image" href="/images/eatsense.webp" type="image/webp">
     <link rel="stylesheet" href="/assets/styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
 <body>
 
@@ -42,6 +43,8 @@
                 <a href="#features" class="nav-link" data-i18n="nav.features">Features</a>
                 <a href="#programs" class="nav-link" data-i18n="nav.programs">Programs</a>
                 <a href="#pricing" class="nav-link" data-i18n="nav.pricing">Pricing</a>
+                <a href="#map" class="nav-link" data-i18n="nav.map">Map</a>
+                <a href="/blog/" class="nav-link" data-i18n="nav.blog">Blog</a>
                 <a href="#waitlist" class="nav-link nav-link--soon">Android</a>
                 <a href="/experts" class="nav-link" data-i18n="nav.experts">For Experts</a>
                 <a href="#download" class="btn btn-primary nav-menu-cta" data-i18n="nav.download">Get the App</a>
@@ -370,10 +373,55 @@
     </section>
 
     <!-- ===================== CREATORS ===================== -->
+    <!-- ===================== BLOG ===================== -->
+    <section class="section" id="blog">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="eyebrow" data-i18n="blog.tag">Blog</span>
+                <h2 class="section-title" data-i18n="blog.title">Eat with understanding</h2>
+                <p class="section-sub" data-i18n="blog.subtitle">Practical, science-grounded nutrition — no fads, no guilt.</p>
+            </div>
+            <div id="blogTeaser" class="blog-grid reveal"></div>
+            <div class="blog-teaser-foot reveal">
+                <a href="/blog/" class="btn btn-ghost" data-i18n="blog.all">Read the blog</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== COMMUNITY MAP ===================== -->
+    <section class="section" id="map" style="background:var(--base-2)">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="eyebrow" data-i18n="map.tag">Community map</span>
+                <h2 class="section-title" data-i18n="map.title">Good places, on the map</h2>
+                <p class="section-sub" data-i18n="map.subtitle">Discover healthy spots our community loves across Switzerland — and add your own.</p>
+            </div>
+            <div class="map-wrap reveal">
+                <div id="placesMap" class="places-map"></div>
+                <div class="map-panel">
+                    <div class="map-actions">
+                        <button id="suggestPlaceBtn" type="button" class="btn btn-primary" data-i18n="map.suggest">Suggest a place</button>
+                        <span class="map-hint" data-i18n="map.hint">Tap the map to drop a pin where the place is.</span>
+                    </div>
+                    <form id="suggestForm" class="suggest-form" hidden>
+                        <input id="sp_name" type="text" class="suggest-input" data-i18n-placeholder="map.form.name" placeholder="Place name" maxlength="120" />
+                        <input id="sp_city" type="text" class="suggest-input" data-i18n-placeholder="map.form.city" placeholder="City" maxlength="80" />
+                        <textarea id="sp_note" class="suggest-input" rows="2" data-i18n-placeholder="map.form.note" placeholder="Why is it good?" maxlength="600"></textarea>
+                        <input id="sp_email" type="email" class="suggest-input" data-i18n-placeholder="map.form.email" placeholder="Your email (optional)" maxlength="200" />
+                        <div id="sp_coords" class="suggest-coords" data-i18n="map.form.nopin">No pin yet — tap the map</div>
+                        <button type="submit" class="btn btn-primary" data-i18n="map.form.submit">Send suggestion</button>
+                        <div id="suggestMsg" class="waitlist-msg"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="section" id="influencers">
         <div class="container">
             <div class="creators-inner reveal">
                 <div class="creators-text">
+                    <span class="eyebrow" style="color:var(--accent)" data-i18n="amb.tag">Ambassadors</span>
                     <h2 data-i18n="influencers.title">Become an <em>Inspiration</em></h2>
                     <p data-i18n="influencers.subtitle">We're creating lifestyle programs inspired by health & fitness creators. Your philosophy. Your principles. Featured in our app.</p>
                     <ul class="creators-benefits">
@@ -382,7 +430,14 @@
                         <li><span class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span><span data-i18n="influencers.b3">Credit as inspiration source</span></li>
                         <li><span class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></span><span data-i18n="influencers.b4">No work required from you</span></li>
                     </ul>
-                    <a href="mailto:info@eatsense.ch" class="btn btn-primary" data-i18n="influencers.cta">Get in Touch</a>
+                    <form id="ambForm" class="amb-form">
+                        <input id="amb_name" type="text" class="amb-input" data-i18n-placeholder="amb.form.name" placeholder="Your name" maxlength="120" />
+                        <input id="amb_email" type="email" class="amb-input" data-i18n-placeholder="amb.form.email" placeholder="Email" maxlength="200" />
+                        <input id="amb_social" type="text" class="amb-input" data-i18n-placeholder="amb.form.social" placeholder="Instagram / TikTok / website" maxlength="200" />
+                        <textarea id="amb_message" class="amb-input" rows="2" data-i18n-placeholder="amb.form.message" placeholder="Tell us about you (optional)" maxlength="1000"></textarea>
+                        <button type="submit" class="btn btn-primary" data-i18n="amb.form.submit">Apply</button>
+                        <div id="ambMsg" class="waitlist-msg"></div>
+                    </form>
                 </div>
                 <div class="creators-visual">
                     <div class="creator-card"><div class="creator-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div class="creator-info"><h4 data-i18n="influencers.card1.title">Fitness Creators</h4><p data-i18n="influencers.card1.desc">Training + nutrition combined</p></div></div>
@@ -483,6 +538,8 @@
     <script defer src="/assets/vendor/gsap.min.js"></script>
     <script defer src="/assets/vendor/ScrollTrigger.min.js"></script>
     <script defer src="/assets/vendor/lenis.min.js"></script>
+    <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script defer src="/assets/blog-data.js"></script>
     <script defer src="/assets/main.js"></script>
 </body>
 </html>
