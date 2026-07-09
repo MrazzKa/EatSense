@@ -7,7 +7,7 @@ export const DAILY_LIMIT_KEY = 'dailyLimit';
 
 export interface DailyLimitOptions {
   limit?: number; // Optional: if not provided, uses FREE_DAILY_ANALYSES or PRO_DAILY_ANALYSES from env
-  resource: 'food' | 'chat';
+  resource: 'food' | 'chat' | 'fridge';
 }
 
 @Injectable()
@@ -67,8 +67,21 @@ export class DailyLimitGuard implements CanActivate {
       userLimit = isFreeUser ? freeDailyAnalyses : proDailyAnalyses;
     }
 
-    // Override with explicit limit from decorator if provided
-    const effectiveLimit = options.limit || (options.resource === 'food' ? userLimit : 10);
+    // Resolve the effective daily limit per resource.
+    // - food:   shared meal-analysis budget (free = FREE_DAILY_ANALYSES, pro = plan/PRO_DAILY_ANALYSES)
+    // - fridge: its OWN budget, separate from meal analysis (free = FREE_DAILY_FRIDGE_SCANS, default 1; pro = unlimited)
+    // - other:  generic default of 10
+    let effectiveLimit: number;
+    if (options.limit) {
+      effectiveLimit = options.limit;
+    } else if (options.resource === 'food') {
+      effectiveLimit = userLimit;
+    } else if (options.resource === 'fridge') {
+      const freeDailyFridge = parseInt(process.env.FREE_DAILY_FRIDGE_SCANS || '1', 10);
+      effectiveLimit = isFreeUser ? freeDailyFridge : proDailyAnalyses;
+    } else {
+      effectiveLimit = 10;
+    }
 
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const key = `daily:${options.resource}:${userId}:${today}`;
@@ -135,8 +148,9 @@ export class DailyLimitGuard implements CanActivate {
    * Counts today's Analysis rows for the user (food resource only — chat has no
    * persistent table to count from, so chat falls back to allowing the request).
    */
-  private async countTodayFromDb(userId: string, resource: 'food' | 'chat'): Promise<number> {
+  private async countTodayFromDb(userId: string, resource: 'food' | 'chat' | 'fridge'): Promise<number> {
     if (resource !== 'food') {
+      // chat/fridge have no persistent table to count from → allow when Redis is down.
       return 0;
     }
     const startOfDay = new Date();

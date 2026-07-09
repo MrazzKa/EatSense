@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { FoodController } from './food.controller';
 import { FoodService } from './food.service';
+import { FridgeController } from './fridge.controller';
+import { FridgeService } from './fridge.service';
 // NOTE: FoodAnalyzerModule removed - was dead code (injected but never called)
 // All food analysis now uses AnalysisModule (AnalyzeService + VisionService)
 import { AnalysisModule } from '../src/analysis/analysis.module';
@@ -24,8 +26,8 @@ import { MediaModule } from '../media/media.module';
     MealsModule,
     MediaModule,
   ],
-  controllers: [FoodController],
-  providers: [FoodService],
+  controllers: [FoodController, FridgeController],
+  providers: [FoodService, FridgeService],
   exports: [FoodService],
 })
 export class FoodModule {}

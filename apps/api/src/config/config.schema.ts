@@ -27,6 +27,8 @@ export const configSchema = Joi.object({
   NUTRITION_FEATURE_ENABLED: Joi.boolean().default(true),
   FREE_DAILY_ANALYSES: Joi.number().integer().min(0).default(1),
   PRO_DAILY_ANALYSES: Joi.number().integer().min(0).default(25),
+  // Fridge scan has its own daily budget, separate from meal analysis.
+  FREE_DAILY_FRIDGE_SCANS: Joi.number().integer().min(0).default(1),
   DISABLE_LIMITS: Joi.boolean().default(false),
   ADMIN_BYPASS_LIMITS: Joi.boolean().default(false),
   ADMIN_SECRET: Joi.string().optional().allow(''),

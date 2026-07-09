@@ -18,7 +18,11 @@ interface PendingMealCardProps {
     analysis: PendingAnalysis;
     onPress: () => void;
     onRetry?: () => void;
-
+    // When true, this card represents a meal already persisted in history (not a
+    // just-completed analysis). We hide the "just completed" green checkmark so it
+    // reads as a normal recent-meal row — the card keeps the same element identity
+    // across processing → completed → settled, so no unmount/remount flicker.
+    settled?: boolean;
 }
 
 /**
@@ -39,7 +43,7 @@ export function PendingMealCard({
     analysis,
     onPress,
     onRetry,
-
+    settled = false,
 }: PendingMealCardProps) {
     const { colors } = useTheme();
     const { t } = useI18n();
@@ -183,7 +187,9 @@ export function PendingMealCard({
                                 </Text>
                             )}
                         </View>
-                        <Ionicons name="checkmark-circle" size={24} color={colors.success || '#34C759'} />
+                        {!settled && (
+                            <Ionicons name="checkmark-circle" size={24} color={colors.success || '#34C759'} />
+                        )}
                     </View>
                 );
 

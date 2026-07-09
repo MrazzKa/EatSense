@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { ProfileAvatarButton } from '../components/ProfileAvatarButton';
 import { useTheme } from '../contexts/ThemeContext';
@@ -33,6 +33,7 @@ import DailyDietTracker from '../components/DailyDietTracker';
 import CircularProgressRing from '../components/CircularProgressRing';
 
 export default function TrackerScreen() {
+  const navigation = useNavigation<any>();
   const { colors, tokens } = useTheme();
   const { t, language } = useI18n();
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
@@ -315,6 +316,24 @@ export default function TrackerScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* ── FRIDGE → RECIPES ── */}
+          <View style={styles.sectionBlock}>
+            <TouchableOpacity
+              style={[styles.fridgeCta, { backgroundColor: colors.primary }]}
+              onPress={() => navigation.navigate('FridgeScan')}
+              activeOpacity={0.9}
+            >
+              <View style={styles.fridgeCtaIcon}>
+                <Ionicons name="camera" size={22} color="#FFF" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.fridgeCtaTitle}>{t('fridge.ctaTitle') || 'Photograph your fridge'}</Text>
+                <Text style={styles.fridgeCtaSubtitle}>{t('fridge.ctaSubtitle') || 'Get recipes from what you already have'}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.9)" />
+            </TouchableOpacity>
+          </View>
+
           {/* ── SHOPPING LIST ── */}
           <View style={styles.sectionBlock}>
             <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
@@ -456,6 +475,31 @@ const createStyles = (tokens: any, _colors: any) =>
     },
     sectionBlock: {
       marginBottom: tokens.spacing.xl || 32,
+    },
+    fridgeCta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderRadius: tokens.radii?.lg || 16,
+      padding: tokens.spacing.md || 16,
+    },
+    fridgeCtaIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: 'rgba(255,255,255,0.2)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: tokens.spacing.md || 14,
+    },
+    fridgeCtaTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: '#FFF',
+    },
+    fridgeCtaSubtitle: {
+      fontSize: 13,
+      color: 'rgba(255,255,255,0.9)',
+      marginTop: 2,
     },
     sectionLabel: {
       fontSize: 13,

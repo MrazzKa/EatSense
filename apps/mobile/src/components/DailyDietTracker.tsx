@@ -419,7 +419,7 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
                     {['energy', 'digestion', 'bloating', 'mood'].map((symptom) => (
                         <View key={symptom} style={styles.symptomRow}>
                             <Text style={[styles.symptomLabel, { color: colors.textSecondary }]}>
-                                {t(`diets.symptoms.${symptom}`)}
+                                {t(`diets_symptoms_${symptom}`)}
                             </Text>
                             <View style={styles.symptomButtons}>
                                 {[1, 2, 3, 4, 5].map((value) => (

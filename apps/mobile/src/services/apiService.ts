@@ -722,6 +722,41 @@ class ApiService {
     });
   }
 
+  // ── Fridge: photo → ingredients → recipes ────────────────────────────────
+  /**
+   * Scan a fridge/pantry photo → detected ingredient list.
+   * @returns {Promise<{ ingredients: Array<{ name: string; category?: string; quantityHint?: string }> }>}
+   */
+  async scanFridge(imageUri: string, locale?: string) {
+    const formData = new FormData();
+    formData.append('image', {
+      uri: imageUri,
+      type: 'image/jpeg',
+      name: 'fridge.jpg',
+    } as any);
+    if (locale) formData.append('locale', locale);
+    formData.append('platform', Platform.OS);
+
+    const headers = this.getHeaders();
+    delete headers['Content-Type']; // let fetch set multipart boundary
+    return this.request('/food/fridge/scan', {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+  }
+
+  /**
+   * Get recipes cookable from the confirmed ingredient list.
+   * @returns {Promise<{ recipes: Array<any> }>}
+   */
+  async getFridgeRecipes(ingredients: string[], locale?: string) {
+    return this.request('/food/fridge/recipes', {
+      method: 'POST',
+      body: JSON.stringify({ ingredients, locale: locale || 'en' }),
+    });
+  }
+
   /**
    * Analyze food from text description
    * @param {string} text - Food description text

@@ -816,6 +816,96 @@ export default function DashboardScreen() {
     bridgeTimersRef.current = {};
   }, []);
 
+  // ── Unified diary meal pipeline ──────────────────────────────────────────
+  // A single meal used to be rendered by three different components across its
+  // lifecycle — pending PendingMealCard (key `analysis.id`) → bridge PendingMealCard
+  // (key `bridge-…`) → recent-item row (key `item.id`). Every hand-off was an
+  // unmount+remount, so the card visibly blinked, and if AnalysisContext removed
+  // the pending card before the real meal landed there was an outright 1-2s gap.
+  //
+  // Fix: merge pending + bridge + recent into ONE ordered list, deduplicated by a
+  // STABLE identity (analysisId, else id), and render every entry through the SAME
+  // component (PendingMealCard) with that stable key. Because the element type and
+  // key never change as a meal moves processing → completed → settled, React reuses
+  // the same node — the card morphs its content in place with zero remount and zero
+  // gap. `settled` final rows hide the "just completed" checkmark so history keeps
+  // its normal look.
+  const stableKeyOf = React.useCallback((x: any): string => {
+    return String(x?.analysisId || x?.id || '');
+  }, []);
+
+  // Convert a persisted recent meal into the PendingMealCard `analysis` shape so a
+  // just-completed card can hand off to its history row without changing type/key.
+  const recentItemToAnalysis = React.useCallback((item: any): any => ({
+    id: stableKeyOf(item),
+    analysisId: item.analysisId,
+    status: 'completed',
+    imageUrl: getItemImageUrl(item),
+    dishName: item.name || item.dishName,
+    calories: item.totalCalories ?? item.calories ?? 0,
+    protein: item.totalProtein ?? item.protein ?? 0,
+    carbs: item.totalCarbs ?? item.carbs ?? 0,
+    fat: item.totalFat ?? item.fat ?? 0,
+    startedAt: item.createdAt ? new Date(item.createdAt).getTime() : Date.now(),
+    updatedAt: Date.now(),
+    pollAttempts: 0,
+  }), [stableKeyOf]);
+
+  // In-flight cards: processing / failed / needs_review / just-completed (pending)
+  // plus bridge cards (completed, awaiting their history row). Deduped by stable key;
+  // a bridge whose meal has already landed in recentItems is dropped (its history
+  // row takes over the same key seamlessly).
+  const pendingCards = useMemo(() => {
+    const cards: Array<{ key: string; analysis: any }> = [];
+    const seen = new Set<string>();
+    for (const a of pendingAnalyses) {
+      const key = stableKeyOf(a);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      cards.push({ key, analysis: a });
+    }
+    const recentIds = new Set(
+      (recentItems || []).map((i: any) => String(i.analysisId || '')).filter(Boolean)
+    );
+    for (const b of bridgeAnalyses) {
+      const key = stableKeyOf(b);
+      if (!key || seen.has(key) || recentIds.has(key)) continue;
+      seen.add(key);
+      cards.push({ key, analysis: { ...b, status: 'completed' } });
+    }
+    return cards;
+  }, [pendingAnalyses, bridgeAnalyses, recentItems, stableKeyOf]);
+
+  // Settled history rows, deduped against in-flight cards (by id, image URL, or —
+  // only for anonymous items lacking both — timestamp proximity to a pending one).
+  const finalCards = useMemo(() => {
+    const normalizeImageUrl = (url: any) => {
+      if (!url) return null;
+      try { return String(url).split('?')[0]; } catch { return url; }
+    };
+    const pendingKeys = new Set(pendingCards.map(c => c.key));
+    const pendingImageUrls = new Set(
+      pendingCards
+        .map(c => normalizeImageUrl(c.analysis.localPreviewUri) || normalizeImageUrl(c.analysis.imageUrl))
+        .filter(Boolean)
+    );
+    const pendingTimestamps = pendingCards
+      .map(c => (c.analysis.startedAt ? Number(c.analysis.startedAt) : null))
+      .filter(Boolean) as number[];
+    const filtered = (recentItems || []).filter((item: any) => {
+      const key = stableKeyOf(item);
+      if (key && pendingKeys.has(key)) return false;
+      const itemImageUrl = normalizeImageUrl(item.imageUrl || item.imageUri);
+      if (itemImageUrl && pendingImageUrls.has(itemImageUrl)) return false;
+      if (!item.analysisId && !itemImageUrl && item.createdAt) {
+        const itemTs = new Date(item.createdAt).getTime();
+        if (pendingTimestamps.some(pts => Math.abs(itemTs - pts) < 60000)) return false;
+      }
+      return true;
+    });
+    return filtered.map((item: any) => ({ key: stableKeyOf(item), item }));
+  }, [recentItems, pendingCards, stableKeyOf]);
+
   // Removed unused formatTime and formatDate functions
 
   // Check if daily limit reached - ENABLED
@@ -1221,139 +1311,62 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Pending Analyses - Show processing cards at the top */}
-          {pendingAnalyses && pendingAnalyses.length > 0 && (
-            pendingAnalyses.map((analysis) => (
-              <PendingMealCard
-                key={analysis.id}
-                analysis={analysis}
-                onPress={() => {
-                  if (navigation && typeof navigation.navigate === 'function') {
-                    navigation.navigate('AnalysisResults', {
-                      analysisId: analysis.analysisId,
-                      status: analysis.status,
-                      localPreviewUri: analysis.localPreviewUri,
-                    });
-                  }
-                }}
-                onRetry={() => retryAnalysis(analysis.analysisId)}
-                onDelete={() => removePendingAnalysis(analysis.analysisId)}
-              />
-            ))
-          )}
-
-          {/* Bridge cards: keep a completed meal visible until its real entry lands
-              in recentItems, so the card never disappears after analysis. */}
-          {bridgeAnalyses && bridgeAnalyses.length > 0 && (() => {
-            const recentIds = new Set((recentItems || []).map((i: any) => i.analysisId).filter(Boolean));
-            const stillPending = new Set(pendingAnalyses.map(a => a.analysisId));
-            const toShow = bridgeAnalyses.filter(
-              (b: any) => b.analysisId && !recentIds.has(b.analysisId) && !stillPending.has(b.analysisId)
-            );
-            return toShow.map((analysis: any) => (
-              <PendingMealCard
-                key={`bridge-${analysis.analysisId}`}
-                analysis={analysis}
-                onPress={() => {
-                  if (navigation && typeof navigation.navigate === 'function') {
-                    navigation.navigate('AnalysisResults', {
-                      analysisId: analysis.analysisId,
-                      status: 'completed',
-                      localPreviewUri: analysis.localPreviewUri,
-                    });
-                  }
-                }}
-                onDelete={() => setBridgeAnalyses(prev => prev.filter((b: any) => b.analysisId !== analysis.analysisId))}
-              />
-            ));
-          })()}
-
-          {/* FIX #2: Removed justCompletedItems display - now showing only pendingAnalyses and recentItems */}
-          {/* Completed meals - filter out items that are in pendingAnalyses to avoid duplicates */}
+          {/* Unified diary meals — one PendingMealCard per meal, keyed by a stable
+              identity, so a meal never unmounts as it goes processing → completed →
+              settled. In-flight cards (pendingCards) render first; settled history
+              rows (finalCards) follow. This removes the old blink + 1-2s gap. */}
           {(() => {
-            const normalizeImageUrl = (url) => {
-              if (!url) return null;
-              try { return url.split('?')[0]; } catch { return url; }
-            };
-            const pendingIds = new Set(pendingAnalyses.map(a => a.analysisId));
-            const pendingImageUrls = new Set(
-              pendingAnalyses
-                .map(a => normalizeImageUrl(a.localPreviewUri) || normalizeImageUrl(a.imageUrl))
-                .filter(Boolean)
-            );
-            const pendingTimestamps = pendingAnalyses
-              .map(a => a.createdAt ? new Date(a.createdAt).getTime() : null)
-              .filter(Boolean);
-            const filteredItems = (recentItems || []).filter(item => {
-              // Filter by ID - don't show if already in pendingAnalyses
-              if (item.analysisId && pendingIds.has(item.analysisId)) return false;
-              // Filter by image URL (catch duplicates even if IDs differ, strip query params)
-              const itemImageUrl = normalizeImageUrl(item.imageUrl || item.imageUri);
-              if (itemImageUrl && pendingImageUrls.has(itemImageUrl)) return false;
-              // Timestamp-proximity dedup ONLY for ambiguous items that have neither a
-              // stable analysisId nor an image URL — otherwise a freshly-completed meal
-              // whose createdAt is within 60s of an UNRELATED still-pending analysis would
-              // be wrongly hidden (root cause of "meal disappears right after analysis").
-              if (!item.analysisId && !itemImageUrl && item.createdAt) {
-                const itemTs = new Date(item.createdAt).getTime();
-                if (pendingTimestamps.some(pts => Math.abs(itemTs - pts) < 60000)) return false;
-              }
-              return true;
-            });
-            return filteredItems.length > 0 ? (
+            const visible = [...pendingCards, ...finalCards.slice(0, 3)];
+            if (visible.length === 0) {
+              return (
+                <View style={styles.recentEmpty}>
+                  <Ionicons name="restaurant" size={48} color={colors.textTertiary} />
+                  <Text style={styles.recentEmptyText}>{t('dashboard.recentEmptyTitle')}</Text>
+                  <Text style={styles.recentEmptySubtext}>{t('dashboard.recentEmptySubtitle')}</Text>
+                </View>
+              );
+            }
+            return (
               <>
-                {filteredItems.slice(0, 3).map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={styles.articleRow}
-                    onPress={() => {
-                      if (navigation && typeof navigation.navigate === 'function') {
-                        // Note: removed readOnly: true to enable ingredient editing
-                        navigation.navigate('AnalysisResults', { analysisResult: item });
-                      }
-                    }}
-                  >
-                    {getItemImageUrl(item) ? (
-                      <Image
-                        source={{ uri: getItemImageUrl(item) }}
-                        style={styles.recentItemImage}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <View style={styles.recentItemImagePlaceholder}>
-                        <Ionicons name="restaurant" size={24} color={colors.textTertiary} />
-                      </View>
-                    )}
-                    <View style={{ flex: 1, marginLeft: tokens.spacing.md }}>
-                      <Text numberOfLines={1} style={styles.articleRowTitle}>{item.name || item.dishName || t('dashboard.mealFallback')}</Text>
-                      <Text numberOfLines={1} style={styles.articleRowExcerpt}>
-                        {formatCalories(item.totalCalories ?? item.calories ?? 0)} · {t('analysis.proteinShort') || 'P'} {formatMacro(item.totalProtein ?? item.protein ?? 0)} · {t('analysis.carbsShort') || 'C'} {formatMacro(item.totalCarbs ?? item.carbs ?? 0)} · {t('analysis.fatShort') || 'F'} {formatMacro(item.totalFat ?? item.fat ?? 0)}
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-                  </TouchableOpacity>
-                ))}
+                {visible.map((card: any) => {
+                  const isFinal = 'item' in card;
+                  const analysis = isFinal ? recentItemToAnalysis(card.item) : card.analysis;
+                  return (
+                    <PendingMealCard
+                      key={card.key}
+                      analysis={analysis}
+                      settled={isFinal}
+                      onPress={() => {
+                        if (navigation && typeof navigation.navigate === 'function') {
+                          if (isFinal) {
+                            navigation.navigate('AnalysisResults', { analysisResult: card.item });
+                          } else {
+                            navigation.navigate('AnalysisResults', {
+                              analysisId: card.analysis.analysisId,
+                              status: card.analysis.status,
+                              localPreviewUri: card.analysis.localPreviewUri,
+                            });
+                          }
+                        }
+                      }}
+                      onRetry={!isFinal ? () => retryAnalysis(card.analysis.analysisId) : undefined}
+                    />
+                  );
+                })}
 
-                {/* FIX 3: Show "View All" button if > 3 items */}
-                {filteredItems.length > 3 && (
+                {finalCards.length > 3 && (
                   <TouchableOpacity
                     style={styles.showAllButton}
                     onPress={() => navigation.navigate('MealHistory', { date: selectedDate.toISOString() })}
                   >
                     <Text style={styles.showAllText}>
-                      {t('dashboard.showAllMeals', { count: filteredItems.length }) || `Show all (${filteredItems.length})`}
+                      {t('dashboard.showAllMeals', { count: finalCards.length }) || `Show all (${finalCards.length})`}
                     </Text>
                     <Ionicons name="chevron-forward" size={16} color={colors.primary} />
                   </TouchableOpacity>
                 )}
               </>
-            ) : !pendingAnalyses || pendingAnalyses.length === 0 ? (
-              <View style={styles.recentEmpty}>
-                <Ionicons name="restaurant" size={48} color={colors.textTertiary} />
-                <Text style={styles.recentEmptyText}>{t('dashboard.recentEmptyTitle')}</Text>
-                <Text style={styles.recentEmptySubtext}>{t('dashboard.recentEmptySubtitle')}</Text>
-              </View>
-            ) : null;
+            );
           })()}
         </Animated.View>
 
