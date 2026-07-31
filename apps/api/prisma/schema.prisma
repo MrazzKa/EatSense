@@ -83,6 +83,13 @@ model User {
   // Mascot
   mascot UserMascot?
 
+  // Fridge ("what can I cook") — scan history & saved recipes
+  fridgeScans   FridgeScan[]
+  fridgeRecipes FridgeRecipe[]
+
+  // Apple Health / Health Connect
+  healthDailyMetrics HealthDailyMetric[]
+
   @@map("users")
 }
 
@@ -490,9 +497,16 @@ model UserStats {
   @@map("user_stats")
 }
 
+/// "The model said X, the user said Y" — the training/eval signal behind the
+/// Correct button. Written by AnalysisCorrectionService.
+///
+/// `userId` is NULLABLE on purpose: by default a correction is stored fully
+/// ANONYMOUSLY (text and numbers only, no link to a person), which needs no
+/// consent under GDPR/FADP. It is filled in only for users who explicitly opted
+/// into the "help improve accuracy" toggle.
 model AnalysisCorrection {
   id                String   @id @default(cuid())
-  userId            String
+  userId            String?
   analysisId        String?
   mealId            String?
   itemId            String?
@@ -511,7 +525,7 @@ model AnalysisCorrection {
   correctionType    String   @map("correction_type")
   foodCategory      String?  @map("food_category")
   createdAt         DateTime @default(now()) @map("created_at")
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([analysisId])
@@ -519,6 +533,91 @@ model AnalysisCorrection {
   @@index([correctionType])
   @@index([foodCategory])
   @@map("analysis_corrections")
+}
+
+/// One "photograph your fridge" scan. We deliberately do NOT store the photo —
+/// only the recognized inventory — so the history costs almost nothing and
+/// carries no image data (see docs/plans/2026-07-08-fridge-recipes.md).
+///
+/// Doubles as the DB-backed counter for DailyLimitGuard: before this table
+/// existed the fridge quota silently failed OPEN whenever Redis was down.
+model FridgeScan {
+  id             String   @id @default(cuid())
+  userId         String
+  /// FridgeIngredient[] as returned to the client (after the user's edits, if any).
+  ingredients    Json
+  /// How many items the model detected vs. how many the user ended up with.
+  /// The difference is a free, labeled correction signal for the vision model.
+  detectedCount  Int      @default(0) @map("detected_count")
+  editedCount    Int      @default(0) @map("edited_count")
+  locale         String   @default("en")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipes FridgeRecipe[]
+
+  @@index([userId, createdAt])
+  @@map("fridge_scans")
+}
+
+/// A recipe generated from a fridge scan (or from a hand-typed ingredient list,
+/// in which case scanId is null). Kept so the user can favourite it, re-open it
+/// later and log it to the diary.
+model FridgeRecipe {
+  id              String    @id @default(cuid())
+  userId          String
+  scanId          String?   @map("scan_id")
+  title           String
+  usesIngredients Json      @map("uses_ingredients")
+  alsoNeed        Json      @map("also_need")
+  calories        Float     @default(0)
+  protein         Float     @default(0)
+  carbs           Float     @default(0)
+  fat             Float     @default(0)
+  timeMinutes     Int?      @map("time_minutes")
+  steps           Json
+  isFavorite      Boolean   @default(false) @map("is_favorite")
+  cookedCount     Int       @default(0) @map("cooked_count")
+  lastCookedAt    DateTime? @map("last_cooked_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scan FridgeScan? @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, isFavorite])
+  @@index([scanId])
+  @@map("fridge_recipes")
+}
+
+/// One day of activity read from Apple Health / Health Connect and pushed up by
+/// the app (HealthKit is device-only — the server can never fetch this itself).
+///
+/// Stored server-side so the daily calorie target can follow real activity, so a
+/// linked expert can see it (with consent), and so the history survives a device
+/// change. Every field is nullable: users grant permissions selectively and a
+/// missing metric is normal, not an error.
+model HealthDailyMetric {
+  id                String   @id @default(cuid())
+  userId            String
+  /// Local calendar day, YYYY-MM-DD — NOT a timestamp. Activity belongs to the
+  /// day the user lived, not to a UTC instant.
+  date              String
+  steps             Int?
+  activeEnergyKcal  Int?     @map("active_energy_kcal")
+  restingEnergyKcal Int?     @map("resting_energy_kcal")
+  workoutMinutes    Int?     @map("workout_minutes")
+  sleepMinutes      Int?     @map("sleep_minutes")
+  restingHeartRate  Int?     @map("resting_heart_rate")
+  /// 'apple-health' | 'health-connect'
+  source            String
+  syncedAt          DateTime @default(now()) @map("synced_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@map("health_daily_metrics")
 }
 
 // P3.1: Medication Schedule Model (legacy - kept for backward compatibility)

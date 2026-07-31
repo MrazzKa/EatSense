@@ -45,6 +45,7 @@ const TYPE_KEYS: Record<string, string> = {
     gp: 'experts.typeGp',
     psychologist: 'experts.typePsychologist',
     endocrinologist: 'experts.typeEndocrinologist',
+    gastroenterologist: 'experts.typeGastroenterologist',
     other: 'experts.typeOther',
 };
 

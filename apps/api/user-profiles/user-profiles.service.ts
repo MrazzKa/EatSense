@@ -2,7 +2,9 @@ import { Injectable, NotFoundException, BadRequestException, Logger } from '@nes
 import { PrismaService } from '../prisma.service';
 import { CacheService } from '../src/cache/cache.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateConsentsDto } from './dto/update-consents.dto';
 import { normalizeSupportedCountryCode } from '../src/common/country-codes';
+import { calculateDailyCalories } from '../src/common/daily-calories.util';
 
 @Injectable()
 export class UserProfilesService {
@@ -23,6 +25,76 @@ export class UserProfilesService {
       select: { id: true },
     });
     return Boolean(subscription);
+  }
+
+  /**
+   * Read the user's granular privacy consents. All default to false — nothing is
+   * shared or linked unless the user turned it on.
+   */
+  async getConsents(userId: string): Promise<Required<UpdateConsentsDto>> {
+    const profile = await this.prisma.userProfile
+      .findUnique({ where: { userId }, select: { preferences: true } })
+      .catch(() => null);
+    const prefs = ((profile?.preferences as any) || {}) as Record<string, any>;
+    return {
+      improveAccuracy: prefs.improveAccuracy === true,
+      healthAiContext: prefs.healthAiContext === true,
+      healthShareWithExpert: prefs.healthShareWithExpert === true,
+    };
+  }
+
+  /**
+   * Update consents by MERGING into preferences.
+   *
+   * Deliberately not routed through `updateProfile`: that method assigns
+   * `preferences` wholesale, so a partial write there would drop the user's
+   * allergies and dietary preferences.
+   *
+   * Withdrawing `improveAccuracy` also un-links every correction already stored
+   * for this user — the rows stay in the dataset, but anonymously, which is what
+   * "withdraw consent" has to mean in practice.
+   */
+  async updateConsents(userId: string, dto: UpdateConsentsDto) {
+    const profile = await this.prisma.userProfile.findUnique({
+      where: { userId },
+      select: { id: true, preferences: true },
+    });
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    const existing =
+      typeof profile.preferences === 'object' && profile.preferences !== null
+        ? (profile.preferences as Record<string, any>)
+        : {};
+
+    const next = { ...existing };
+    for (const key of ['improveAccuracy', 'healthAiContext', 'healthShareWithExpert'] as const) {
+      if (dto[key] !== undefined) next[key] = Boolean(dto[key]);
+    }
+
+    await this.prisma.userProfile.update({
+      where: { id: profile.id },
+      data: { preferences: next },
+    });
+
+    if (dto.improveAccuracy === false && existing.improveAccuracy === true) {
+      try {
+        const { count } = await this.prisma.analysisCorrection.updateMany({
+          where: { userId },
+          data: { userId: null, analysisId: null, mealId: null, itemId: null },
+        });
+        this.logger.log(`[consents] anonymized ${count} corrections after consent withdrawal userId=${userId}`);
+      } catch (e: any) {
+        this.logger.error(`[consents] failed to anonymize corrections for userId=${userId}: ${e?.message}`);
+      }
+    }
+
+    try {
+      await this.cache.invalidateNamespace('profile' as any, userId);
+    } catch {}
+
+    return this.getConsents(userId);
   }
 
   async createProfile(userId: string, profileData: any) {
@@ -433,41 +505,9 @@ export class UserProfilesService {
     }
   }
 
+  /** Delegates to the shared util so the health-store weight sync uses the same formula. */
   private calculateDailyCalories(profile: any): number {
-    const { height, weight, age, gender, activityLevel } = profile;
-    
-    if (!height || !weight || !age || !gender || !activityLevel) {
-      return 2000; // Default value
-    }
-
-    // Calculate BMR using Mifflin-St Jeor Equation
-    let bmr;
-    if (gender === 'male') {
-      bmr = 10 * weight + 6.25 * height - 5 * age + 5;
-    } else {
-      bmr = 10 * weight + 6.25 * height - 5 * age - 161;
-    }
-
-    // Apply activity level multiplier
-    const activityMultipliers = {
-      sedentary: 1.2,
-      lightly_active: 1.375,
-      moderately_active: 1.55,
-      very_active: 1.725,
-      extremely_active: 1.9,
-    };
-
-    const multiplier = (activityMultipliers as Record<string, number>)[activityLevel] || 1.2;
-    const tdee = bmr * multiplier;
-
-    // Goal-aware target: apply a moderate deficit/surplus so the calorie goal
-    // actually reflects the user's weight goal. Previously this returned pure TDEE,
-    // so weight-loss users got maintenance calories everywhere (dashboard ring,
-    // AI assistant, reports). 15% deficit / 10% surplus, with a safe 1200 floor.
-    const goalFactor = profile.goal === 'lose_weight' ? 0.85
-      : profile.goal === 'gain_weight' ? 1.10
-        : 1.0;
-    return Math.max(1200, Math.round(tdee * goalFactor));
+    return calculateDailyCalories(profile);
   }
 
   private mergePreferences(

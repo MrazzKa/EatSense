@@ -2,6 +2,7 @@ import { Controller, Post, Get, Put, Body, UseGuards, Request, Logger } from '@n
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UserProfilesService } from './user-profiles.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateConsentsDto } from './dto/update-consents.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('User Profiles')
@@ -38,6 +39,26 @@ export class UserProfilesController {
     const userId = req.user.id;
     this.logger.log(`[user-profiles] PUT update userId=${userId}`);
     return this.userProfilesService.updateProfile(userId, dto);
+  }
+
+  @Get('consents')
+  @ApiOperation({ summary: 'Read granular privacy consents (all default to false)' })
+  @ApiResponse({ status: 200, description: 'Consents retrieved successfully' })
+  async getConsents(@Request() req: any) {
+    return this.userProfilesService.getConsents(req.user.id);
+  }
+
+  @Put('consents')
+  @ApiOperation({
+    summary: 'Update granular privacy consents',
+    description:
+      'Merges into preferences — unlike PUT /user-profiles, which replaces the whole preferences object. Turning off improveAccuracy also anonymizes corrections already stored for this user.',
+  })
+  @ApiResponse({ status: 200, description: 'Consents updated successfully' })
+  async updateConsents(@Request() req: any, @Body() dto: UpdateConsentsDto) {
+    const userId = req.user.id;
+    this.logger.log(`[user-profiles] PUT consents userId=${userId}`);
+    return this.userProfilesService.updateConsents(userId, dto);
   }
 
   @Post('complete-onboarding')

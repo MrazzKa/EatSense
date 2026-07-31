@@ -748,12 +748,116 @@ class ApiService {
 
   /**
    * Get recipes cookable from the confirmed ingredient list.
+   *
+   * Passing `scanId` links the recipes to the history entry AND records the edits
+   * the user made to the detected chips (a correction signal for the model).
+   * Passing `excludeTitles` asks for a different set ("show me more").
    * @returns {Promise<{ recipes: Array<any> }>}
    */
-  async getFridgeRecipes(ingredients: string[], locale?: string) {
+  async getFridgeRecipes(
+    ingredients: string[],
+    locale?: string,
+    opts?: { scanId?: string; excludeTitles?: string[] },
+  ) {
     return this.request('/food/fridge/recipes', {
       method: 'POST',
-      body: JSON.stringify({ ingredients, locale: locale || 'en' }),
+      body: JSON.stringify({
+        ingredients,
+        locale: locale || 'en',
+        ...(opts?.scanId ? { scanId: opts.scanId } : {}),
+        ...(opts?.excludeTitles?.length ? { excludeTitles: opts.excludeTitles } : {}),
+      }),
+    });
+  }
+
+  /** Past fridge scans with their recipes. Free tier gets the most recent few. */
+  async getFridgeHistory(limit = 30, offset = 0) {
+    return this.request(`/food/fridge/history?limit=${limit}&offset=${offset}`);
+  }
+
+  /** One past scan with its recipes. */
+  async getFridgeScan(scanId: string) {
+    return this.request(`/food/fridge/history/${scanId}`);
+  }
+
+  /** Delete a past scan (and its recipes). */
+  async deleteFridgeScan(scanId: string) {
+    return this.request(`/food/fridge/history/${scanId}`, { method: 'DELETE' });
+  }
+
+  /** Saved favourite recipes. */
+  async getFridgeFavorites() {
+    return this.request('/food/fridge/favorites');
+  }
+
+  /** Toggle a recipe as favourite. Returns `{ isFavorite, limitReached }`. */
+  async toggleFridgeFavorite(recipeId: string) {
+    return this.request(`/food/fridge/recipes/${recipeId}/favorite`, { method: 'POST' });
+  }
+
+  /** "I cooked this" → logs the recipe to the diary as a meal. */
+  async cookFridgeRecipe(recipeId: string, mealType?: string) {
+    return this.request(`/food/fridge/recipes/${recipeId}/cook`, {
+      method: 'POST',
+      body: JSON.stringify({ mealType: mealType || 'MEAL' }),
+    });
+  }
+
+  // ── Health metrics (Apple Health / Health Connect) ───────────────────────
+  /**
+   * Push daily activity read from the device's health store.
+   *
+   * The server can never read HealthKit / Health Connect itself, so this upload
+   * is what lets the calorie target follow real activity and lets a linked
+   * expert see it.
+   */
+  async syncHealthMetrics(payload: {
+    source: 'apple-health' | 'health-connect';
+    days: {
+      date: string;
+      steps?: number;
+      activeEnergyKcal?: number;
+      restingEnergyKcal?: number;
+      workoutMinutes?: number;
+      sleepMinutes?: number;
+      restingHeartRate?: number;
+    }[];
+    weightKg?: number;
+    weightAt?: string;
+  }) {
+    return this.request('/health-metrics/sync', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /** Read back synced daily activity (defaults to the last 30 days). */
+  async getHealthMetrics(from?: string, to?: string) {
+    const params = new URLSearchParams();
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    const query = params.toString();
+    return this.request(`/health-metrics${query ? `?${query}` : ''}`);
+  }
+
+  // ── Privacy consents ─────────────────────────────────────────────────────
+  /** Read granular privacy consents (all default to false). */
+  async getConsents() {
+    return this.request('/user-profiles/consents');
+  }
+
+  /**
+   * Update privacy consents. MERGES — safe to send a single flag, unlike
+   * updateProfile which replaces the whole preferences object.
+   */
+  async updateConsents(consents: {
+    improveAccuracy?: boolean;
+    healthAiContext?: boolean;
+    healthShareWithExpert?: boolean;
+  }) {
+    return this.request('/user-profiles/consents', {
+      method: 'PUT',
+      body: JSON.stringify(consents),
     });
   }
 
@@ -1091,6 +1195,15 @@ class ApiService {
       const params = new URLSearchParams();
       if (date) {
         params.append('date', date.toISOString());
+        // Also send the LOCAL calendar day. Health activity is stored per local
+        // day, and the ISO instant above resolves to the previous day on the
+        // server for anyone ahead of UTC (e.g. 02:00 in Almaty), which would
+        // silently drop the activity bonus from the calorie goal.
+        const d = date instanceof Date ? date : new Date(date);
+        if (!isNaN(d.getTime())) {
+          const localDay = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          params.append('localDate', localDay);
+        }
       }
       if (locale) {
         params.append('locale', locale);

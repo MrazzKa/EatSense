@@ -1,0 +1,34 @@
+[
+  {
+    "id": "beshbarmak-01",
+    "image": "images/beshbarmak-01.jpg",
+    "locale": "ru",
+    "cuisine": "local",
+    "expected": {
+      "dishName": "Бешбармак",
+      "dishAliases": ["Beshbarmak", "Бесбармак", "Ет"],
+      "components": ["мясо", "тесто", "лук"],
+      "portionG": 350,
+      "calories": 520,
+      "protein": 34,
+      "carbs": 45,
+      "fat": 22
+    }
+  },
+  {
+    "id": "greek-salad-01",
+    "image": "images/greek-salad-01.jpg",
+    "locale": "en",
+    "cuisine": "western",
+    "expected": {
+      "dishName": "Greek salad",
+      "dishAliases": ["Greek village salad", "Horiatiki"],
+      "components": ["tomato", "cucumber", "feta", "olive", "onion"],
+      "portionG": 280,
+      "calories": 230,
+      "protein": 8,
+      "carbs": 12,
+      "fat": 17
+    }
+  }
+]

@@ -1,0 +1,6 @@
+
+# Vision eval harness: the golden set references real user photos, and results
+# are per-machine run artifacts. The example file and the runner are tracked.
+scripts/eval/golden-set.json
+scripts/eval/images/
+scripts/eval/results/

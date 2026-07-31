@@ -48,6 +48,7 @@ import { ReferralsModule } from './src/referrals/referrals.module';
 import { ReportsModule } from './src/reports/reports.module';
 import { SafetyModule } from './src/safety/safety.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { HealthMetricsModule } from './health-metrics/health-metrics.module';
 import { SubscriptionsModule } from './src/subscriptions/subscriptions.module';
 import { PharmacyModule } from './src/pharmacy/pharmacy.module';
 import { CommunityModule } from './src/community/community.module';
@@ -133,6 +134,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
     ReportsModule,
     SafetyModule,
     DashboardModule,
+    HealthMetricsModule,
     SubscriptionsModule,
     PharmacyModule,
     CommunityModule,

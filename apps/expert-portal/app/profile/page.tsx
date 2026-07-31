@@ -9,7 +9,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { useToast } from '@/components/toast';
 import { LOCALES, SPECIALIZATION_KEYS, type Locale, type SpecializationKey } from '@/lib/i18n/messages';
 
-const EXPERT_TYPES = ['nutritionist', 'dietitian', 'obgyn', 'pediatrician', 'gp', 'psychologist', 'endocrinologist', 'other'] as const;
+const EXPERT_TYPES = ['nutritionist', 'dietitian', 'obgyn', 'pediatrician', 'gp', 'psychologist', 'endocrinologist', 'gastroenterologist', 'other'] as const;
 
 interface ExpertProfile {
   id: string;

@@ -21,6 +21,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { mapLanguageToLocale } from '../utils/locale';
 import { formatCalories } from '../utils/nutritionFormat';
+import { useShopping } from '../hooks/useShopping';
+import { ShoppingCategory } from '../types/tracker';
 
 type Phase = 'intro' | 'scanning' | 'ingredients' | 'recipesLoading' | 'recipes';
 
@@ -30,6 +32,8 @@ interface FridgeIngredient {
   quantityHint?: string;
 }
 interface FridgeRecipe {
+  /** Server id — present once the recipe has been saved to history. */
+  id?: string;
   title: string;
   usesIngredients: string[];
   alsoNeed: string[];
@@ -39,6 +43,7 @@ interface FridgeRecipe {
   fat: number;
   timeMinutes?: number;
   steps: string[];
+  isFavorite?: boolean;
 }
 
 async function compress(uri: string): Promise<string> {
@@ -70,11 +75,16 @@ export default function FridgeScanScreen() {
   const { t, language } = useI18n();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  const { addItems: addShoppingItems } = useShopping();
+
   const [phase, setPhase] = useState<Phase>('intro');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState<FridgeIngredient[]>([]);
   const [newItem, setNewItem] = useState('');
   const [recipes, setRecipes] = useState<FridgeRecipe[]>([]);
+  const [scanId, setScanId] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [busyRecipeId, setBusyRecipeId] = useState<string | null>(null);
 
   const locale = mapLanguageToLocale(language);
 
@@ -86,6 +96,7 @@ export default function FridgeScanScreen() {
       const res = await ApiService.scanFridge(compressed, locale);
       const found: FridgeIngredient[] = Array.isArray(res?.ingredients) ? res.ingredients : [];
       setIngredients(found);
+      setScanId(res?.scanId || null);
       setPhase('ingredients');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     } catch (err: any) {
@@ -137,20 +148,112 @@ export default function FridgeScanScreen() {
     if (ingredients.length === 0) return;
     setPhase('recipesLoading');
     try {
-      const res = await ApiService.getFridgeRecipes(ingredients.map((i) => i.name), locale);
+      // Passing scanId links these recipes to the history entry and lets the
+      // server record how the user edited the detected chips.
+      const res = await ApiService.getFridgeRecipes(
+        ingredients.map((i) => i.name),
+        locale,
+        scanId ? { scanId } : undefined,
+      );
       setRecipes(Array.isArray(res?.recipes) ? res.recipes : []);
       setPhase('recipes');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    } catch {
-      Alert.alert(t('fridge.errorTitle') || 'Could not load recipes', t('fridge.errorBody') || 'Please try again.');
+    } catch (err: any) {
+      const limitHit = err?.status === 429 || err?.status === 403;
+      Alert.alert(
+        t('fridge.errorTitle') || 'Could not load recipes',
+        limitHit ? (t('fridge.limitReached') || 'Daily limit reached.') : (t('fridge.errorBody') || 'Please try again.'),
+      );
       setPhase('ingredients');
     }
-  }, [ingredients, locale, t]);
+  }, [ingredients, locale, scanId, t]);
+
+  /** Ask for a different set without spending another scan. */
+  const loadMoreRecipes = useCallback(async () => {
+    if (ingredients.length === 0 || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const res = await ApiService.getFridgeRecipes(
+        ingredients.map((i) => i.name),
+        locale,
+        { scanId: scanId || undefined, excludeTitles: recipes.map((r) => r.title) },
+      );
+      const more: FridgeRecipe[] = Array.isArray(res?.recipes) ? res.recipes : [];
+      if (more.length === 0) {
+        Alert.alert(t('fridge.noMoreTitle') || 'That’s all for now', t('fridge.noMoreBody') || 'Try adding a few more ingredients.');
+      } else {
+        setRecipes((prev) => [...prev, ...more]);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      }
+    } catch (err: any) {
+      const limitHit = err?.status === 429 || err?.status === 403;
+      Alert.alert(
+        t('fridge.errorTitle') || 'Could not load recipes',
+        limitHit ? (t('fridge.limitReached') || 'Daily limit reached.') : (t('fridge.errorBody') || 'Please try again.'),
+      );
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [ingredients, locale, scanId, recipes, loadingMore, t]);
+
+  const toggleFavorite = useCallback(async (recipe: FridgeRecipe) => {
+    if (!recipe.id) return;
+    Haptics.selectionAsync().catch(() => {});
+    // Optimistic — the heart must feel instant.
+    setRecipes((prev) => prev.map((r) => (r.id === recipe.id ? { ...r, isFavorite: !r.isFavorite } : r)));
+    try {
+      const res = await ApiService.toggleFridgeFavorite(recipe.id);
+      setRecipes((prev) => prev.map((r) => (r.id === recipe.id ? { ...r, isFavorite: !!res?.isFavorite } : r)));
+      if (res?.limitReached) {
+        Alert.alert(
+          t('fridge.favLimitTitle') || 'Favourites are full',
+          t('fridge.favLimitBody') || 'Upgrade to Pro to save unlimited recipes.',
+        );
+      }
+    } catch {
+      setRecipes((prev) => prev.map((r) => (r.id === recipe.id ? { ...r, isFavorite: recipe.isFavorite } : r)));
+    }
+  }, [t]);
+
+  /** "I cooked this" → log it to the diary. */
+  const cookRecipe = useCallback(async (recipe: FridgeRecipe) => {
+    if (!recipe.id || busyRecipeId) return;
+    setBusyRecipeId(recipe.id);
+    try {
+      await ApiService.cookFridgeRecipe(recipe.id);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      Alert.alert(
+        t('fridge.cookedTitle') || 'Added to your diary',
+        (t('fridge.cookedBody') || '{{title}} was logged as a meal.').replace('{{title}}', recipe.title),
+      );
+    } catch {
+      Alert.alert(t('fridge.errorTitle') || 'Something went wrong', t('fridge.errorBody') || 'Please try again.');
+    } finally {
+      setBusyRecipeId(null);
+    }
+  }, [busyRecipeId, t]);
+
+  /** Push the "you'll also need" staples into the shopping list. */
+  const addMissingToShopping = useCallback(async (recipe: FridgeRecipe) => {
+    const missing = (recipe.alsoNeed || []).map((n) => String(n).trim()).filter(Boolean);
+    if (missing.length === 0) return;
+    Haptics.selectionAsync().catch(() => {});
+    try {
+      await addShoppingItems(missing.map((name) => ({ name, category: 'other' as ShoppingCategory })));
+      Alert.alert(
+        t('fridge.addedToListTitle') || 'Added to shopping list',
+        (t('fridge.addedToListBody') || '{{count}} items added.').replace('{{count}}', String(missing.length)),
+      );
+    } catch {
+      Alert.alert(t('fridge.errorTitle') || 'Something went wrong', t('fridge.errorBody') || 'Please try again.');
+    }
+  }, [addShoppingItems, t]);
 
   const reset = useCallback(() => {
     setPhotoUri(null);
     setIngredients([]);
     setRecipes([]);
+    setScanId(null);
     setPhase('intro');
   }, []);
 
@@ -161,7 +264,13 @@ export default function FridgeScanScreen() {
         <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
       </TouchableOpacity>
       <Text style={styles.headerTitle}>{t('fridge.title') || 'What can I cook?'}</Text>
-      <View style={{ width: 24 }} />
+      <TouchableOpacity
+        onPress={() => navigation.navigate('FridgeHistory')}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        accessibilityLabel={t('fridge.history') || 'History'}
+      >
+        <Ionicons name="time-outline" size={24} color={colors.textPrimary} />
+      </TouchableOpacity>
     </View>
   );
 
@@ -305,8 +414,23 @@ export default function FridgeScanScreen() {
           </View>
         ) : (
           recipes.map((r, i) => (
-            <View key={i} style={styles.recipeCard}>
-              <Text style={styles.recipeTitle}>{r.title}</Text>
+            <View key={r.id || i} style={styles.recipeCard}>
+              <View style={styles.recipeTitleRow}>
+                <Text style={[styles.recipeTitle, { flex: 1 }]}>{r.title}</Text>
+                {r.id ? (
+                  <TouchableOpacity
+                    onPress={() => toggleFavorite(r)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    accessibilityLabel={t('fridge.favorite') || 'Save recipe'}
+                  >
+                    <Ionicons
+                      name={r.isFavorite ? 'heart' : 'heart-outline'}
+                      size={22}
+                      color={r.isFavorite ? '#FF6B6B' : colors.textSecondary}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
               <View style={styles.recipeMetaRow}>
                 <Text style={styles.recipeMeta}>{formatCalories(r.calories)}</Text>
                 <Text style={styles.recipeMetaDot}>·</Text>
@@ -331,10 +455,16 @@ export default function FridgeScanScreen() {
                 </Text>
               ) : null}
               {r.alsoNeed?.length ? (
-                <Text style={styles.recipeAlsoNeed}>
-                  <Text style={styles.recipeLabel}>{t('fridge.alsoNeed') || 'You’ll also need'}: </Text>
-                  {r.alsoNeed.join(', ')}
-                </Text>
+                <View>
+                  <Text style={styles.recipeAlsoNeed}>
+                    <Text style={styles.recipeLabel}>{t('fridge.alsoNeed') || 'You’ll also need'}: </Text>
+                    {r.alsoNeed.join(', ')}
+                  </Text>
+                  <TouchableOpacity style={styles.inlineAction} onPress={() => addMissingToShopping(r)} activeOpacity={0.7}>
+                    <Ionicons name="cart-outline" size={16} color={colors.primary} style={{ marginRight: 6 }} />
+                    <Text style={styles.inlineActionText}>{t('fridge.addMissing') || 'Add to shopping list'}</Text>
+                  </TouchableOpacity>
+                </View>
               ) : null}
 
               {r.steps?.length ? (
@@ -347,9 +477,45 @@ export default function FridgeScanScreen() {
                   ))}
                 </View>
               ) : null}
+
+              {r.id ? (
+                <TouchableOpacity
+                  style={[styles.cookBtn, busyRecipeId === r.id && styles.primaryBtnDisabled]}
+                  onPress={() => cookRecipe(r)}
+                  disabled={busyRecipeId === r.id}
+                  activeOpacity={0.85}
+                >
+                  {busyRecipeId === r.id ? (
+                    <ActivityIndicator size="small" color="#FFF" />
+                  ) : (
+                    <>
+                      <Ionicons name="checkmark-circle-outline" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                      <Text style={styles.cookBtnText}>{t('fridge.iCookedThis') || 'I cooked this'}</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              ) : null}
             </View>
           ))
         )}
+
+        {recipes.length > 0 ? (
+          <TouchableOpacity
+            style={[styles.moreBtn, loadingMore && styles.primaryBtnDisabled]}
+            onPress={loadMoreRecipes}
+            disabled={loadingMore}
+            activeOpacity={0.8}
+          >
+            {loadingMore ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <>
+                <Ionicons name="refresh-outline" size={18} color={colors.primary} style={{ marginRight: 8 }} />
+                <Text style={styles.secondaryBtnText}>{t('fridge.moreRecipes') || 'Show more recipes'}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        ) : null}
       </ScrollView>
 
       <View style={styles.footer}>
@@ -432,6 +598,7 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.card, borderRadius: 16, padding: 16, marginBottom: 14,
       borderWidth: 1, borderColor: colors.borderMuted,
     },
+    recipeTitleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
     recipeTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
     recipeMetaRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: 8, gap: 2 },
     recipeMeta: { fontSize: 13, color: colors.textSecondary, fontWeight: '600' },
@@ -447,4 +614,16 @@ const createStyles = (colors: any) =>
       overflow: 'hidden',
     },
     stepText: { flex: 1, fontSize: 14, color: colors.textPrimary, lineHeight: 20 },
+    inlineAction: { flexDirection: 'row', alignItems: 'center', marginTop: 8, alignSelf: 'flex-start' },
+    inlineActionText: { fontSize: 13.5, color: colors.primary, fontWeight: '700' },
+    cookBtn: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+      backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 12, marginTop: 16,
+    },
+    cookBtnText: { color: '#FFF', fontSize: 14.5, fontWeight: '700' },
+    moreBtn: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+      borderRadius: 14, paddingVertical: 14, marginBottom: 8,
+      borderWidth: 1, borderColor: colors.primary,
+    },
   });

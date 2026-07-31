@@ -754,6 +754,64 @@ export class ExpertsService {
         };
     }
 
+    /**
+     * A linked client's activity from Apple Health / Health Connect.
+     *
+     * Three gates, all required:
+     *  1. the caller must be an expert,
+     *  2. with an ACTIVE link to this client,
+     *  3. and the client must have switched on `healthShareWithExpert`.
+     *
+     * The consent is separate from the general expert link on purpose: agreeing
+     * to work with a nutritionist is not the same as handing over your step count
+     * and sleep. When it is off we return `shared: false` rather than an error,
+     * so the portal can show "the client has not shared this" instead of failing.
+     *
+     * Every successful read is written to DataAccessAudit — the client can see
+     * who looked at their health data and when.
+     */
+    async getClientHealthActivity(expertUserId: string, clientId: string, days = 14) {
+        const expert = await this.requireExpert(expertUserId);
+        const link = await this.prisma.expertClientLink.findFirst({
+            where: { expertId: expert.id, clientId, isActive: true },
+        });
+        if (!link) throw new ForbiddenException('No link to this client');
+
+        const profile = await this.prisma.userProfile
+            .findUnique({ where: { userId: clientId }, select: { preferences: true } })
+            .catch(() => null);
+        const consented = ((profile?.preferences as any) || {}).healthShareWithExpert === true;
+        if (!consented) {
+            return { shared: false, days: [] };
+        }
+
+        const to = new Date();
+        const from = new Date();
+        from.setDate(from.getDate() - Math.min(Math.max(days, 1), 90));
+
+        const metrics = await this.prisma.healthDailyMetric.findMany({
+            where: {
+                userId: clientId,
+                date: { gte: from.toISOString().split('T')[0], lte: to.toISOString().split('T')[0] },
+            },
+            orderBy: { date: 'asc' },
+        }).catch(() => []);
+
+        this.prisma.dataAccessAudit
+            .create({
+                data: {
+                    clientId,
+                    expertId: expert.id,
+                    action: 'viewed',
+                    scope: 'health_activity',
+                    context: { days: metrics.length },
+                },
+            })
+            .catch(() => {});
+
+        return { shared: true, days: metrics };
+    }
+
     async setVacation(userId: string, dto: { awayUntil?: string | null; awayMessage?: string | null }) {
         const expert = await this.requireExpert(userId);
         const data: any = {

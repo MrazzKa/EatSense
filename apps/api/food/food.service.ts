@@ -9,6 +9,7 @@ import { calculateHealthScore } from './food-health-score.util';
 import { normalizeFoodName } from '../src/analysis/text-utils';
 import { AnalysisData, AnalyzedItem, AnalysisTotals, HealthScore, Nutrients } from '../src/analysis/analysis.types';
 import { AnalyzeService } from '../src/analysis/analyze.service';
+import { AnalysisCorrectionService } from '../src/analysis/analysis-correction.service';
 import { ReanalyzeDto, ManualReanalyzeDto, ReanalyzeRequestDto } from './dto';
 import { ManualReanalyzeDto as NewManualReanalyzeDto } from './dto/manual-reanalyze.dto';
 
@@ -22,6 +23,7 @@ export class FoodService {
     @InjectQueue('food-analysis') private readonly analysisQueue: Queue,
     private readonly redisService: RedisService,
     private readonly analyzeService: AnalyzeService,
+    private readonly analysisCorrections: AnalysisCorrectionService,
   ) { }
 
   private normalizeAnalysisItems(rawItems: any[] | undefined | null): AnalyzedItem[] {
@@ -1329,13 +1331,24 @@ export class FoodService {
   /**
    * Save analysis correction for feedback loop
    */
+  /**
+   * Client-reported correction (sent from AnalysisResultsScreen right after an
+   * analysis). Diary edits go through MealsService instead, which records the
+   * same signal server-side.
+   *
+   * PRIVACY: the row is stored ANONYMOUSLY unless the user opted into
+   * "help improve accuracy" — same rule as every other correction path. Before
+   * this, every correction was permanently tied to its author with no consent
+   * and no way to withdraw.
+   */
   async saveCorrection(userId: string, correction: any) {
     try {
+      const linked = await this.analysisCorrections.isLinkageAllowed(userId);
       const correctionData = {
-        userId,
-        analysisId: correction.analysisId || null,
-        mealId: correction.mealId || null,
-        itemId: correction.itemId || null,
+        userId: linked ? userId : null,
+        analysisId: linked ? correction.analysisId || null : null,
+        mealId: linked ? correction.mealId || null : null,
+        itemId: linked ? correction.itemId || null : null,
         originalName: correction.originalName || '',
         correctedName: correction.correctedName || null,
         originalPortionG: correction.originalPortionG || null,
@@ -1356,7 +1369,9 @@ export class FoodService {
         data: correctionData,
       });
 
-      this.logger.debug(`[FoodService] Correction saved: ${saved.id} for user ${userId}`);
+      this.logger.debug(
+        `[FoodService] Correction saved: ${saved.id} (${linked ? 'linked' : 'anonymous'})`,
+      );
       return saved;
     } catch (error) {
       this.logger.error(`[FoodService] Failed to save correction: ${error.message}`, error.stack);

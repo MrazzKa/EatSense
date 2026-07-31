@@ -14,4 +14,23 @@ export class FridgeRecipesDto {
   @IsOptional()
   @IsIn(LOCALES as unknown as string[])
   locale?: (typeof LOCALES)[number];
+
+  @ApiProperty({
+    required: false,
+    description: 'Scan these ingredients came from. Links the recipes to the history entry and records the user\'s edits to the detected list.',
+  })
+  @IsOptional()
+  @IsString()
+  scanId?: string;
+
+  @ApiProperty({
+    required: false,
+    type: [String],
+    description: 'Titles already suggested — ask for a different set ("more recipes").',
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMaxSize(20)
+  excludeTitles?: string[];
 }

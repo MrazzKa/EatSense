@@ -188,6 +188,23 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  /**
+   * Give back a unit of quota that was reserved by incr() but never actually
+   * consumed (e.g. the upstream model call failed). Best-effort: if Redis is
+   * down there is nothing to refund, and the DB-backed count is authoritative.
+   */
+  async decr(key: string): Promise<number> {
+    if (!(await this.ensureConnected())) {
+      return 0;
+    }
+    try {
+      return await this.client.decr(key);
+    } catch (error) {
+      console.warn('[Redis] decr error:', error.message);
+      return 0;
+    }
+  }
+
   async setNx(key: string, value: string, ttlSeconds: number): Promise<boolean> {
     if (!(await this.ensureConnected())) {
       return false;

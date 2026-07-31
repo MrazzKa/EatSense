@@ -80,13 +80,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ visible, onClose }) 
           </TouchableOpacity>
         </View>
 
-        <View style={styles.personalizationItem}>
-          <Text style={styles.personalizationLabel}>{t('profile.sync') || 'Apple Health Sync'}</Text>
-          <TouchableOpacity style={styles.personalizationValue}>
-            <Text style={styles.personalizationValueText}>{t('common.enabled') || 'Enabled'}</Text>
-            <Ionicons name="chevron-forward" size={16} color="#7F8C8D" />
-          </TouchableOpacity>
-        </View>
+        {/* The "Apple Health Sync — Enabled" row that used to sit here was
+            hardcoded and did nothing: it claimed a feature the app did not have.
+            Real health sync now lives on HealthSyncScreen, reachable from
+            ProfileScreen. */}
       </View>
     </View>
   );

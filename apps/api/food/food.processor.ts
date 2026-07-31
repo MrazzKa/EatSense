@@ -488,6 +488,7 @@ export class FoodProcessor {
         healthScore: analysisResult.healthScore,
         locale: locale || analysisResult.locale || 'en',
         userProfile,
+        userId: jobUserId,
       });
 
       // Determine final status based on vision result and items
@@ -751,6 +752,7 @@ export class FoodProcessor {
         healthScore: analysisResult.healthScore,
         locale: locale || analysisResult.locale || 'en',
         userProfile: textUserProfile,
+        userId,
       });
 
       // Redis daily limit is pre-incremented in DailyLimitGuard
@@ -786,13 +788,38 @@ export class FoodProcessor {
     healthScore: any;
     locale: string;
     userProfile?: any;
+    userId?: string;
   }) {
-    const { analysisId, analysisResultId, dishName, items, totals, healthScore, locale, userProfile } = params;
+    const { analysisId, analysisResultId, dishName, items, totals, healthScore, locale, userProfile, userId } = params;
     if (!healthScore || !totals || !Array.isArray(items) || items.length === 0) {
       return;
     }
 
     void (async () => {
+      // Only reach for health data when the user explicitly allowed it to be
+      // sent to the AI. Without this consent the prompt never sees it.
+      let healthContext:
+        | { steps?: number | null; activeEnergyKcal?: number | null; workoutMinutes?: number | null; sleepMinutes?: number | null }
+        | undefined;
+      if (userId && (userProfile?.preferences as any)?.healthAiContext === true) {
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const metric = await this.prisma.healthDailyMetric.findUnique({
+            where: { userId_date: { userId, date: today } },
+          });
+          if (metric) {
+            healthContext = {
+              steps: metric.steps,
+              activeEnergyKcal: metric.activeEnergyKcal,
+              workoutMinutes: metric.workoutMinutes,
+              sleepMinutes: metric.sleepMinutes,
+            };
+          }
+        } catch (e: any) {
+          this.logger.warn(`[FoodProcessor] health context lookup failed: ${e?.message}`);
+        }
+      }
+
       const enrichedHealthScore = await this.analyzeService.enrichHealthScoreWithAiFeedback(
         healthScore,
         dishName,
@@ -801,6 +828,7 @@ export class FoodProcessor {
         locale as any,
         analysisId,
         userProfile,
+        healthContext,
       );
 
       if (enrichedHealthScore === healthScore) {

@@ -36,6 +36,8 @@ import { useMascot } from '../contexts/MascotContext';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { mapLanguageToLocale } from '../utils/locale';
+import { useHealthSync } from '../hooks/useHealthSync';
+import HealthSyncPrompt from '../components/HealthSyncPrompt';
 import {
   FLOATING_TAB_BAR_BOTTOM_GAP,
   FLOATING_TAB_BAR_HEIGHT,
@@ -213,6 +215,9 @@ export default function DashboardScreen() {
   // Load active diet for dashboard widget from store
   const { activeProgram, loadProgress } = useProgramProgress();
   const { mascot, addXp } = useMascot();
+  // Uploads Apple Health / Health Connect activity so the server can widen
+  // today's calorie target. No-op unless the user turned sync on.
+  const { uploadedAt: healthUploadedAt } = useHealthSync();
 
   // FIX: Define missing variable used by the widget
   // Ensure diet object has proper name structure for ActiveDietWidget
@@ -286,6 +291,9 @@ export default function DashboardScreen() {
     totalCarbs: 0,
     totalFat: 0,
     goal: 2000,
+    // Extra kcal the server added to the goal because Apple Health / Health
+    // Connect reported real movement today. 0 when sync is off.
+    activeEnergyBonus: 0,
   });
   const [recentItems, setRecentItems] = useState([]);
   const recentItemsRef = useRef(recentItems);
@@ -476,6 +484,7 @@ export default function DashboardScreen() {
         totalCarbs: carbs,
         totalFat: fat,
         goal: (data.stats.goals && data.stats.goals.calories) || 2000,
+        activeEnergyBonus: (data.stats.goals && data.stats.goals.activeEnergyBonus) || 0,
       });
     }
 
@@ -711,6 +720,14 @@ export default function DashboardScreen() {
       loadDashboardData(true);
     }, [loadDashboardData])
   );
+
+  // Health activity is uploaded from the device AFTER the dashboard has already
+  // loaded, and the calorie bonus is computed server-side — so refetch once the
+  // upload lands, otherwise the ring keeps showing the pre-sync goal.
+  useEffect(() => {
+    if (healthUploadedAt) loadDashboardData(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [healthUploadedAt]);
 
   // FIX 3: Reload when selected date changes
   useEffect(() => {
@@ -1188,9 +1205,25 @@ export default function DashboardScreen() {
               <Text style={styles.ringSub}>
                 {t('dashboard.ofGoalCalories', { goal: _kcalGoal })}
               </Text>
+              {/* Explain a target that moved: without this the number silently
+                  changes day to day and looks like a bug. */}
+              {stats.activeEnergyBonus > 0 ? (
+                <Text style={styles.ringBonus}>
+                  {`+${stats.activeEnergyBonus} ${t('healthSync.earnedByMoving') || 'earned by moving'}`}
+                </Text>
+              ) : null}
             </CircularProgress>
           </View>
         </Animated.View>
+
+        {/* Offer to connect Apple Health / Health Connect. Shown only after the
+            user has logged something (so the benefit is concrete), and it asks
+            our own question before spending iOS's single, unrepeatable HealthKit
+            permission prompt. */}
+        <HealthSyncPrompt
+          hasLoggedMeals={recentItems.length > 0}
+          onConnected={() => loadDashboardData(true)}
+        />
 
         {/* Quick Stats — unified glass card with 3 macros */}
         <Animated.View
@@ -1851,6 +1884,13 @@ const createStyles = (tokens) =>
       fontSize: 13,
       color: tokens.colors.textTertiary,
       marginTop: 4,
+    },
+    // "+320 earned by moving" — shown only when Health sync widened the goal.
+    ringBonus: {
+      fontSize: 11.5,
+      fontWeight: '700',
+      color: tokens.colors.success || '#22C55E',
+      marginTop: 2,
     },
     // Top header + weekly day strip (browsable diary)
     topHeaderRow: {

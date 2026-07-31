@@ -4,7 +4,7 @@ import { Type } from 'class-transformer';
 export const SUPPORTED_LANGUAGES = ['en', 'ru', 'kk', 'fr', 'de', 'es'] as const;
 
 export class CreateExpertProfileDto {
-    @IsIn(['dietitian', 'nutritionist', 'psychologist', 'endocrinologist', 'obgyn', 'pediatrician', 'gp', 'other'])
+    @IsIn(['dietitian', 'nutritionist', 'psychologist', 'endocrinologist', 'gastroenterologist', 'obgyn', 'pediatrician', 'gp', 'other'])
     type: string;
 
     @IsString()
@@ -67,7 +67,7 @@ export class CreateExpertProfileDto {
 
 export class UpdateExpertProfileDto {
     @IsOptional()
-    @IsIn(['dietitian', 'nutritionist', 'psychologist', 'endocrinologist', 'obgyn', 'pediatrician', 'gp', 'other'])
+    @IsIn(['dietitian', 'nutritionist', 'psychologist', 'endocrinologist', 'gastroenterologist', 'obgyn', 'pediatrician', 'gp', 'other'])
     type?: string;
 
     @IsOptional()
@@ -354,7 +354,7 @@ export class AdminCreateExpertDto {
     @MaxLength(254)
     email: string;
 
-    @IsIn(['dietitian', 'nutritionist', 'psychologist', 'endocrinologist', 'obgyn', 'pediatrician', 'gp', 'other'])
+    @IsIn(['dietitian', 'nutritionist', 'psychologist', 'endocrinologist', 'gastroenterologist', 'obgyn', 'pediatrician', 'gp', 'other'])
     type: string;
 
     @IsString()

@@ -35,7 +35,9 @@
     "seed:diets": "ts-node -r tsconfig-paths/register prisma/seeds/seed-diets.ts",
     "seed:lifestyles": "ts-node -r tsconfig-paths/register prisma/seeds/seed-lifestyles.ts",
     "seed:pharmacies": "ts-node -r tsconfig-paths/register prisma/seeds/seed-pharmacies.ts",
-    "check:articles": "ts-node -r tsconfig-paths/register scripts/check-articles.ts"
+    "check:articles": "ts-node -r tsconfig-paths/register scripts/check-articles.ts",
+    "eval:vision": "ts-node -r tsconfig-paths/register scripts/eval-vision.ts",
+    "dataset:export": "ts-node -r tsconfig-paths/register scripts/export-corrections.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.917.0",

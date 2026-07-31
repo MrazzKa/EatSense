@@ -13,6 +13,7 @@ import { CacheModule } from '../cache/cache.module';
 import { NutritionModule } from './providers/nutrition.module';
 import { AnalysisValidatorService } from './validation/analysis-validator.service';
 import { HealthFeedbackAiService } from './health-feedback-ai.service';
+import { AnalysisCorrectionService } from './analysis-correction.service';
 
 @Module({
   imports: [HybridModule, PrismaModule, CacheModule, NutritionModule],
@@ -27,7 +28,8 @@ import { HealthFeedbackAiService } from './health-feedback-ai.service';
     HealthFeedbackAiService, // STEP 3: AI-powered health feedback
     AnalyzeService,
     LocalFoodService,
+    AnalysisCorrectionService,
   ],
-  exports: [AnalyzeService, VisionService],
+  exports: [AnalyzeService, VisionService, AnalysisCorrectionService],
 })
 export class AnalysisModule {}

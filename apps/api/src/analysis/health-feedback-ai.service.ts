@@ -23,6 +23,21 @@ interface GenerateFeedbackParams {
    * calorie target. The prompt then tailors feedback specifically for them.
    */
   userProfile?: any;
+  /**
+   * Yesterday/today's activity read from Apple Health / Health Connect.
+   *
+   * ONLY set this when the user has switched on the `healthAiContext` consent.
+   * Passing HealthKit data to OpenAI is a transfer to a third party, which Apple
+   * requires to be explicitly permitted — a general "AI features" opt-in is not
+   * enough. When the consent is off this stays undefined and the prompt is
+   * exactly what it was before.
+   */
+  healthContext?: {
+    steps?: number | null;
+    activeEnergyKcal?: number | null;
+    workoutMinutes?: number | null;
+    sleepMinutes?: number | null;
+  };
 }
 
 /**
@@ -91,7 +106,7 @@ export class HealthFeedbackAiService {
   }
 
   private async callOpenAI(params: GenerateFeedbackParams): Promise<HealthFeedbackItem[]> {
-    const { dishName, items, totals, healthScore, userGoal, locale, userProfile } = params;
+    const { dishName, items, totals, healthScore, userGoal, locale, userProfile, healthContext } = params;
 
     // Build ingredient list
     const ingredientsList = items
@@ -118,6 +133,7 @@ export class HealthFeedbackAiService {
       userGoal: userGoal || userProfile?.goal,
       locale,
       userProfile,
+      healthContext,
     });
 
     const response = await this.openai.chat.completions.create({
@@ -168,8 +184,9 @@ CODES TO USE:
     userGoal?: string;
     locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es';
     userProfile?: any;
+    healthContext?: GenerateFeedbackParams['healthContext'];
   }): string {
-    const { dishName, ingredientsList, totals, healthScore, factorsDesc, userGoal, locale, userProfile } = params;
+    const { dishName, ingredientsList, totals, healthScore, factorsDesc, userGoal, locale, userProfile, healthContext } = params;
 
     const langHint = locale === 'ru' ? 'Respond in Russian.'
       : locale === 'kk' ? 'Respond in Kazakh.'
@@ -196,6 +213,26 @@ CODES TO USE:
       if (lines.length) personalization = '\nUSER CONTEXT:\n' + lines.join('\n');
     }
 
+    // Activity block — present ONLY when the user consented to sharing health
+    // data with the AI (see GenerateFeedbackParams.healthContext).
+    let activity = '';
+    if (healthContext) {
+      const lines: string[] = [];
+      if (healthContext.steps) lines.push(`STEPS TODAY: ${healthContext.steps}`);
+      if (healthContext.activeEnergyKcal) lines.push(`ACTIVE ENERGY TODAY: ${healthContext.activeEnergyKcal} kcal`);
+      if (healthContext.workoutMinutes) lines.push(`WORKOUT TODAY: ${healthContext.workoutMinutes} min — protein and recovery matter more`);
+      if (healthContext.sleepMinutes) {
+        const hours = Math.round((healthContext.sleepMinutes / 60) * 10) / 10;
+        lines.push(`SLEEP LAST NIGHT: ${hours} h${hours < 6 ? ' (short — cravings for sugar are expected, be supportive not judgemental)' : ''}`);
+      }
+      if (lines.length) {
+        activity =
+          '\nACTIVITY (from the user\'s health app, shared with consent):\n' +
+          lines.join('\n') +
+          '\nUse this to make ONE feedback item more relevant. Never present it as medical advice.';
+      }
+    }
+
     return `Analyze this meal and provide personalized feedback.
 
 MEAL: ${dishName}
@@ -203,7 +240,7 @@ INGREDIENTS: ${ingredientsList}
 TOTAL NUTRIENTS: ${Math.round(totals.calories)} kcal, ${Math.round(totals.protein)}g protein, ${Math.round(totals.carbs)}g carbs, ${Math.round(totals.fat)}g fat, ${Math.round(totals.fiber || 0)}g fiber
 HEALTH SCORE: ${healthScore.total}/100 (${healthScore.level})
 FACTORS: ${factorsDesc}
-USER GOAL: ${userGoal || 'general health'}${personalization}
+USER GOAL: ${userGoal || 'general health'}${personalization}${activity}
 
 ${langHint}
 

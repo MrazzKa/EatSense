@@ -100,7 +100,7 @@ export default function DashboardPage() {
     // Localize ALL expert types (obgyn, gp, psychologist, …), not just
     // nutritionist/dietitian — otherwise an OB-GYN's own dashboard showed the
     // raw enum "obgyn". The `profile` namespace carries every type label.
-    const TYPE_KEYS = ['nutritionist', 'dietitian', 'obgyn', 'pediatrician', 'gp', 'psychologist', 'endocrinologist', 'other'] as const;
+    const TYPE_KEYS = ['nutritionist', 'dietitian', 'obgyn', 'pediatrician', 'gp', 'psychologist', 'endocrinologist', 'gastroenterologist', 'other'] as const;
     const key = String(type || '').toLowerCase();
     if ((TYPE_KEYS as readonly string[]).includes(key)) {
       return t('profile', key as typeof TYPE_KEYS[number]);

@@ -2181,6 +2181,39 @@ const ProfileScreen = () => {
           </AppCard>
           */}
 
+          {/* Apple Health / Health Connect sync + data-privacy consents. */}
+          <AppCard style={styles.medicationsCard}>
+            <TouchableOpacity
+              onPress={() => {
+                if (navigation && typeof navigation.navigate === 'function') {
+                  navigation.navigate('HealthSync');
+                }
+              }}
+              activeOpacity={0.8}
+            >
+              <View style={styles.cardContent}>
+                <View style={[styles.cardIconCircle, { backgroundColor: '#EF4444' + '18' }]}>
+                  <Ionicons
+                    name={Platform.OS === 'ios' ? 'heart-outline' : 'fitness-outline'}
+                    size={22}
+                    color="#EF4444"
+                  />
+                </View>
+                <View style={styles.cardTextContainer}>
+                  <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
+                    {safeT('healthSync.title', 'Health sync')}
+                  </Text>
+                  <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                    {Platform.OS === 'ios'
+                      ? safeT('healthSync.cardSubtitleIos', 'Connect Apple Health for a calorie target based on real activity')
+                      : safeT('healthSync.cardSubtitleAndroid', 'Connect Health Connect for a calorie target based on real activity')}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+              </View>
+            </TouchableOpacity>
+          </AppCard>
+
           {/* Help / How it works */}
           <AppCard style={styles.medicationsCard}>
             <TouchableOpacity

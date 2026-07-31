@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma.service';
 import { CreateMealDto, UpdateMealItemDto, EditMealItemsDto } from './dto';
 import { CacheService } from '../src/cache/cache.service';
 import { AnalyzeService } from '../src/analysis/analyze.service';
+import { AnalysisCorrectionService } from '../src/analysis/analysis-correction.service';
 
 @Injectable()
 export class MealsService {
@@ -12,6 +13,7 @@ export class MealsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly analyzeService: AnalyzeService,
+    private readonly corrections: AnalysisCorrectionService,
     @Optional() @Inject(CacheService) private readonly cache?: CacheService,
   ) { }
 
@@ -97,6 +99,36 @@ export class MealsService {
     } catch (e: any) {
       this.logger.warn(`[editMealItems] computeHealthScore failed: ${e?.message}`);
     }
+
+    // Capture "model said X → user said Y" BEFORE the old rows are destroyed.
+    // This is the only place both versions exist at once, and it is the fuel for
+    // measuring and improving the model. Best-effort by design — never let a
+    // dataset write fail the user's edit.
+    await this.corrections
+      .recordBatch({
+        userId,
+        mealId,
+        analysisId: meal.analysisId,
+        before: meal.items.map((it) => ({
+          id: it.id,
+          name: it.name,
+          weight: it.weight,
+          calories: it.calories,
+          protein: it.protein,
+          carbs: it.carbs,
+          fat: it.fat,
+        })),
+        after: analyzedItems.map((it) => ({
+          id: it.id,
+          name: it.name,
+          weight: it.portion_g,
+          calories: it.nutrients.calories,
+          protein: it.nutrients.protein,
+          carbs: it.nutrients.carbs,
+          fat: it.nutrients.fat,
+        })),
+      })
+      .catch((e) => this.logger.warn(`[editMealItems] correction capture failed: ${e?.message}`));
 
     // Replace items (use resolved nutrients from analyzedItems, not raw DTO,
     // so USDA-auto-filled values land in DB).
@@ -511,6 +543,32 @@ export class MealsService {
       where: { id: itemId },
       data: updateItemDto,
     });
+
+    // Single-item edits are corrections too — same signal, same dataset.
+    await this.corrections
+      .record({
+        userId,
+        mealId,
+        itemId,
+        analysisId: meal.analysisId,
+        before: {
+          name: item.name,
+          weight: item.weight,
+          calories: item.calories,
+          protein: item.protein,
+          carbs: item.carbs,
+          fat: item.fat,
+        },
+        after: {
+          name: updated.name,
+          weight: updated.weight,
+          calories: updated.calories,
+          protein: updated.protein,
+          carbs: updated.carbs,
+          fat: updated.fat,
+        },
+      })
+      .catch((e) => this.logger.warn(`[updateMealItem] correction capture failed: ${e?.message}`));
 
     if (this.cache) {
       try {

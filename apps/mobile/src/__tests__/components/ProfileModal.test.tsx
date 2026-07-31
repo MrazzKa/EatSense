@@ -51,6 +51,7 @@ describe('ProfileModal', () => {
     fireEvent.press(personalizationTab);
 
     expect(getByText('Your Plan')).toBeTruthy();
-    expect(getByText('Apple Health Sync')).toBeTruthy();
+    // The "Apple Health Sync" row was removed: it was hardcoded to "Enabled" and
+    // wired to nothing. Real sync lives on HealthSyncScreen.
   });
 });

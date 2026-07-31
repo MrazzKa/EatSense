@@ -3503,6 +3503,18 @@ export class AnalyzeService {
     locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' = 'en',
     analysisId?: string,
     userProfile?: any,
+    /**
+     * Activity from Apple Health / Health Connect. Callers MUST only pass this
+     * when the user turned on the `healthAiContext` consent — sending HealthKit
+     * data to OpenAI is a third-party transfer that Apple requires to be
+     * explicitly permitted.
+     */
+    healthContext?: {
+      steps?: number | null;
+      activeEnergyKcal?: number | null;
+      workoutMinutes?: number | null;
+      sleepMinutes?: number | null;
+    },
   ): Promise<HealthScore> {
     // Check if AI is enabled
     if (!this.healthFeedbackAi.isEnabled()) {
@@ -3518,6 +3530,7 @@ export class AnalyzeService {
         locale,
         analysisId,
         userProfile,
+        healthContext,
       } as any);
 
       if (aiFeedback.length > 0) {

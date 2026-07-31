@@ -5,9 +5,24 @@ import { PrismaService } from '../prisma.service';
 
 export const DAILY_LIMIT_KEY = 'dailyLimit';
 
+export type DailyLimitResource = 'food' | 'chat' | 'fridge' | 'fridge_recipes';
+
 export interface DailyLimitOptions {
   limit?: number; // Optional: if not provided, uses FREE_DAILY_ANALYSES or PRO_DAILY_ANALYSES from env
-  resource: 'food' | 'chat' | 'fridge';
+  resource: DailyLimitResource;
+}
+
+/**
+ * Redis key backing the daily quota counter.
+ *
+ * Exported so a handler can REFUND the unit the guard reserved when the request
+ * turns out not to have consumed anything (e.g. the upstream model call failed).
+ * That matters most for the fridge scan, where a free user has a single attempt
+ * per day — burning it on our own outage and showing nothing is not acceptable.
+ */
+export function dailyLimitKey(resource: DailyLimitResource, userId: string): string {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  return `daily:${resource}:${userId}:${today}`;
 }
 
 @Injectable()
@@ -79,12 +94,18 @@ export class DailyLimitGuard implements CanActivate {
     } else if (options.resource === 'fridge') {
       const freeDailyFridge = parseInt(process.env.FREE_DAILY_FRIDGE_SCANS || '1', 10);
       effectiveLimit = isFreeUser ? freeDailyFridge : proDailyAnalyses;
+    } else if (options.resource === 'fridge_recipes') {
+      // Recipe generation is a cheap text call, so it gets a roomier budget than
+      // the scan — but it MUST have one: the endpoint takes ingredients straight
+      // from the body, so without a cap anyone could loop it and bill us for
+      // unlimited OpenAI calls without ever taking a photo.
+      const freeDailyRecipes = parseInt(process.env.FREE_DAILY_FRIDGE_RECIPES || '5', 10);
+      effectiveLimit = isFreeUser ? freeDailyRecipes : proDailyAnalyses;
     } else {
       effectiveLimit = 10;
     }
 
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const key = `daily:${options.resource}:${userId}:${today}`;
+    const key = dailyLimitKey(options.resource, userId);
 
     const resetTime = getResetTime();
 
@@ -145,17 +166,32 @@ export class DailyLimitGuard implements CanActivate {
 
   /**
    * DB-backed fallback when Redis is unavailable.
-   * Counts today's Analysis rows for the user (food resource only — chat has no
-   * persistent table to count from, so chat falls back to allowing the request).
+   *
+   * `food` counts Analysis rows, `fridge` counts FridgeScan rows. Both tables are
+   * written on every successful request, so they are an honest replacement for the
+   * Redis counter — the fridge quota used to fail OPEN here (this method returned 0
+   * for anything but 'food'), which silently disabled the paywall whenever Redis
+   * hiccuped, exactly the bug we already fixed for meal analysis.
+   *
+   * `chat` and `fridge_recipes` still have no persistent per-request table, so they
+   * remain permissive during a Redis outage — they are text-only calls with a much
+   * smaller blast radius than image analysis.
    */
-  private async countTodayFromDb(userId: string, resource: 'food' | 'chat' | 'fridge'): Promise<number> {
-    if (resource !== 'food') {
-      // chat/fridge have no persistent table to count from → allow when Redis is down.
+  private async countTodayFromDb(userId: string, resource: DailyLimitResource): Promise<number> {
+    if (resource !== 'food' && resource !== 'fridge') {
       return 0;
     }
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     try {
+      if (resource === 'fridge') {
+        return await this.prisma.fridgeScan.count({
+          where: {
+            userId,
+            createdAt: { gte: startOfDay },
+          },
+        });
+      }
       return await this.prisma.analysis.count({
         where: {
           userId,

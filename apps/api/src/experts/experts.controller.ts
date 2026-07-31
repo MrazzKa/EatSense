@@ -127,6 +127,25 @@ export class ExpertsController {
         return this.expertsService.saveClientNote(req.user.id, clientId, body?.body ?? '');
     }
 
+    /**
+     * Client's Apple Health / Health Connect activity.
+     * Returns `{ shared: false }` when the client has not consented — the portal
+     * shows that state rather than treating it as an error.
+     */
+    @Get('me/clients/:clientId/health-activity')
+    @UseGuards(JwtAuthGuard)
+    async getClientHealthActivity(
+        @Request() req: any,
+        @Param('clientId') clientId: string,
+        @Query('days') days?: string,
+    ) {
+        return this.expertsService.getClientHealthActivity(
+            req.user.id,
+            clientId,
+            days ? parseInt(days, 10) || 14 : 14,
+        );
+    }
+
     @Post('me/vacation')
     @UseGuards(JwtAuthGuard)
     async setVacation(@Request() req: any, @Body() body: { awayUntil?: string | null; awayMessage?: string | null }) {

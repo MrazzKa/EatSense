@@ -345,6 +345,9 @@ importers:
       '@expo/vector-icons':
         specifier: ^15.0.3
         version: 15.0.3(expo-font@55.0.4(expo@55.0.8)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
+      '@kingstinct/react-native-healthkit':
+        specifier: ^14.0.2
+        version: 14.0.2(react-native-nitro-modules@0.36.4(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
       '@livekit/components-react':
         specifier: ^2.9.16
         version: 2.9.21(livekit-client@2.18.9(@types/dom-mediacapture-record@1.0.22))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(tslib@2.8.1)
@@ -516,6 +519,9 @@ importers:
       react-native-gesture-handler:
         specifier: ~2.30.0
         version: 2.30.0(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
+      react-native-health-connect:
+        specifier: ^3.5.3
+        version: 3.5.3(@expo/config-plugins@55.0.7)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
       react-native-iap:
         specifier: 12.15.1
         version: 12.15.1(expo@55.0.8)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
@@ -525,6 +531,9 @@ importers:
       react-native-markdown-display:
         specifier: ^7.0.0-alpha.2
         version: 7.0.2(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
+      react-native-nitro-modules:
+        specifier: ^0.36.4
+        version: 0.36.4(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
       react-native-reanimated:
         specifier: ~4.2.1
         version: 4.2.1(react-native-worklets@0.7.2(@babel/core@7.28.5)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
@@ -2154,6 +2163,13 @@ packages:
       '@jsamr/counter-style': ^1.0.0 || ^2.0.0
       react: '*'
       react-native: '*'
+
+  '@kingstinct/react-native-healthkit@14.0.2':
+    resolution: {integrity: sha512-ed6x7xtSaML8qy8qswJWlVPKImeNEvHfWtuzylQZ9MsxgLriv33gDjf/8iWIcB4SKCW/BZNOFBcCqTQq5i5zmw==}
+    peerDependencies:
+      react: '>=19'
+      react-native: '>=0.79'
+      react-native-nitro-modules: '>=0.35'
 
   '@livekit/components-core@0.12.13':
     resolution: {integrity: sha512-DQmi84afHoHjZ62wm8y+XPNIDHTwFHAltjd3lmyXj8UZHOY7wcza4vFt1xnghJOD5wLRY58L1dkAgAw59MgWvw==}
@@ -7693,6 +7709,14 @@ packages:
       react: '*'
       react-native: '*'
 
+  react-native-health-connect@3.5.3:
+    resolution: {integrity: sha512-lco68RbMaWpvElED3/obXTJSzoWopo9k5loN/+1zSdr3iT4STp7BaoziyPx0DIyW1a6DF/lvMesXIubWKE1Srw==}
+    engines: {node: '>= 16.0.0'}
+    peerDependencies:
+      '@expo/config-plugins': '>= 6.0.2'
+      react: '*'
+      react-native: '*'
+
   react-native-iap@12.15.1:
     resolution: {integrity: sha512-NhGqXJb76BnDbbtXIsnRcal/4IWcfXn7sNjoqXoDXfZQkLHPw0WYG1E4S8U0kIV3khw0MZcUcNQbH0UzPVjokQ==}
     peerDependencies:
@@ -7725,6 +7749,12 @@ packages:
     peerDependencies:
       react: '>=16.2.0'
       react-native: '>=0.50.4'
+
+  react-native-nitro-modules@0.36.4:
+    resolution: {integrity: sha512-xf0DHUVLpby6If0GQ37fImEWy/slW+5lsYL/9kCOuS8wIpl6Lk8zi/oIR6KimEaoQXjLonM9ToX2eSCmeRtbIg==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
 
   react-native-reanimated@4.2.1:
     resolution: {integrity: sha512-/NcHnZMyOvsD/wYXug/YqSKw90P9edN0kEPL5lP4PFf1aQ4F1V7MKe/E0tvfkXKIajy3Qocp5EiEnlcrK/+BZg==}
@@ -11247,6 +11277,12 @@ snapshots:
       '@jsamr/counter-style': 2.0.2
       react: 19.2.0
       react-native: 0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0)
+
+  '@kingstinct/react-native-healthkit@14.0.2(react-native-nitro-modules@0.36.4(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)':
+    dependencies:
+      react: 19.2.0
+      react-native: 0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0)
+      react-native-nitro-modules: 0.36.4(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
 
   '@livekit/components-core@0.12.13(livekit-client@2.18.9(@types/dom-mediacapture-record@1.0.22))(tslib@2.8.1)':
     dependencies:
@@ -17929,6 +17965,12 @@ snapshots:
       react: 19.2.0
       react-native: 0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0)
 
+  react-native-health-connect@3.5.3(@expo/config-plugins@55.0.7)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0):
+    dependencies:
+      '@expo/config-plugins': 55.0.7
+      react: 19.2.0
+      react-native: 0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0)
+
   react-native-iap@12.15.1(expo@55.0.8)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0):
     dependencies:
       react: 19.2.0
@@ -17955,6 +17997,11 @@ snapshots:
       react: 19.2.0
       react-native: 0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0)
       react-native-fit-image: 1.5.5
+
+  react-native-nitro-modules@0.36.4(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0):
+    dependencies:
+      react: 19.2.0
+      react-native: 0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0)
 
   react-native-reanimated@4.2.1(react-native-worklets@0.7.2(@babel/core@7.28.5)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0):
     dependencies:

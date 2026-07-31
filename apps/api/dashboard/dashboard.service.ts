@@ -6,6 +6,7 @@ import { SuggestionsV2Service } from '../src/suggestions/suggestions-v2.service'
 import { DietsService } from '../src/diets/diets.service';
 import { CacheService } from '../src/cache/cache.service';
 import { PrismaService } from '../prisma.service';
+import { HealthMetricsService } from '../health-metrics/health-metrics.service';
 import { SupportedLocale } from '../src/suggestions/suggestions.types';
 
 @Injectable()
@@ -20,9 +21,15 @@ export class DashboardService {
         private readonly dietsService: DietsService,
         private readonly cacheService: CacheService,
         private readonly prisma: PrismaService,
+        private readonly healthMetrics: HealthMetricsService,
     ) { }
 
-    async getDashboardData(userId: string, dateStr?: string, locale: string = 'en') {
+    /**
+     * @param localDate the client's LOCAL calendar day (YYYY-MM-DD). Used to look
+     * up Apple Health / Health Connect activity, which the app stores per local
+     * day. Falls back to the UTC day when the client does not send it.
+     */
+    async getDashboardData(userId: string, dateStr?: string, locale: string = 'en', localDate?: string) {
         const start = Date.now();
         const normalizedLocale = (['en', 'ru', 'kk'].includes(locale) ? locale : 'en') as SupportedLocale;
 
@@ -103,12 +110,38 @@ export class DashboardService {
 
             // Merge goals into stats
             const userProfile = userProfileT.result;
-            const dailyGoal = (userProfile?.dailyCalories && userProfile.dailyCalories > 0) ? userProfile.dailyCalories : 2000; // Default fallback
+            const baseGoal = (userProfile?.dailyCalories && userProfile.dailyCalories > 0) ? userProfile.dailyCalories : 2000; // Default fallback
+
+            // Dynamic calorie target: add the calories the user actually burned
+            // moving today, as reported by Apple Health / Health Connect.
+            //
+            // ACTIVE energy only — resting energy is already baked into the
+            // BMR-derived base goal, so including total burn would double-count it.
+            // Returns null when the user never connected a health store, in which
+            // case the target stays exactly as it was.
+            //
+            // The key MUST be the user's local calendar day: the app stores
+            // activity under its own local date, and deriving the key from a UTC
+            // instant here would look up the wrong day for anyone far from UTC
+            // (in Almaty, +5, every request between midnight and 05:00 would miss).
+            const dateKey = localDate || date.toISOString().split('T')[0];
+            let activeEnergy: number | null = null;
+            try {
+                activeEnergy = await this.healthMetrics.getActiveEnergyForDate(userId, dateKey);
+            } catch {
+                activeEnergy = null;
+            }
+
+            const dailyGoal = activeEnergy ? baseGoal + activeEnergy : baseGoal;
+
             statsT.result.goals = {
                 calories: dailyGoal,
                 protein: Math.round(dailyGoal * 0.2 / 4), // ~20% of calories from protein
                 fat: Math.round(dailyGoal * 0.3 / 9), // ~30% of calories from fat
                 carbs: Math.round(dailyGoal * 0.5 / 4), // ~50% of calories from carbs
+                // Let the client explain the number ("+320 kcal because you moved").
+                baseCalories: baseGoal,
+                activeEnergyBonus: activeEnergy || 0,
             };
 
             const criticalDuration = Date.now() - start;

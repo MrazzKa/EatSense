@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import ApiService from '../services/apiService';
+import { syncMealsToHealth } from '../hooks/useHealthSync';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { formatCalories } from '../utils/nutritionFormat';
@@ -66,6 +67,12 @@ export default function DiaryJournalScreen() {
     try {
       const meals = await ApiService.getMeals();
       setDays(groupByDay(Array.isArray(meals) ? meals : []));
+      // Mirror logged meals into Apple Health / Health Connect. Meals are created
+      // server-side (analysis, fridge recipe, manual), so there is no single
+      // client-side "meal created" moment to hook — the diary load is where we
+      // reliably see all of them. De-duplicated by meal id inside HealthService,
+      // and a no-op unless the user turned sync on.
+      syncMealsToHealth(Array.isArray(meals) ? meals : []).catch(() => {});
     } catch (e) {
       console.warn('[DiaryJournal] load error:', e);
       setDays([]);

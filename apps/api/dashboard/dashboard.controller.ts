@@ -12,6 +12,7 @@ export class DashboardController {
         @Request() req: any,
         @Query('date') date?: string,
         @Query('locale') localeQuery?: string,
+        @Query('localDate') localDate?: string,
         @Headers('accept-language') acceptLanguage?: string,
     ) {
         // Prefer query locale, fallback to header
@@ -20,7 +21,8 @@ export class DashboardController {
         return this.dashboardService.getDashboardData(
             req.user.id,
             date,
-            locale
+            locale,
+            /^\d{4}-\d{2}-\d{2}$/.test(localDate || '') ? localDate : undefined,
         );
     }
 

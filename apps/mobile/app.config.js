@@ -4,7 +4,7 @@ export default {
     name: "EatSense",
     slug: "eatsense",
     owner: "eatsense",
-    version: "2.0.69",
+    version: "2.0.70",
     orientation: "default",
     // EAS Update configuration
     updates: {
@@ -37,7 +37,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "87",
+      buildNumber: "88",
       developmentTeam: "73T7PB4F99",
       supportsTablet: false,
       infoPlist: {
@@ -57,8 +57,13 @@ export default {
         // Microphone required for video consultations with experts (LiveKit).
         NSMicrophoneUsageDescription:
           "EatSense uses your microphone for video consultations with your nutritionist or dietitian.",
-        // NSHealthShareUsageDescription — REMOVED (HealthKit not used in v1.0, planned for Q1 2026)
-        // NSHealthUpdateUsageDescription — REMOVED (HealthKit not used in v1.0, planned for Q1 2026)
+        // HealthKit. Both strings are also passed to the config plugin below (which
+        // is what actually writes them plus the entitlement); keeping them here too
+        // makes the declared purpose visible in one place during App Review prep.
+        NSHealthShareUsageDescription:
+          "EatSense reads your steps, workouts, weight and sleep from Apple Health to adjust your daily calorie target to how active you actually were.",
+        NSHealthUpdateUsageDescription:
+          "EatSense writes the meals you log — calories, protein, carbs, fat and water — to Apple Health so your nutrition appears alongside the rest of your health data.",
         // NSFaceIDUsageDescription — REMOVED (not used, Apple rejects unused permissions)
       },
       // Universal Links host is www.eatsense.ch — that is where the Cloudflare site
@@ -80,7 +85,7 @@ export default {
 
     android: {
       package: "ch.eatsense.app",
-      versionCode: 123,
+      versionCode: 124,
       // Adaptive icon uses the purpose-built foreground (no wordmark, content
       // inside the safe zone) so Android's circular/squircle launcher masks
       // don't clip the "EatSense" text that lives in Logo.jpg. Background matches
@@ -95,7 +100,23 @@ export default {
           apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
         }
       },
-      permissions: ["CAMERA", "RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS", "READ_MEDIA_IMAGES", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "POST_NOTIFICATIONS"],
+      // Health Connect is the Android counterpart of HealthKit. Each data type needs
+      // its own permission, and Google Play additionally requires a Health Connect
+      // declaration form for the listing — see docs/plans/2026-07-30-health-sync-and-data.md.
+      permissions: [
+        "CAMERA", "RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS", "READ_MEDIA_IMAGES",
+        "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "POST_NOTIFICATIONS",
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+        "android.permission.health.READ_TOTAL_CALORIES_BURNED",
+        "android.permission.health.READ_EXERCISE",
+        "android.permission.health.READ_WEIGHT",
+        "android.permission.health.READ_HEIGHT",
+        "android.permission.health.READ_SLEEP",
+        "android.permission.health.READ_HEART_RATE",
+        "android.permission.health.WRITE_NUTRITION",
+        "android.permission.health.WRITE_HYDRATION",
+      ],
       intentFilters: [{
         action: "VIEW",
         autoVerify: true,
@@ -160,6 +181,22 @@ export default {
         }
       ],
       "expo-dev-client",
+      // Apple Health. Writes the HealthKit entitlement + both usage strings.
+      // `background: false` — we sync on app open and after logging a meal, so we
+      // do not need the background-delivery entitlement (and Apple questions
+      // entitlements an app does not actually use).
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          background: false,
+          NSHealthShareUsageDescription:
+            "EatSense reads your steps, workouts, weight and sleep from Apple Health to adjust your daily calorie target to how active you actually were.",
+          NSHealthUpdateUsageDescription:
+            "EatSense writes the meals you log — calories, protein, carbs, fat and water — to Apple Health so your nutrition appears alongside the rest of your health data.",
+        },
+      ],
+      // Android counterpart (Health Connect).
+      "react-native-health-connect",
       [
         "@react-native-google-signin/google-signin",
         {

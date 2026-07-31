@@ -9,6 +9,7 @@ import { DietsModule } from '../src/diets/diets.module';
 import { PrismaModule } from '../prisma.module';
 import { DietProgramsModule } from '../src/diet-programs/diet-programs.module';
 import { CacheModule } from '../src/cache/cache.module';
+import { HealthMetricsModule } from '../health-metrics/health-metrics.module';
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { CacheModule } from '../src/cache/cache.module';
         DietProgramsModule,
         PrismaModule,
         CacheModule,
+        HealthMetricsModule,
     ],
     controllers: [DashboardController],
     providers: [DashboardService],
