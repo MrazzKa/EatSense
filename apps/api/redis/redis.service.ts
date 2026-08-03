@@ -198,7 +198,17 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       return 0;
     }
     try {
-      return await this.client.decr(key);
+      const value = await this.client.decr(key);
+      // DECR CREATES the key at -1 when it does not exist — and does so with no
+      // TTL, so it would never expire at midnight and would hand that user an
+      // extra unit of quota forever. That happens whenever the guard took its
+      // Redis-down fallback (no incr) and Redis came back before the refund.
+      // A negative result therefore means "there was nothing to refund".
+      if (value < 0) {
+        await this.client.del(key).catch(() => {});
+        return 0;
+      }
+      return value;
     } catch (error) {
       console.warn('[Redis] decr error:', error.message);
       return 0;

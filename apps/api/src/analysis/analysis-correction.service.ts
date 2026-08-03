@@ -102,6 +102,8 @@ export class AnalysisCorrectionService {
     mealId?: string | null;
     itemId?: string | null;
     foodCategory?: string | null;
+    /** Consent already resolved by the caller — lets a batch look it up once. */
+    linked?: boolean;
   }): Promise<void> {
     try {
       const { before, after } = params;
@@ -110,7 +112,10 @@ export class AnalysisCorrectionService {
 
       // Without consent the row is stored with NO owner and no ids pointing back
       // at the user's data — just "this text/number was wrong, that one is right".
-      const linked = await this.isLinkageAllowed(params.userId);
+      const linked =
+        typeof params.linked === 'boolean'
+          ? params.linked
+          : await this.isLinkageAllowed(params.userId);
 
       await this.prisma.analysisCorrection.create({
         data: {
@@ -140,8 +145,15 @@ export class AnalysisCorrectionService {
   }
 
   /**
-   * Diff a whole item list. Items are matched by id when available and by
-   * position otherwise, which mirrors how `editMealItems` rebuilds the list.
+   * Diff a whole item list.
+   *
+   * Items are matched by id. Position is used ONLY when the caller supplied no
+   * ids at all, never as a per-item fallback: `editMealItems` gives a brand-new
+   * item a synthetic id (`meal-item-<idx>`) that matches nothing, so a per-item
+   * positional fallback would pair that new item with whatever happened to sit at
+   * the same index and record a correction that never happened — "model said
+   * apple, user said cheese". False labels are worse than missing ones in a
+   * training set, so an unmatched item is skipped.
    */
   async recordBatch(params: {
     userId: string;
@@ -153,10 +165,17 @@ export class AnalysisCorrectionService {
     try {
       const { before, after } = params;
       const byId = new Map(before.filter((b) => b.id).map((b) => [b.id as string, b]));
+      const positionalOnly = byId.size === 0;
+      // Resolve consent once for the whole batch instead of once per item.
+      const linked = await this.isLinkageAllowed(params.userId);
 
       await Promise.all(
         after.map(async (afterItem, idx) => {
-          const beforeItem = (afterItem.id && byId.get(afterItem.id)) || before[idx];
+          const beforeItem = positionalOnly
+            ? before[idx]
+            : afterItem.id
+              ? byId.get(afterItem.id)
+              : undefined;
           // A newly added item has no "before" — that is an addition, not a
           // correction of a model prediction, so there is nothing to learn from.
           if (!beforeItem) return;
@@ -167,6 +186,7 @@ export class AnalysisCorrectionService {
             analysisId: params.analysisId,
             mealId: params.mealId,
             itemId: afterItem.id || beforeItem.id || null,
+            linked,
           });
         }),
       );

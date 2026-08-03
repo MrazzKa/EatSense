@@ -59,6 +59,28 @@ const WRITE_TYPES = [
   'HKQuantityTypeIdentifierDietaryWater',
 ] as const;
 
+/**
+ * HKCategoryValueSleepAnalysis values that count as actually asleep.
+ *
+ * The library reports these as the raw numeric enum (inBed 0, asleepUnspecified 1,
+ * awake 2, asleepCore 3, asleepDeep 4, asleepREM 5), NOT as the symbolic name —
+ * so matching on the string "asleep" never matched anything and sleep silently
+ * came back empty for every user. Strings are still accepted in case a future
+ * version of the binding switches representation.
+ */
+const ASLEEP_VALUES = new Set([1, 3, 4, 5]);
+
+function isAsleepValue(value: unknown): boolean {
+  if (typeof value === 'number') return ASLEEP_VALUES.has(value);
+  if (typeof value === 'string') {
+    const v = value.toLowerCase();
+    if (v.includes('asleep')) return true;
+    const asNumber = Number(v);
+    return Number.isFinite(asNumber) && ASLEEP_VALUES.has(asNumber);
+  }
+  return false;
+}
+
 function dayBounds(date: Date): { startDate: Date; endDate: Date } {
   const startDate = new Date(date);
   startDate.setHours(0, 0, 0, 0);
@@ -214,11 +236,7 @@ const appleHealthProvider: HealthProvider = {
       } as any);
 
       if (Array.isArray(samples) && samples.length) {
-        const asleep = samples.filter((s: any) => {
-          const v = String(s?.value ?? '').toLowerCase();
-          // Values are named like asleepCore / asleepDeep / asleepREM / asleepUnspecified.
-          return v.includes('asleep');
-        });
+        const asleep = samples.filter((s: any) => isAsleepValue(s?.value));
         const pool = asleep.length ? asleep : [];
         const minutes = pool.reduce((acc: number, s: any) => {
           const st = s?.startDate ? new Date(s.startDate).getTime() : 0;

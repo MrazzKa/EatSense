@@ -229,6 +229,11 @@ const healthConnectProvider: HealthProvider = {
       startTime: at.toISOString(),
       endTime: end.toISOString(),
       name: meal.name,
+      // Required, not optional: Health Connect's NutritionRecord maps mealType to a
+      // non-null Kotlin Int, so omitting it makes insertRecords throw and no meal
+      // ever reaches the store. 0 = MEAL_TYPE_UNKNOWN, which is honest — we do not
+      // ask the user to label a meal breakfast/lunch/dinner.
+      mealType: 0,
     };
     if (Number.isFinite(meal.calories) && meal.calories > 0) {
       record.energy = { value: meal.calories, unit: 'kilocalories' };

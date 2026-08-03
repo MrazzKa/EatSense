@@ -88,8 +88,12 @@ export interface HealthProvider {
 }
 
 export function emptyDailySummary(date: Date): HealthDailySummary {
+  // Local calendar day, never UTC. The whole feature is keyed on the user's own
+  // day (the server upserts activity by it), and toISOString() would report
+  // yesterday for anyone east of UTC in the early hours.
+  const localDay = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   return {
-    date: date.toISOString().split('T')[0],
+    date: localDay,
     steps: null,
     activeEnergyKcal: null,
     restingEnergyKcal: null,
