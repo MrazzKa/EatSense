@@ -36,6 +36,21 @@ interface MealItem {
   satFat?: number;
 }
 
+interface HealthActivityDay {
+  date: string;
+  steps?: number | null;
+  activeEnergyKcal?: number | null;
+  workoutMinutes?: number | null;
+  sleepMinutes?: number | null;
+  restingHeartRate?: number | null;
+}
+
+interface HealthActivity {
+  /** False when the client has not switched on "share activity with my expert". */
+  shared: boolean;
+  days: HealthActivityDay[];
+}
+
 interface LabResult {
   id: string;
   testName: string;
@@ -92,6 +107,11 @@ export default function ClientDataPage() {
   const [noteSavedAt, setNoteSavedAt] = useState<string | null>(null);
   const [noteSaving, setNoteSaving] = useState(false);
   const [noteError, setNoteError] = useState('');
+  /**
+   * Apple Health / Health Connect activity, when the client has shared it.
+   * `shared: false` is the normal "they didn't consent" answer, not an error.
+   */
+  const [activity, setActivity] = useState<HealthActivity | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -169,6 +189,22 @@ export default function ClientDataPage() {
       });
     return () => { cancelled = true; };
   }, [data?.clientId, t]);
+
+  // Activity from the client's health app. Kept separate from the main client
+  // payload because it is gated by its own consent and every read is audited —
+  // fetching it only when a client page is opened keeps that audit trail honest.
+  useEffect(() => {
+    if (!data?.clientId) return;
+    let cancelled = false;
+    apiFetch(`/experts/me/clients/${data.clientId}/health-activity?days=14`)
+      .then((res) => {
+        if (!cancelled) setActivity(res || { shared: false, days: [] });
+      })
+      .catch(() => {
+        if (!cancelled) setActivity({ shared: false, days: [] });
+      });
+    return () => { cancelled = true; };
+  }, [data?.clientId]);
 
   const saveNote = useCallback(async () => {
     if (!data?.clientId || noteSaving) return;
@@ -522,6 +558,54 @@ export default function ClientDataPage() {
 
             {/* Health profile tab */}
             {tab === 'health' && (
+              <>
+              {/* Activity from the client's own health app. Shown above the static
+                  profile because it is the only part of this tab that changes day
+                  to day — and until now the client's "share with my expert"
+                  consent had nothing on the other end of it. */}
+              {activity?.shared && activity.days.length > 0 ? (
+                <div className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6">
+                  <h3 className="mb-1 text-base font-semibold">{t('clients', 'activityTitle')}</h3>
+                  <p className="mb-4 text-xs text-[var(--text2)]">{t('clients', 'activitySubtitle')}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[520px] text-sm">
+                      <thead>
+                        <tr className="text-left text-xs uppercase tracking-wide text-[var(--text2)]">
+                          <th className="pb-2 pr-4 font-medium">{t('clients', 'activityDate')}</th>
+                          <th className="pb-2 pr-4 font-medium">{t('clients', 'activitySteps')}</th>
+                          <th className="pb-2 pr-4 font-medium">{t('clients', 'activityActive')}</th>
+                          <th className="pb-2 pr-4 font-medium">{t('clients', 'activityWorkout')}</th>
+                          <th className="pb-2 font-medium">{t('clients', 'activitySleep')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...activity.days].reverse().map((d) => (
+                          <tr key={d.date} className="border-t border-[var(--border)]">
+                            <td className="py-2 pr-4 whitespace-nowrap">
+                              {new Date(`${d.date}T00:00:00`).toLocaleDateString(localeTag(locale), {
+                                day: 'numeric',
+                                month: 'short',
+                              })}
+                            </td>
+                            <td className="py-2 pr-4">{d.steps != null ? d.steps.toLocaleString(localeTag(locale)) : '—'}</td>
+                            <td className="py-2 pr-4">{d.activeEnergyKcal != null ? `${d.activeEnergyKcal} kcal` : '—'}</td>
+                            <td className="py-2 pr-4">{d.workoutMinutes ? `${d.workoutMinutes} min` : '—'}</td>
+                            <td className="py-2">
+                              {d.sleepMinutes ? `${Math.round((d.sleepMinutes / 60) * 10) / 10} h` : '—'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-4 flex items-start gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface2)] p-4">
+                  <Lock className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text2)]" />
+                  <p className="text-sm text-[var(--text2)]">{t('clients', 'activityNotShared')}</p>
+                </div>
+              )}
+
               <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6">
                 {data.healthProfile ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -557,6 +641,7 @@ export default function ClientDataPage() {
                   <p className="text-[var(--text2)] text-center py-10">{t('clients', 'noHealth')}</p>
                 )}
               </div>
+              </>
             )}
           </>
         ) : null}

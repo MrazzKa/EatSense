@@ -803,9 +803,17 @@ export class FoodProcessor {
         | undefined;
       if (userId && (userProfile?.preferences as any)?.healthAiContext === true) {
         try {
-          const today = new Date().toISOString().split('T')[0];
-          const metric = await this.prisma.healthDailyMetric.findUnique({
-            where: { userId_date: { userId, date: today } },
+          // Take the newest row from the last few days rather than matching an
+          // exact "today". Activity is stored under the user's LOCAL calendar day
+          // while this runs on a UTC server, so an exact match silently finds
+          // nothing for anyone ahead of UTC in the early hours — and finds
+          // nothing anyway for a user who last opened the app yesterday evening.
+          const since = new Date();
+          since.setDate(since.getDate() - 2);
+          const sinceKey = since.toISOString().split('T')[0];
+          const metric = await this.prisma.healthDailyMetric.findFirst({
+            where: { userId, date: { gte: sinceKey } },
+            orderBy: { date: 'desc' },
           });
           if (metric) {
             healthContext = {

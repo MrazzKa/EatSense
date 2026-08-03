@@ -24,6 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import ApiService from '../services/apiService';
 import IAPService from '../services/iapService';
+import HealthService from '../services/health';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { clientLog } from '../utils/clientLog';
@@ -795,6 +796,15 @@ const OnboardingScreen = () => {
     allergiesNone: false,
     country: null as string | null,
   });
+  // Apple Health / Health Connect, offered during onboarding rather than only in
+  // Profile. Placed just before the height/weight slide so a connected store can
+  // fill those in for real instead of making the user guess with a slider.
+  const [healthAvailable, setHealthAvailable] = useState(false);
+  const [healthConnected, setHealthConnected] = useState(false);
+  const [healthBusy, setHealthBusy] = useState(false);
+  /** What we actually managed to read, so the slide can show it rather than promise it. */
+  const [healthPrefill, setHealthPrefill] = useState<{ weightKg?: number; heightCm?: number } | null>(null);
+
   const [allergiesState, setAllergiesState] = useState({ selected: [] as string[], hasNone: false, otherText: '' });
   const [unitSystem, setUnitSystem] = useState('metric'); // 'metric' or 'imperial'
   const [loadingProgress, setLoadingProgress] = useState(0); // Loading step progress
@@ -847,6 +857,12 @@ const OnboardingScreen = () => {
       { id: 'country', title: t('country.title', 'Select country') },
       { id: 'goals', title: t('onboarding.goals', 'What are your goals?') },
       { id: 'basics', title: t('onboarding.aboutYou', 'About you') },
+      // Deliberately BEFORE measurements: connecting the health store fills in
+      // height and weight from real readings, so the next slide is a confirmation
+      // instead of a guess. Dropped entirely on devices with no health store.
+      ...(healthAvailable
+        ? [{ id: 'healthConnect', title: t('onboarding.healthConnect', 'Connect your health data') }]
+        : []),
       { id: 'measurements', title: t('onboarding.yourMeasurements', 'Your measurements') },
       { id: 'targetWeight', title: t('onboarding.targetWeight', 'What weight do you want?') },
       { id: 'activity', title: t('onboarding.activity', 'How active are you?') },
@@ -860,7 +876,66 @@ const OnboardingScreen = () => {
       return base.filter((s) => s.id !== 'targetWeight');
     }
     return base;
-  }, [t, profileData.goal]);
+  }, [t, profileData.goal, healthAvailable]);
+
+  // Is there a health store on this device at all? Checked once — the answer
+  // decides whether the healthConnect slide exists, and a slide appearing
+  // mid-flow would shift every index after it.
+  useEffect(() => {
+    let cancelled = false;
+    HealthService.isAvailable()
+      .then((available) => {
+        if (!cancelled) setHealthAvailable(available);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /**
+   * Connect the health store and pull height/weight straight into the profile.
+   *
+   * This is the part that makes the integration feel like one product rather than
+   * a settings toggle: the very next slide already shows the user's real numbers.
+   */
+  const connectHealthDuringOnboarding = useCallback(async () => {
+    if (healthBusy) return;
+    setHealthBusy(true);
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    }
+    try {
+      const result = await HealthService.setEnabled(true);
+      setHealthConnected(result.enabled);
+      if (!result.enabled) return;
+
+      const body = await HealthService.getBodyMetrics();
+      const prefill: { weightKg?: number; heightCm?: number } = {};
+      // Sanity-bound both: a stray reading in the wrong unit would otherwise land
+      // straight in the profile and skew the whole calorie calculation.
+      if (body?.weightKg && body.weightKg >= 25 && body.weightKg <= 400) {
+        prefill.weightKg = Math.round(body.weightKg * 10) / 10;
+      }
+      if (body?.heightCm && body.heightCm >= 90 && body.heightCm <= 250) {
+        prefill.heightCm = Math.round(body.heightCm);
+      }
+      if (prefill.weightKg || prefill.heightCm) {
+        setHealthPrefill(prefill);
+        setProfileData((prev) => ({
+          ...prev,
+          ...(prefill.weightKg
+            ? { weight: prefill.weightKg, targetWeight: prev.targetWeight || prefill.weightKg }
+            : {}),
+          ...(prefill.heightCm ? { height: prefill.heightCm } : {}),
+        }));
+      }
+    } catch {
+      // Declining the permission sheet is a normal outcome, not an error.
+    } finally {
+      setHealthBusy(false);
+    }
+  }, [healthBusy]);
 
   // Entrance animation: fade + slide-in whenever the active slide changes.
   useEffect(() => {
@@ -1744,6 +1819,130 @@ const OnboardingScreen = () => {
       {/* Removed duplicate Goals section */}
     </View>
   );
+
+  /**
+   * Offer to connect Apple Health / Health Connect, mid-onboarding.
+   *
+   * Asking here rather than only from Profile is the whole point: iOS grants an
+   * app exactly ONE HealthKit permission sheet per data type, so it should be
+   * spent at the moment the benefit is clearest — right before we ask the user to
+   * guess their own height and weight on a slider.
+   *
+   * Entirely optional. Skipping costs nothing and every later screen still works.
+   */
+  const renderHealthConnectStep = () => {
+    const storeName = Platform.OS === 'ios' ? 'Apple Health' : 'Health Connect';
+    const bullets = [
+      {
+        icon: 'flame-outline',
+        text: t(
+          'onboarding.healthConnectBenefit1',
+          'Your daily calorie goal grows on the days you actually move, instead of staying a fixed guess.',
+        ),
+      },
+      {
+        icon: 'body-outline',
+        text: t(
+          'onboarding.healthConnectBenefit2',
+          'Height and weight are filled in from your real readings — including from smart scales.',
+        ),
+      },
+      {
+        icon: 'restaurant-outline',
+        text: t(
+          'onboarding.healthConnectBenefit3',
+          'Meals you log show up in your health app alongside everything else.',
+        ),
+      },
+    ];
+
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>
+          {t('onboarding.healthConnect', 'Connect your health data').replace('{{store}}', storeName)}
+        </Text>
+        <Text style={[styles.inputLabel, { marginBottom: 18 }]}>
+          {t('onboarding.healthConnectSubtitle', 'Optional — you can turn this on later in your profile.').replace(
+            '{{store}}',
+            storeName,
+          )}
+        </Text>
+
+        <View style={{ marginBottom: 22 }}>
+          {bullets.map((b) => (
+            <View key={b.icon} style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 }}>
+              <Ionicons
+                name={b.icon}
+                size={19}
+                color={colors.primary}
+                style={{ marginRight: 12, marginTop: 1 }}
+              />
+              <Text style={[styles.activityDescription, { flex: 1, lineHeight: 20 }]}>{b.text}</Text>
+            </View>
+          ))}
+        </View>
+
+        {healthConnected ? (
+          <View
+            style={[
+              styles.activityButton,
+              styles.activityButtonSelected,
+              { flexDirection: 'row', alignItems: 'center' },
+            ]}
+          >
+            <Ionicons name="checkmark-circle" size={22} color={colors.success || '#22C55E'} />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={[styles.activityLabel, styles.activityLabelSelected]}>
+                {t('onboarding.healthConnected', 'Connected').replace('{{store}}', storeName)}
+              </Text>
+              {/* Show what actually came back. "Connected" on its own leaves the
+                  user wondering whether anything was really read. */}
+              {healthPrefill ? (
+                <Text style={[styles.activityDescription, styles.activityDescriptionSelected]}>
+                  {[
+                    healthPrefill.weightKg
+                      ? `${t('onboarding.weight', 'Weight')}: ${healthPrefill.weightKg} kg`
+                      : null,
+                    healthPrefill.heightCm
+                      ? `${t('onboarding.height', 'Height')}: ${healthPrefill.heightCm} cm`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </Text>
+              ) : (
+                <Text style={[styles.activityDescription, styles.activityDescriptionSelected]}>
+                  {t('onboarding.healthConnectedNoBody', 'Activity will sync from now on.')}
+                </Text>
+              )}
+            </View>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[styles.activityButton, { alignItems: 'center' }]}
+            onPress={connectHealthDuringOnboarding}
+            disabled={healthBusy}
+            activeOpacity={0.85}
+          >
+            {healthBusy ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Text style={styles.activityLabel}>
+                {t('onboarding.healthConnectCta', 'Connect {{store}}').replace('{{store}}', storeName)}
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
+
+        <Text style={[styles.activityDescription, { marginTop: 18, textAlign: 'center' }]}>
+          {t(
+            'onboarding.healthConnectPrivacy',
+            'Health data is never used for advertising and is never shared without your explicit permission.',
+          )}
+        </Text>
+      </View>
+    );
+  };
 
   const renderPlanStep = () => (
     <KeyboardAvoidingView
@@ -3038,6 +3237,7 @@ const OnboardingScreen = () => {
       case 'country': return renderCountryStep();
       case 'goals': return renderGoalsStep();
       case 'basics': return renderBasicsStep();
+      case 'healthConnect': return renderHealthConnectStep();
       case 'measurements': return renderMeasurementsStep();
       case 'targetWeight': return renderTargetWeightStep();
       case 'activity': return renderActivityStep();

@@ -38,6 +38,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { mapLanguageToLocale } from '../utils/locale';
 import { useHealthSync } from '../hooks/useHealthSync';
 import HealthSyncPrompt from '../components/HealthSyncPrompt';
+import TodayActivityCard from '../components/TodayActivityCard';
 import {
   FLOATING_TAB_BAR_BOTTOM_GAP,
   FLOATING_TAB_BAR_HEIGHT,
@@ -217,7 +218,7 @@ export default function DashboardScreen() {
   const { mascot, addXp } = useMascot();
   // Uploads Apple Health / Health Connect activity so the server can widen
   // today's calorie target. No-op unless the user turned sync on.
-  const { uploadedAt: healthUploadedAt } = useHealthSync();
+  const { uploadedAt: healthUploadedAt, summary: healthSummary } = useHealthSync();
 
   // FIX: Define missing variable used by the widget
   // Ensure diet object has proper name structure for ActiveDietWidget
@@ -1216,14 +1217,12 @@ export default function DashboardScreen() {
           </View>
         </Animated.View>
 
-        {/* Offer to connect Apple Health / Health Connect. Shown only after the
-            user has logged something (so the benefit is concrete), and it asks
-            our own question before spending iOS's single, unrepeatable HealthKit
-            permission prompt. */}
-        <HealthSyncPrompt
-          hasLoggedMeals={recentItems.length > 0}
-          onConnected={() => loadDashboardData(true)}
-        />
+        {/* Health, directly under the number it changes. Exactly one of these two
+            is ever visible: the activity card once sync is on, the connect offer
+            while it is off. Keeping both here means the feature has a permanent
+            home on the main screen instead of living only inside Profile. */}
+        <TodayActivityCard summary={healthSummary} activeEnergyBonus={stats.activeEnergyBonus} />
+        <HealthSyncPrompt onConnected={() => loadDashboardData(true)} />
 
         {/* Quick Stats — unified glass card with 3 macros */}
         <Animated.View

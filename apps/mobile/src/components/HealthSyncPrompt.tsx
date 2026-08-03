@@ -16,8 +16,6 @@ const SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_ASKS = 3;
 
 interface Props {
-  /** Only offer once the user has data to gain from it. */
-  hasLoggedMeals: boolean;
   onConnected?: () => void;
 }
 
@@ -32,8 +30,16 @@ interface Props {
  *
  * It also explains the benefit before asking, which is what Apple's own review
  * guidance asks for.
+ *
+ * It used to wait until the user had logged a meal, on the theory that the offer
+ * lands better once there is something to gain from it. In practice that hid the
+ * entire feature from exactly the people who had not started yet — the first
+ * TestFlight round came back with "I could barely find it myself" — and a brand
+ * new account saw nothing at all. Activity is worth reading from day one, so the
+ * only gates left are: sync is off, the store exists, and the user has not said
+ * no three times.
  */
-export default function HealthSyncPrompt({ hasLoggedMeals, onConnected }: Props) {
+export default function HealthSyncPrompt({ onConnected }: Props) {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const { t } = useI18n();
@@ -49,7 +55,6 @@ export default function HealthSyncPrompt({ hasLoggedMeals, onConnected }: Props)
     let cancelled = false;
     (async () => {
       try {
-        if (!hasLoggedMeals) return;
         if (await HealthService.isEnabled()) return;
         if (!(await HealthService.isAvailable())) return;
 
@@ -68,7 +73,7 @@ export default function HealthSyncPrompt({ hasLoggedMeals, onConnected }: Props)
     return () => {
       cancelled = true;
     };
-  }, [hasLoggedMeals]);
+  }, []);
 
   const connect = useCallback(async () => {
     if (busy) return;

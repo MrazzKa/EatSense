@@ -1837,7 +1837,16 @@
       "finalizing": "Finalizando tu plan…"
     },
     "termsIntroV2": "Tus datos siguen siendo tuyos: cifrados, nunca vendidos, y puedes eliminarlos en cualquier momento.",
-    "acceptBoth": "He leído y acepto los Términos de servicio y la Política de privacidad."
+    "acceptBoth": "He leído y acepto los Términos de servicio y la Política de privacidad.",
+    "healthConnect": "Conecta {{store}}",
+    "healthConnectSubtitle": "Opcional: puedes activarlo más tarde en tu perfil.",
+    "healthConnectBenefit1": "Tu objetivo diario de calorías crece los días que realmente te mueves, en lugar de ser una estimación fija.",
+    "healthConnectBenefit2": "La altura y el peso se rellenan con tus mediciones reales, incluidas las de básculas inteligentes.",
+    "healthConnectBenefit3": "Las comidas que registras aparecen en tu app de salud junto al resto.",
+    "healthConnectCta": "Conectar {{store}}",
+    "healthConnected": "{{store}} conectado",
+    "healthConnectedNoBody": "La actividad se sincronizará a partir de ahora.",
+    "healthConnectPrivacy": "Los datos de salud nunca se usan para publicidad ni se comparten sin tu permiso explícito."
   },
   "permissions": {
     "cameraRequired": "Se necesita permiso de cámara para tomar fotos",
@@ -5073,6 +5082,10 @@
     "promptTitle": "Conectar {{store}}",
     "promptBody": "Tu objetivo de calorías seguirá cuánto te moviste de verdad, y tus comidas aparecerán en tu app de salud.",
     "promptConnect": "Conectar",
-    "promptDetails": "¿Qué se comparte?"
+    "promptDetails": "¿Qué se comparte?",
+    "todayActivity": "Actividad de hoy",
+    "sleepHours": "Sueño (h)",
+    "addedToGoal": "{{kcal}} kcal añadidas al objetivo de hoy porque te has movido",
+    "noBonusYet": "Muévete más hoy y tu objetivo de calorías crece contigo."
   }
 }

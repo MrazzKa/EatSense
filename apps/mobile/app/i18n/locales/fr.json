@@ -2135,7 +2135,16 @@
       "finalizing": "Finalisation de votre plan…"
     },
     "termsIntroV2": "Vos données vous appartiennent — chiffrées, jamais vendues, et supprimables à tout moment.",
-    "acceptBoth": "J'ai lu et j'accepte les Conditions d'utilisation et la Politique de confidentialité."
+    "acceptBoth": "J'ai lu et j'accepte les Conditions d'utilisation et la Politique de confidentialité.",
+    "healthConnect": "Connectez {{store}}",
+    "healthConnectSubtitle": "Facultatif — vous pourrez l’activer plus tard dans votre profil.",
+    "healthConnectBenefit1": "Votre objectif calorique augmente les jours où vous bougez réellement, au lieu de rester une estimation figée.",
+    "healthConnectBenefit2": "Taille et poids sont renseignés à partir de vos vraies mesures — y compris depuis une balance connectée.",
+    "healthConnectBenefit3": "Les repas que vous enregistrez apparaissent dans votre application santé avec le reste.",
+    "healthConnectCta": "Connecter {{store}}",
+    "healthConnected": "{{store}} connecté",
+    "healthConnectedNoBody": "L’activité sera synchronisée à partir de maintenant.",
+    "healthConnectPrivacy": "Les données de santé ne sont jamais utilisées à des fins publicitaires ni partagées sans votre autorisation explicite."
   },
   "permissions": {
     "cameraRequired": "L'autorisation de la caméra est requise pour prendre des photos",
@@ -5073,6 +5082,10 @@
     "promptTitle": "Connecter {{store}}",
     "promptBody": "Votre objectif calorique suivra votre activité réelle, et vos repas apparaîtront dans votre application santé.",
     "promptConnect": "Connecter",
-    "promptDetails": "Que partage-t-on ?"
+    "promptDetails": "Que partage-t-on ?",
+    "todayActivity": "Activité du jour",
+    "sleepHours": "Sommeil (h)",
+    "addedToGoal": "{{kcal}} kcal ajoutées à l’objectif du jour parce que vous avez bougé",
+    "noBonusYet": "Bougez davantage aujourd’hui et votre objectif calorique augmente avec vous."
   }
 }

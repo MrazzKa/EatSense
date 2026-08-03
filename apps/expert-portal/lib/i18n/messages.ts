@@ -238,6 +238,14 @@ type MessagesShape = {
     noMeals: string;
     noLabs: string;
     noHealth: string;
+    activityTitle: string;
+    activitySubtitle: string;
+    activityDate: string;
+    activitySteps: string;
+    activityActive: string;
+    activityWorkout: string;
+    activitySleep: string;
+    activityNotShared: string;
     metric: string;
     value: string;
     reference: string;
@@ -574,6 +582,9 @@ const en: MessagesShape = {
     noAccess: 'The client may not have granted data access yet.',
     meals: 'Meals', labs: 'Lab Results', health: 'Health Profile',
     noMeals: 'No meal data available.', noLabs: 'No lab results available.', noHealth: 'No health profile data available.',
+    activityTitle: 'Activity', activitySubtitle: 'From the client\'s health app, shared with their consent. Last 14 days.',
+    activityDate: 'Date', activitySteps: 'Steps', activityActive: 'Active', activityWorkout: 'Workout', activitySleep: 'Sleep',
+    activityNotShared: 'This client has not shared activity from their health app. They can turn it on in the app under Profile → Health sync.',
     metric: 'Metric', value: 'Value', reference: 'Reference', mealLabel: 'Meal',
     name: 'Name', age: 'Age', height: 'Height', weight: 'Weight', gender: 'Gender', goal: 'Goal',
     dailyCalories: 'Daily Calories Target', preferences: 'Preferences', healthConditions: 'Health conditions', dietaryPreferences: 'Diet', allergies: 'Allergies',
@@ -812,6 +823,9 @@ const ru: MessagesShape = {
     noAccess: 'Клиент ещё не предоставил доступ к данным.',
     meals: 'Приёмы пищи', labs: 'Результаты анализов', health: 'Профиль здоровья',
     noMeals: 'Нет данных о приёмах пищи.', noLabs: 'Нет результатов анализов.', noHealth: 'Нет данных профиля здоровья.',
+    activityTitle: 'Активность', activitySubtitle: 'Из приложения здоровья клиента, с его согласия. Последние 14 дней.',
+    activityDate: 'Дата', activitySteps: 'Шаги', activityActive: 'Активность', activityWorkout: 'Тренировка', activitySleep: 'Сон',
+    activityNotShared: 'Клиент не поделился активностью из приложения здоровья. Он может включить это в приложении: Профиль → Синхронизация здоровья.',
     metric: 'Показатель', value: 'Значение', reference: 'Норма', mealLabel: 'Приём пищи',
     name: 'Имя', age: 'Возраст', height: 'Рост', weight: 'Вес', gender: 'Пол', goal: 'Цель',
     dailyCalories: 'Целевая норма калорий', preferences: 'Предпочтения', healthConditions: 'Состояния здоровья', dietaryPreferences: 'Диета', allergies: 'Аллергии',
@@ -1050,6 +1064,9 @@ const kk: MessagesShape = {
     noAccess: 'Клиент әлі деректерге рұқсат бермеген болуы мүмкін.',
     meals: 'Тамақтар', labs: 'Талдау нәтижелері', health: 'Денсаулық профилі',
     noMeals: 'Тамақ деректері жоқ.', noLabs: 'Талдау нәтижелері жоқ.', noHealth: 'Денсаулық профилі деректері жоқ.',
+    activityTitle: 'Белсенділік', activitySubtitle: 'Клиенттің денсаулық қосымшасынан, оның келісімімен. Соңғы 14 күн.',
+    activityDate: 'Күні', activitySteps: 'Қадам', activityActive: 'Белсенділік', activityWorkout: 'Жаттығу', activitySleep: 'Ұйқы',
+    activityNotShared: 'Клиент денсаулық қосымшасынан белсенділікті бөліскен жоқ. Оны қосымшада қосуға болады: Профиль → Денсаулық синхрондауы.',
     metric: 'Көрсеткіш', value: 'Мән', reference: 'Норма', mealLabel: 'Тамақ',
     name: 'Аты', age: 'Жасы', height: 'Бойы', weight: 'Салмағы', gender: 'Жынысы', goal: 'Мақсаты',
     dailyCalories: 'Күнделікті калория мақсаты', preferences: 'Қалаулар', healthConditions: 'Денсаулық жағдайлары', dietaryPreferences: 'Диета', allergies: 'Аллергиялар',
@@ -1288,6 +1305,9 @@ const de: MessagesShape = {
     noAccess: 'Der Kunde hat möglicherweise noch keinen Datenzugriff gewährt.',
     meals: 'Mahlzeiten', labs: 'Laborergebnisse', health: 'Gesundheitsprofil',
     noMeals: 'Keine Mahlzeitendaten verfügbar.', noLabs: 'Keine Laborergebnisse verfügbar.', noHealth: 'Keine Gesundheitsprofildaten verfügbar.',
+    activityTitle: 'Aktivität', activitySubtitle: 'Aus der Health-App des Klienten, mit dessen Einwilligung geteilt. Letzte 14 Tage.',
+    activityDate: 'Datum', activitySteps: 'Schritte', activityActive: 'Aktiv', activityWorkout: 'Training', activitySleep: 'Schlaf',
+    activityNotShared: 'Dieser Klient teilt keine Aktivität aus seiner Health-App. Er kann das in der App unter Profil → Health-Sync aktivieren.',
     metric: 'Kennzahl', value: 'Wert', reference: 'Referenz', mealLabel: 'Mahlzeit',
     name: 'Name', age: 'Alter', height: 'Größe', weight: 'Gewicht', gender: 'Geschlecht', goal: 'Ziel',
     dailyCalories: 'Tägliches Kalorienziel', preferences: 'Vorlieben', healthConditions: 'Gesundheitszustände', dietaryPreferences: 'Diät', allergies: 'Allergien',
@@ -1526,6 +1546,9 @@ const fr: MessagesShape = {
     noAccess: 'Le client n\'a peut-être pas encore accordé l\'accès aux données.',
     meals: 'Repas', labs: 'Résultats d\'analyse', health: 'Profil de santé',
     noMeals: 'Aucune donnée de repas disponible.', noLabs: 'Aucun résultat d\'analyse disponible.', noHealth: 'Aucune donnée de profil de santé disponible.',
+    activityTitle: 'Activité', activitySubtitle: 'Depuis l\'application santé du client, partagée avec son consentement. 14 derniers jours.',
+    activityDate: 'Date', activitySteps: 'Pas', activityActive: 'Actif', activityWorkout: 'Séance', activitySleep: 'Sommeil',
+    activityNotShared: 'Ce client ne partage pas l\'activité de son application santé. Il peut l\'activer dans l\'app via Profil → Synchronisation santé.',
     metric: 'Paramètre', value: 'Valeur', reference: 'Référence', mealLabel: 'Repas',
     name: 'Nom', age: 'Âge', height: 'Taille', weight: 'Poids', gender: 'Sexe', goal: 'Objectif',
     dailyCalories: 'Objectif calorique journalier', preferences: 'Préférences', healthConditions: 'Problèmes de santé', dietaryPreferences: 'Régime', allergies: 'Allergies',
@@ -1764,6 +1787,9 @@ const es: MessagesShape = {
     noAccess: 'Puede que el cliente aún no haya concedido acceso a los datos.',
     meals: 'Comidas', labs: 'Resultados de laboratorio', health: 'Perfil de salud',
     noMeals: 'No hay datos de comidas disponibles.', noLabs: 'No hay resultados de laboratorio disponibles.', noHealth: 'No hay datos del perfil de salud.',
+    activityTitle: 'Actividad', activitySubtitle: 'Desde la app de salud del cliente, compartida con su consentimiento. Últimos 14 días.',
+    activityDate: 'Fecha', activitySteps: 'Pasos', activityActive: 'Activo', activityWorkout: 'Entreno', activitySleep: 'Sueño',
+    activityNotShared: 'Este cliente no ha compartido la actividad de su app de salud. Puede activarlo en la app en Perfil → Sincronización de salud.',
     metric: 'Indicador', value: 'Valor', reference: 'Referencia', mealLabel: 'Comida',
     name: 'Nombre', age: 'Edad', height: 'Altura', weight: 'Peso', gender: 'Género', goal: 'Objetivo',
     dailyCalories: 'Objetivo calórico diario', preferences: 'Preferencias', healthConditions: 'Condiciones de salud', dietaryPreferences: 'Dieta', allergies: 'Alergias',

@@ -417,7 +417,16 @@
       "finalizing": "Wir stellen deinen Plan fertig…"
     },
     "termsIntroV2": "Deine Daten bleiben deine — verschlüsselt, nie verkauft, und jederzeit löschbar.",
-    "acceptBoth": "Ich habe die Nutzungsbedingungen und die Datenschutzerklärung gelesen und akzeptiere sie."
+    "acceptBoth": "Ich habe die Nutzungsbedingungen und die Datenschutzerklärung gelesen und akzeptiere sie.",
+    "healthConnect": "{{store}} verbinden",
+    "healthConnectSubtitle": "Optional — du kannst das später im Profil aktivieren.",
+    "healthConnectBenefit1": "Dein Kalorienziel wächst an den Tagen, an denen du dich wirklich bewegst, statt eine feste Schätzung zu bleiben.",
+    "healthConnectBenefit2": "Größe und Gewicht werden aus deinen echten Messwerten übernommen — auch von smarten Waagen.",
+    "healthConnectBenefit3": "Erfasste Mahlzeiten erscheinen in deiner Health-App neben allem anderen.",
+    "healthConnectCta": "{{store}} verbinden",
+    "healthConnected": "{{store}} verbunden",
+    "healthConnectedNoBody": "Aktivität wird ab jetzt synchronisiert.",
+    "healthConnectPrivacy": "Gesundheitsdaten werden nie für Werbung genutzt und nie ohne deine ausdrückliche Erlaubnis weitergegeben."
   },
   "aiAssistant": {
     "attach": {
@@ -5107,6 +5116,10 @@
     "promptTitle": "{{store}} verbinden",
     "promptBody": "Dein Kalorienziel folgt deiner tatsächlichen Bewegung, und deine Mahlzeiten erscheinen in deiner Gesundheits-App.",
     "promptConnect": "Verbinden",
-    "promptDetails": "Was wird geteilt?"
+    "promptDetails": "Was wird geteilt?",
+    "todayActivity": "Aktivität heute",
+    "sleepHours": "Schlaf (Std.)",
+    "addedToGoal": "{{kcal}} kcal zum heutigen Ziel addiert, weil du dich bewegt hast",
+    "noBonusYet": "Beweg dich heute mehr — dein Kalorienziel wächst mit."
   }
 }

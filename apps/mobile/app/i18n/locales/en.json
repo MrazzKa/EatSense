@@ -538,7 +538,16 @@
       "finalizing": "Finalizing your plan…"
     },
     "termsIntroV2": "Your data stays yours — encrypted, never sold, and you can delete it anytime.",
-    "acceptBoth": "I have read and accept the Terms of Service and Privacy Policy."
+    "acceptBoth": "I have read and accept the Terms of Service and Privacy Policy.",
+    "healthConnect": "Connect {{store}}",
+    "healthConnectSubtitle": "Optional — you can turn this on later in your profile.",
+    "healthConnectBenefit1": "Your daily calorie goal grows on the days you actually move, instead of staying a fixed guess.",
+    "healthConnectBenefit2": "Height and weight are filled in from your real readings — including from smart scales.",
+    "healthConnectBenefit3": "Meals you log show up in your health app alongside everything else.",
+    "healthConnectCta": "Connect {{store}}",
+    "healthConnected": "{{store}} connected",
+    "healthConnectedNoBody": "Activity will sync from now on.",
+    "healthConnectPrivacy": "Health data is never used for advertising and is never shared without your explicit permission."
   },
   "suggest": {
     "title": "Community Suggestions",
@@ -5108,6 +5117,10 @@
     "promptTitle": "Connect {{store}}",
     "promptBody": "Your calorie goal will follow how much you actually moved, and your meals will appear in your health app.",
     "promptConnect": "Connect",
-    "promptDetails": "What is shared?"
+    "promptDetails": "What is shared?",
+    "todayActivity": "Today’s activity",
+    "sleepHours": "Sleep h",
+    "addedToGoal": "{{kcal}} kcal added to today’s goal because you moved",
+    "noBonusYet": "Move more today and your calorie goal grows with you."
   }
 }
