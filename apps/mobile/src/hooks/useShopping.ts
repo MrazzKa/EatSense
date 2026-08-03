@@ -1,9 +1,17 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Share } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ShoppingItem } from '../types/tracker';
+import type { ShoppingItem } from '../types/tracker';
+import { useAuth } from '../contexts/AuthContext';
 
-const SHOPPING_KEY = 'tracker:shopping';
+/**
+ * The list used to live under one global key, and signing out only clears auth
+ * tokens — so on a shared device the next person to sign in inherited the
+ * previous person's shopping list. The key is now scoped to the account.
+ */
+const LEGACY_SHOPPING_KEY = 'tracker:shopping';
+const keyForUser = (userId: string | null) =>
+  userId ? `${LEGACY_SHOPPING_KEY}:${userId}` : LEGACY_SHOPPING_KEY;
 
 /**
  * Every mounted copy of this hook shares one list.
@@ -12,24 +20,55 @@ const SHOPPING_KEY = 'tracker:shopping';
  * snapshot and only re-read it on mount — adding items from the Fridge screen
  * ("you'll also need…") would not show up in the Tracker until it remounted.
  */
-const listeners = new Set<(items: ShoppingItem[]) => void>();
+const listeners = new Set<(_items: ShoppingItem[]) => void>();
 
 /**
  * The single source of truth while the app is running. Kept at module level
  * rather than in each hook's ref so that a write from one screen is computed
  * against the latest list, not against whatever that screen last rendered.
+ *
+ * `hydratedFor` records WHICH account the cache belongs to. Without it the cache
+ * would outlive a sign-out and hand the next account the previous one's items.
  */
 let currentItems: ShoppingItem[] = [];
-let hydrated = false;
+let hydratedFor: string | null | undefined;
 
 function broadcast(items: ShoppingItem[]) {
   currentItems = items;
   listeners.forEach((fn) => fn(items));
 }
 
+/**
+ * Move a pre-existing list onto the signed-in account's key, once.
+ *
+ * Users who already had a list before it was scoped would otherwise open the app
+ * to an empty screen. The legacy key is removed after the copy so it cannot be
+ * picked up a second time by a different account.
+ */
+async function migrateLegacyList(userKey: string): Promise<ShoppingItem[] | null> {
+  try {
+    const legacy = await AsyncStorage.getItem(LEGACY_SHOPPING_KEY);
+    if (!legacy) return null;
+    const parsed = JSON.parse(legacy);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      await AsyncStorage.removeItem(LEGACY_SHOPPING_KEY);
+      return null;
+    }
+    await AsyncStorage.setItem(userKey, legacy);
+    await AsyncStorage.removeItem(LEGACY_SHOPPING_KEY);
+    return parsed as ShoppingItem[];
+  } catch {
+    return null;
+  }
+}
+
 export function useShopping() {
-  const [items, setItems] = useState<ShoppingItem[]>(currentItems);
-  const [loading, setLoading] = useState(!hydrated);
+  const { user } = useAuth();
+  const userId: string | null = user?.id ? String(user.id) : null;
+  const storageKey = keyForUser(userId);
+
+  const [items, setItems] = useState<ShoppingItem[]>(hydratedFor === userId ? currentItems : []);
+  const [loading, setLoading] = useState(hydratedFor !== userId);
 
   useEffect(() => {
     listeners.add(setItems);
@@ -39,28 +78,49 @@ export function useShopping() {
   }, []);
 
   useEffect(() => {
-    if (hydrated) {
+    if (hydratedFor === userId) {
       setItems(currentItems);
       setLoading(false);
       return;
     }
+
+    // The account changed (or this is the first load). Blank the shared cache
+    // immediately so no screen can render the previous account's list while the
+    // read is in flight.
+    broadcast([]);
+    setLoading(true);
+
+    let cancelled = false;
     (async () => {
+      let next: ShoppingItem[] = [];
       try {
-        const raw = await AsyncStorage.getItem(SHOPPING_KEY);
-        if (raw) broadcast(JSON.parse(raw));
+        const raw = await AsyncStorage.getItem(storageKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) next = parsed;
+        } else if (userId) {
+          next = (await migrateLegacyList(storageKey)) || [];
+        }
       } catch {
-        // ignore
+        // Unreadable storage is the same as an empty list — never block the UI.
       } finally {
-        hydrated = true;
-        setLoading(false);
+        if (!cancelled) {
+          hydratedFor = userId;
+          broadcast(next);
+          setLoading(false);
+        }
       }
     })();
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, storageKey]);
 
   const save = useCallback(async (updated: ShoppingItem[]) => {
     broadcast(updated);
-    await AsyncStorage.setItem(SHOPPING_KEY, JSON.stringify(updated));
-  }, []);
+    await AsyncStorage.setItem(storageKey, JSON.stringify(updated));
+  }, [storageKey]);
 
   const addItem = useCallback(async (item: Omit<ShoppingItem, 'id' | 'bought' | 'createdAt'>) => {
     const newItem: ShoppingItem = {

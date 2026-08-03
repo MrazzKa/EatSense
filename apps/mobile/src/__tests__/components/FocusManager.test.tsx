@@ -1,12 +1,13 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { Text, Pressable } from 'react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { FocusManager } from '../../components/FocusManager';
 
 describe('FocusManager', () => {
   it('renders children correctly', () => {
     render(
       <FocusManager>
-        <div>Test content</div>
+        <Text>Test content</Text>
       </FocusManager>
     );
     expect(screen.getByText('Test content')).toBeTruthy();
@@ -16,7 +17,7 @@ describe('FocusManager', () => {
     const onFocus = jest.fn();
     render(
       <FocusManager onFocus={onFocus}>
-        <div>Test content</div>
+        <Text>Test content</Text>
       </FocusManager>
     );
     
@@ -28,7 +29,7 @@ describe('FocusManager', () => {
     const onBlur = jest.fn();
     render(
       <FocusManager onBlur={onBlur}>
-        <div>Test content</div>
+        <Text>Test content</Text>
       </FocusManager>
     );
     
@@ -39,7 +40,7 @@ describe('FocusManager', () => {
   it('applies accessibility props correctly', () => {
     render(
       <FocusManager>
-        <div>Test content</div>
+        <Text>Test content</Text>
       </FocusManager>
     );
     

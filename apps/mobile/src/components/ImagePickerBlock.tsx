@@ -99,7 +99,7 @@ export const ImagePickerBlock: React.FC<ImagePickerBlockProps> = ({
     <View style={styles.container}>
       {selectedImage ? (
         <View style={styles.imageContainer}>
-          <Image source={{ uri: selectedImage }} style={styles.image} />
+          <Image testID="selected-image" source={{ uri: selectedImage }} style={styles.image} />
           <TouchableOpacity
             style={styles.changeButton}
             onPress={showImageOptions}
@@ -118,7 +118,7 @@ export const ImagePickerBlock: React.FC<ImagePickerBlockProps> = ({
           <Ionicons name="camera" size={32} color="#BDC3C7" />
           <Text style={styles.placeholderText}>{placeholder || t('dashboard.addFood.title')}</Text>
           {isLoading && (
-            <View style={styles.loadingOverlay}>
+            <View testID="loading-overlay" style={styles.loadingOverlay}>
               <Ionicons name="hourglass" size={20} color="#3498DB" />
             </View>
           )}

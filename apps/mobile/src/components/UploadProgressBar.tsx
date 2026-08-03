@@ -101,8 +101,9 @@ export const UploadProgressBar: React.FC<UploadProgressBarProps> = ({
       </View>
 
       <View style={styles.progressContainer}>
-        <View style={styles.progressTrack}>
+        <View style={styles.progressTrack} testID="progress-bar">
           <Animated.View
+            testID="progress-fill"
             style={[
               styles.progressFill,
               {

@@ -1,7 +1,27 @@
+/**
+ * @jest-environment jsdom
+ *
+ * src/utils/hooks.ts carries web-oriented hooks (useLocalStorage,
+ * useSessionStorage, useKeyPress, useWindowSize) that touch `document`,
+ * `window` and `localStorage`. The rest of the suite runs in React Native's
+ * environment, which has none of those, so this one file opts into jsdom
+ * instead of failing with "document is not defined".
+ */
 import { renderHook, act } from '@testing-library/react';
 import { useDebounce, useThrottle, usePrevious, useToggle, useCounter, useLocalStorage, useSessionStorage, useAsync, useInterval, useTimeout, useKeyPress, useWindowSize } from '../../utils/hooks';
 
 describe('hooks', () => {
+  // These suites drive useDebounce/useThrottle/useInterval/useTimeout with
+  // jest.advanceTimersByTime, which silently does nothing unless fake timers are
+  // installed first — every timer assertion here was failing for that reason.
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   describe('useDebounce', () => {
     it('should debounce values', () => {
       const { result, rerender } = renderHook(
@@ -175,7 +195,7 @@ describe('hooks', () => {
 
       act(() => {
         const event = new KeyboardEvent('keydown', { key: 'Enter' });
-        document.dispatchEvent(event);
+        window.dispatchEvent(event);
       });
 
       expect(mockCallback).toHaveBeenCalledTimes(1);

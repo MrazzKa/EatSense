@@ -33,8 +33,9 @@ export const AccessibleProgress: React.FC<AccessibleProgressProps> = ({
         text: percentageText,
       }}
     >
-      <View style={[styles.track, { backgroundColor, height }]}>
+      <View style={[styles.track, { backgroundColor, height }]} testID="progress-bar">
         <View
+          testID="progress-fill"
           style={[
             styles.fill,
             {

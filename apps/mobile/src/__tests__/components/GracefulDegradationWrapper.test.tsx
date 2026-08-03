@@ -1,22 +1,23 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { Text, Pressable } from 'react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { GracefulDegradationWrapper } from '../../components/GracefulDegradationWrapper';
 
 describe('GracefulDegradationWrapper', () => {
   it('renders children when no error occurs', () => {
     render(
       <GracefulDegradationWrapper>
-        <div>Test content</div>
+        <Text>Test content</Text>
       </GracefulDegradationWrapper>
     );
     expect(screen.getByText('Test content')).toBeTruthy();
   });
 
   it('renders fallback when error occurs', () => {
-    const fallback = <div>Fallback content</div>;
+    const fallback = <Text>Fallback content</Text>;
     render(
       <GracefulDegradationWrapper fallback={fallback}>
-        <div>Test content</div>
+        <Text>Test content</Text>
       </GracefulDegradationWrapper>
     );
     expect(screen.getByText('Fallback content')).toBeTruthy();
@@ -25,7 +26,7 @@ describe('GracefulDegradationWrapper', () => {
   it('renders default fallback when no custom fallback provided', () => {
     render(
       <GracefulDegradationWrapper>
-        <div>Test content</div>
+        <Text>Test content</Text>
       </GracefulDegradationWrapper>
     );
     expect(screen.getByText('Something went wrong')).toBeTruthy();
@@ -35,7 +36,7 @@ describe('GracefulDegradationWrapper', () => {
     const onError = jest.fn();
     render(
       <GracefulDegradationWrapper onError={onError}>
-        <div>Test content</div>
+        <Text>Test content</Text>
       </GracefulDegradationWrapper>
     );
     expect(onError).toHaveBeenCalled();
@@ -44,7 +45,7 @@ describe('GracefulDegradationWrapper', () => {
   it('calls retry when retry button is pressed', () => {
     render(
       <GracefulDegradationWrapper>
-        <div>Test content</div>
+        <Text>Test content</Text>
       </GracefulDegradationWrapper>
     );
     

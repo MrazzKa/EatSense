@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { IncidentNotificationScreen } from '../../components/IncidentNotificationScreen';
 
 describe('IncidentNotificationScreen', () => {

@@ -61,6 +61,7 @@ export const RuntimeFeatureFlagTester: React.FC<RuntimeFeatureFlagTesterProps> =
             <View style={styles.flagHeader}>
               <Text style={styles.flagName}>{flag.name}</Text>
               <Switch
+                testID={`switch-${flag.key}`}
                 value={flag.enabled}
                 onValueChange={(enabled) => handleToggle(flag.key, enabled)}
                 trackColor={{ false: '#E9ECEF', true: '#3498DB' }}

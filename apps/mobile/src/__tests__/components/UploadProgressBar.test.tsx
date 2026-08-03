@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import { UploadProgressBar } from '../../components/UploadProgressBar';
 
 describe('UploadProgressBar', () => {

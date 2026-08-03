@@ -46,8 +46,9 @@ export const UsageSummary: React.FC<UsageSummaryProps> = ({
       </View>
 
       <View style={styles.progressContainer}>
-        <View style={styles.progressTrack}>
+        <View style={styles.progressTrack} testID="progress-bar">
           <View
+            testID="progress-fill"
             style={[
               styles.progressFill,
               {

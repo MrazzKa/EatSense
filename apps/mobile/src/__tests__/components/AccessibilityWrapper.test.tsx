@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text, Pressable } from 'react-native';
 import { render, screen } from '@testing-library/react-native';
 import { AccessibilityWrapper } from '../../components/AccessibilityWrapper';
 
@@ -6,7 +7,7 @@ describe('AccessibilityWrapper', () => {
   it('renders children correctly', () => {
     render(
       <AccessibilityWrapper>
-        <div>Test content</div>
+        <Text>Test content</Text>
       </AccessibilityWrapper>
     );
     
@@ -20,7 +21,7 @@ describe('AccessibilityWrapper', () => {
         accessibilityHint="Test hint"
         accessibilityRole="button"
       >
-        <div>Test content</div>
+        <Text>Test content</Text>
       </AccessibilityWrapper>
     );
     
@@ -33,7 +34,7 @@ describe('AccessibilityWrapper', () => {
   it('defaults to accessible when not specified', () => {
     render(
       <AccessibilityWrapper>
-        <div>Test content</div>
+        <Text>Test content</Text>
       </AccessibilityWrapper>
     );
     

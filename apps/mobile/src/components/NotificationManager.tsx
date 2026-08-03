@@ -112,6 +112,7 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
               </View>
             </View>
             <TouchableOpacity
+              testID={`dismiss-${notification.id}`}
               style={styles.closeButton}
               onPress={() => removeNotification(notification.id)}
             >

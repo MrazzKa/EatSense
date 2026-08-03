@@ -59,6 +59,7 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
       </View>
       {onDismiss && (
         <TouchableOpacity
+          testID="dismiss-button"
           style={styles.dismissButton}
           onPress={onDismiss}
           accessibilityRole="button"

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { ImagePickerBlock } from '../../components/ImagePickerBlock';
 
 // Mock expo-image-picker
@@ -13,7 +13,7 @@ jest.mock('expo-image-picker', () => ({
 
 describe('ImagePickerBlock', () => {
   it('renders placeholder when no image is selected', () => {
-    render(<ImagePickerBlock onImageSelected={() => {}} />);
+    render(<ImagePickerBlock onImageSelected={() => {}} placeholder="Select an image" />);
     expect(screen.getByText('Select an image')).toBeTruthy();
   });
 
@@ -28,7 +28,7 @@ describe('ImagePickerBlock', () => {
   });
 
   it('shows image options when placeholder is pressed', () => {
-    render(<ImagePickerBlock onImageSelected={() => {}} />);
+    render(<ImagePickerBlock onImageSelected={() => {}} placeholder="Select an image" />);
     
     fireEvent.press(screen.getByText('Select an image'));
     expect(screen.getByText('Select Image')).toBeTruthy();
@@ -69,7 +69,7 @@ describe('ImagePickerBlock', () => {
   });
 
   it('shows loading state during image selection', async () => {
-    render(<ImagePickerBlock onImageSelected={() => {}} />);
+    render(<ImagePickerBlock onImageSelected={() => {}} placeholder="Select an image" />);
     
     fireEvent.press(screen.getByText('Select an image'));
     fireEvent.press(screen.getByText('Camera'));
