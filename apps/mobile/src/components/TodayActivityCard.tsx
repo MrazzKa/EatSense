@@ -38,47 +38,35 @@ export default function TodayActivityCard({ summary, activeEnergyBonus }: Props)
 
   const open = useCallback(() => navigation.navigate('HealthSync'), [navigation]);
 
-  // Nothing was read (sync off, or every category declined) — say nothing rather
-  // than show a card full of dashes. HealthSyncPrompt covers the "not connected"
-  // case and would otherwise be competing for the same slot.
-  const hasAnything =
-    !!summary &&
-    (summary.steps != null ||
-      summary.activeEnergyKcal != null ||
-      summary.workoutMinutes != null ||
-      summary.sleepMinutes != null);
-
-  if (!hasAnything) return null;
-
   const sleepHours =
-    summary!.sleepMinutes != null ? Math.round((summary!.sleepMinutes / 60) * 10) / 10 : null;
+    summary?.sleepMinutes != null ? Math.round((summary.sleepMinutes / 60) * 10) / 10 : null;
 
   const cells: { key: string; icon: string; value: string; label: string }[] = [];
-  if (summary!.steps != null) {
+  if (summary?.steps != null) {
     cells.push({
       key: 'steps',
       icon: 'walk-outline',
-      value: summary!.steps.toLocaleString(),
+      value: summary.steps.toLocaleString(),
       label: t('healthSync.steps') || 'Steps',
     });
   }
-  if (summary!.activeEnergyKcal != null) {
+  if (summary?.activeEnergyKcal != null) {
     cells.push({
       key: 'active',
       icon: 'flame-outline',
-      value: String(summary!.activeEnergyKcal),
+      value: String(summary.activeEnergyKcal),
       label: t('healthSync.activeEnergy') || 'Active kcal',
     });
   }
-  if (summary!.workoutMinutes != null && summary!.workoutMinutes > 0) {
+  if (summary?.workoutMinutes) {
     cells.push({
       key: 'workout',
       icon: 'barbell-outline',
-      value: String(summary!.workoutMinutes),
+      value: String(summary.workoutMinutes),
       label: t('healthSync.workouts') || 'Workout min',
     });
   }
-  if (sleepHours != null && sleepHours > 0) {
+  if (sleepHours) {
     cells.push({
       key: 'sleep',
       icon: 'moon-outline',
@@ -86,6 +74,13 @@ export default function TodayActivityCard({ summary, activeEnergyBonus }: Props)
       label: t('healthSync.sleepHours') || 'Sleep h',
     });
   }
+
+  // Nothing readable (sync off, or every category declined) — render nothing
+  // rather than a card full of dashes. Gating on the cells themselves, not on the
+  // raw summary: a day with only `sleepMinutes: 0` in it has fields set but still
+  // nothing worth showing. HealthSyncPrompt owns the "not connected" case and
+  // would otherwise be competing for this same slot.
+  if (cells.length === 0) return null;
 
   return (
     <TouchableOpacity style={styles.card} onPress={open} activeOpacity={0.85}>

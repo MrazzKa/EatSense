@@ -218,7 +218,11 @@ export default function DashboardScreen() {
   const { mascot, addXp } = useMascot();
   // Uploads Apple Health / Health Connect activity so the server can widen
   // today's calorie target. No-op unless the user turned sync on.
-  const { uploadedAt: healthUploadedAt, summary: healthSummary } = useHealthSync();
+  const {
+    uploadedAt: healthUploadedAt,
+    summary: healthSummary,
+    runSync: runHealthSync,
+  } = useHealthSync();
 
   // FIX: Define missing variable used by the widget
   // Ensure diet object has proper name structure for ActiveDietWidget
@@ -719,7 +723,11 @@ export default function DashboardScreen() {
     React.useCallback(() => {
       if (__DEV__) console.log('[Dashboard] Screen focused, reloading data');
       loadDashboardData(true);
-    }, [loadDashboardData])
+      // Health sync is toggled on a different screen, so coming back here is the
+      // moment to find out it changed. Cheap: the hook throttles the actual read
+      // to once every 15 minutes and returns immediately when sync is off.
+      runHealthSync();
+    }, [loadDashboardData, runHealthSync])
   );
 
   // Health activity is uploaded from the device AFTER the dashboard has already
@@ -1222,7 +1230,15 @@ export default function DashboardScreen() {
             while it is off. Keeping both here means the feature has a permanent
             home on the main screen instead of living only inside Profile. */}
         <TodayActivityCard summary={healthSummary} activeEnergyBonus={stats.activeEnergyBonus} />
-        <HealthSyncPrompt onConnected={() => loadDashboardData(true)} />
+        {/* force=true on purpose: the hook throttles itself to one read every 15
+            minutes, and the user who just granted permission expects their steps
+            immediately, not on the next app launch. */}
+        <HealthSyncPrompt
+          onConnected={() => {
+            runHealthSync(true);
+            loadDashboardData(true);
+          }}
+        />
 
         {/* Quick Stats — unified glass card with 3 macros */}
         <Animated.View

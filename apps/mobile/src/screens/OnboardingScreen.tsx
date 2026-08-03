@@ -800,6 +800,8 @@ const OnboardingScreen = () => {
   // Profile. Placed just before the height/weight slide so a connected store can
   // fill those in for real instead of making the user guess with a slider.
   const [healthAvailable, setHealthAvailable] = useState(false);
+  /** Set once the user leaves the first slide — after that the step list is frozen. */
+  const stepsLockedRef = useRef(false);
   const [healthConnected, setHealthConnected] = useState(false);
   const [healthBusy, setHealthBusy] = useState(false);
   /** What we actually managed to read, so the slide can show it rather than promise it. */
@@ -878,20 +880,31 @@ const OnboardingScreen = () => {
     return base;
   }, [t, profileData.goal, healthAvailable]);
 
-  // Is there a health store on this device at all? Checked once — the answer
-  // decides whether the healthConnect slide exists, and a slide appearing
-  // mid-flow would shift every index after it.
+  // Is there a health store on this device at all? The answer decides whether the
+  // healthConnect slide exists at all.
+  //
+  // It is only allowed to land while the user is still on the very first slide.
+  // Health Connect on Android needs getSdkStatus() + initialize() and can take a
+  // second or two, and inserting a slide into the middle of the list after the
+  // user has moved past that point would shift every index behind it — they would
+  // be looking at one slide and suddenly find themselves on another. Losing the
+  // slide on a slow device is the harmless outcome: the dashboard still offers the
+  // connection, and so does Profile.
   useEffect(() => {
     let cancelled = false;
     HealthService.isAvailable()
       .then((available) => {
-        if (!cancelled) setHealthAvailable(available);
+        if (!cancelled && !stepsLockedRef.current) setHealthAvailable(available);
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (currentStep > 0) stepsLockedRef.current = true;
+  }, [currentStep]);
 
   /**
    * Connect the health store and pull height/weight straight into the profile.

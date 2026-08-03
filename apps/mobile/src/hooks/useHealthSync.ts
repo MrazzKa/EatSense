@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import type { AppStateStatus } from 'react-native';
+import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ApiService from '../services/apiService';
-import HealthService, { HealthDailySummary, HealthMealPayload } from '../services/health';
+import type { HealthDailySummary, HealthMealPayload } from '../services/health';
+import HealthService from '../services/health';
 
 const LAST_SYNC_KEY = 'health:lastSyncAt';
 /** Don't hammer the health store on every screen focus. */
@@ -38,7 +40,13 @@ export function useHealthSync() {
 
   const runSync = useCallback(async (force = false) => {
     if (inFlight.current) return null;
-    if (!(await HealthService.isEnabled())) return null;
+    if (!(await HealthService.isEnabled())) {
+      // Drop whatever we were showing. Turning sync off happens on a different
+      // screen, so without this the dashboard would keep rendering the activity
+      // card from before — data the user just revoked.
+      setSummary(null);
+      return null;
+    }
 
     if (!force) {
       try {
