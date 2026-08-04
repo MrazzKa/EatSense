@@ -3124,11 +3124,8 @@
     "themeMonochrome": "Моно",
     "themeRose": "Розовая",
     "themeBeige": "Бежевая",
-    "exportData": "Выгрузить мои данные",
-    "exportError": "Не удалось выгрузить данные. Попробуйте ещё раз.",
-    "exportSaved": "Выгрузка сохранена в папку приложения.",
     "myConsents": "Мои согласия",
-    "privacyDataHint": "Скачайте копию своих данных или просмотрите данные согласия.",
+    "privacyDataHint": "Запросите копию своих данных по почте или посмотрите выданные согласия.",
     "myConsentsHint": "Оговорки и согласия, которые вы приняли в приложении.",
     "noConsents": "Согласия пока не зафиксированы.",
     "consentTypes": {
@@ -3141,7 +3138,17 @@
       "food_scanning": "Сканирование еды",
       "expert_marketplace": "Маркетплейс экспертов",
       "general_health_disclaimer": "Общая медицинская оговорка"
-    }
+    },
+    "requestData": "Запросить мои данные",
+    "dataRequestPending": "Запрос обрабатывается",
+    "dataRequestConfirmTitle": "Запросить копию ваших данных?",
+    "dataRequestConfirmBody": "Мы подготовим всё, что храним о вашем аккаунте, и пришлём на вашу почту в течение 30 дней.",
+    "dataRequestConfirmCta": "Отправить запрос",
+    "dataRequestSentTitle": "Запрос принят",
+    "dataRequestSentBody": "Мы подготовим копию ваших данных и отправим на {{email}} в течение 30 дней.",
+    "dataRequestAlreadyTitle": "Запрос уже принят",
+    "dataRequestAlreadyBody": "Мы уже готовим ваши данные и отправим их на {{email}}.",
+    "dataRequestError": "Не удалось отправить запрос. Попробуйте ещё раз."
   },
   "paywall": {
     "title": "Разблокировать полный доступ",

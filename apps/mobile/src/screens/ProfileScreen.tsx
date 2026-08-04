@@ -11,8 +11,6 @@ import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
-import * as FileSystem from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
 import ApiService from '../services/apiService';
 import { localNotificationService } from '../services/localNotificationService';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
@@ -272,32 +270,60 @@ const ProfileScreen = () => {
     );
   }, [safeT, signOut]);
 
-  /* GDPR: export all personal data as a JSON file and share it */
-  const handleExportData = useCallback(async () => {
+  /**
+   * GDPR: ask us for a copy of the data we hold.
+   *
+   * This used to build the JSON on the device and open a share sheet. Personal
+   * data now only leaves through us, so the app files a request and we email the
+   * file back. The confirmation step is deliberate — the user should know they
+   * are asking a human for something, not downloading a file.
+   */
+  const handleRequestData = useCallback(async () => {
     if (exportingData) return;
-    setExportingData(true);
-    try {
-      const data = await ApiService.exportMyData();
-      const json = JSON.stringify(data, null, 2);
-      const stamp = new Date().toISOString().slice(0, 10);
-      const dir = FileSystem.documentDirectory || FileSystem.cacheDirectory;
-      if (!dir) {
-        Alert.alert(safeT('common.error', 'Error'), safeT('profile.exportError', 'Could not export your data. Please try again.'));
-        return;
+
+    const send = async () => {
+      setExportingData(true);
+      try {
+        const res: any = await ApiService.requestMyData();
+        setDataRequestPending(true);
+        const to = res?.email || '';
+        Alert.alert(
+          res?.alreadyRequested
+            ? safeT('profile.dataRequestAlreadyTitle', 'Request already received')
+            : safeT('profile.dataRequestSentTitle', 'Request received'),
+          (res?.alreadyRequested
+            ? safeT(
+                'profile.dataRequestAlreadyBody',
+                'We are already preparing your data and will send it to {{email}}.',
+              )
+            : safeT(
+                'profile.dataRequestSentBody',
+                'We will prepare a copy of your data and send it to {{email}} within 30 days.',
+              )
+          ).replace('{{email}}', to),
+        );
+      } catch (error) {
+        console.error('[ProfileScreen] Error requesting data:', error);
+        Alert.alert(
+          safeT('common.error', 'Error'),
+          safeT('profile.dataRequestError', 'Could not send your request. Please try again.'),
+        );
+      } finally {
+        setExportingData(false);
       }
-      const fileUri = `${dir}eatsense-data-export-${stamp}.json`;
-      await FileSystem.writeAsStringAsync(fileUri, json, { encoding: FileSystem.EncodingType.UTF8 });
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri, { mimeType: 'application/json', dialogTitle: safeT('profile.exportData', 'Export my data') });
-      } else {
-        Alert.alert(safeT('profile.exportData', 'Export my data'), safeT('profile.exportSaved', 'Your data export was saved to the app folder.'));
-      }
-    } catch (error) {
-      console.error('[ProfileScreen] Error exporting data:', error);
-      Alert.alert(safeT('common.error', 'Error'), safeT('profile.exportError', 'Could not export your data. Please try again.'));
-    } finally {
-      setExportingData(false);
-    }
+    };
+
+    Alert.alert(
+      safeT('profile.dataRequestConfirmTitle', 'Request a copy of your data?'),
+      safeT(
+        'profile.dataRequestConfirmBody',
+        'We will prepare everything we hold about your account and email it to you within 30 days.',
+      ),
+      [
+        { text: safeT('common.cancel', 'Cancel'), style: 'cancel' },
+        { text: safeT('profile.dataRequestConfirmCta', 'Send request'), onPress: send },
+      ],
+    );
   }, [exportingData, safeT]);
 
   /* Open the "My consents" modal and load the server-recorded acceptances */
@@ -376,6 +402,8 @@ const ProfileScreen = () => {
   const [showHealthDetails, setShowHealthDetails] = useState(false);
   const [showBiomarkerDisclaimer, setShowBiomarkerDisclaimer] = useState(false);
   const [exportingData, setExportingData] = useState(false);
+  /** An earlier request is still open — say so instead of inviting another one. */
+  const [dataRequestPending, setDataRequestPending] = useState(false);
   const [consentsVisible, setConsentsVisible] = useState(false);
   const [consentsLoading, setConsentsLoading] = useState(false);
   const [consents, setConsents] = useState<Array<{ type: string; acceptedAt: string }>>([]);
@@ -745,6 +773,25 @@ const ProfileScreen = () => {
     useCallback(() => {
       loadProfile();
     }, [loadProfile])
+  );
+
+  // An open data request survives a reinstall, so the state has to come from the
+  // server — otherwise the button invites a second request the user already made.
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      ApiService.getMyDataRequestStatus()
+        .then((res: any) => {
+          if (!cancelled) setDataRequestPending(res?.status === 'pending');
+        })
+        .catch(() => {
+          // Never let this block the screen; the worst case is a duplicate
+          // request, which the server collapses into the existing one anyway.
+        });
+      return () => {
+        cancelled = true;
+      };
+    }, [])
   );
 
   // Auto-calculate WHR when waist/hip are loaded from backend but WHR is missing
@@ -2786,17 +2833,23 @@ const ProfileScreen = () => {
           {/* Privacy & data (GDPR) */}
           <AppCard style={styles.resetCard}>
             <TouchableOpacity
-              onPress={handleExportData}
-              disabled={exportingData}
-              style={[styles.resetButton, { backgroundColor: (colors.primary || '#007AFF') + '10', borderWidth: 1, borderColor: (colors.primary || '#007AFF') + '30' }]}
+              onPress={handleRequestData}
+              disabled={exportingData || dataRequestPending}
+              style={[styles.resetButton, { backgroundColor: (colors.primary || '#007AFF') + '10', borderWidth: 1, borderColor: (colors.primary || '#007AFF') + '30', opacity: dataRequestPending ? 0.6 : 1 }]}
             >
               {exportingData ? (
                 <ActivityIndicator size="small" color={colors.primary || '#007AFF'} />
               ) : (
-                <Ionicons name="download-outline" size={20} color={colors.primary || '#007AFF'} />
+                <Ionicons
+                  name={dataRequestPending ? 'time-outline' : 'mail-outline'}
+                  size={20}
+                  color={colors.primary || '#007AFF'}
+                />
               )}
               <Text style={[styles.resetButtonText, { color: colors.primary || '#007AFF' }]}>
-                {safeT('profile.exportData', 'Export my data')}
+                {dataRequestPending
+                  ? safeT('profile.dataRequestPending', 'Data request in progress')
+                  : safeT('profile.requestData', 'Request my data')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -2809,7 +2862,7 @@ const ProfileScreen = () => {
               </Text>
             </TouchableOpacity>
             <Text style={{ textAlign: 'center', marginTop: 8, color: colors.textTertiary, fontSize: 12 }}>
-              {safeT('profile.privacyDataHint', 'Download a copy of your data or review the consents you have given.')}
+              {safeT('profile.privacyDataHint', 'Ask us for a copy of your data by email, or review the consents you have given.')}
             </Text>
           </AppCard>
 

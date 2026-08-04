@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Delete, Body, UseGuards, Request, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, UseGuards, Request, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UsersService } from './users.service';
@@ -35,11 +35,32 @@ export class UsersController {
     return this.usersService.deleteAccount(req.user.id);
   }
 
-  @Get('export')
-  @ApiOperation({ summary: 'Export all personal data we hold for the user (GDPR)' })
-  @ApiResponse({ status: 200, description: 'Full data export as JSON' })
-  async exportData(@Request() req: any) {
-    return this.usersService.getUserDataExport(req.user.id);
+  /**
+   * GET /users/export used to live here and returned the whole export to the
+   * app, which then wrote a file and offered a share sheet. It was removed
+   * deliberately: personal data now only leaves the company through us, so the
+   * user files a request and we email the copy back.
+   *
+   * Removing the endpoint rather than leaving it unused matters — an authorised
+   * caller could otherwise still pull a full personal-data dump straight out of
+   * the API and bypass the process entirely.
+   */
+  @Post('data-request')
+  @ApiOperation({
+    summary: 'Request a copy of your personal data (GDPR Art. 15/20)',
+    description:
+      'Records the request, notifies the team and confirms by email. An already-open request is returned instead of being duplicated.',
+  })
+  @ApiResponse({ status: 201, description: 'Request recorded' })
+  async requestDataExport(@Request() req: any) {
+    return this.usersService.requestDataExport(req.user.id, 'app');
+  }
+
+  @Get('data-request')
+  @ApiOperation({ summary: 'Whether this account already has an open data request' })
+  @ApiResponse({ status: 200, description: 'Current request status' })
+  async getDataRequestStatus(@Request() req: any) {
+    return this.usersService.getDataExportRequestStatus(req.user.id);
   }
 
   @Get('stats')

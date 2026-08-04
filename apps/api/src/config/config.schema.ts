@@ -32,6 +32,11 @@ export const configSchema = Joi.object({
   DISABLE_LIMITS: Joi.boolean().default(false),
   ADMIN_BYPASS_LIMITS: Joi.boolean().default(false),
   ADMIN_SECRET: Joi.string().optional().allow(''),
+  // Where GDPR data-access requests are announced. Falls back to ADMIN_EMAIL.
+  // If neither is set the request is still recorded and visible in the admin
+  // panel, but nobody is told about it — and Art. 12(3) gives us one month.
+  PRIVACY_REQUEST_EMAIL: Joi.string().optional().allow(''),
+  ADMIN_EMAIL: Joi.string().optional().allow(''),
   // App-store reviewer test account: a single whitelisted email that logs in
   // with a fixed, reusable OTP (one-time email codes can't reach a reviewer).
   // Both must be set to enable; affects only this exact email.

@@ -5,6 +5,10 @@ import { CacheService } from '../src/cache/cache.service';
 import { UpdateProfileDto } from './dto';
 import { HealthProfile } from '../src/users/health-profile.types';
 import { normalizeSupportedCountryCode } from '../src/common/country-codes';
+import { MailerService } from '../mailer/mailer.service';
+
+/** GDPR Art. 12(3): the controller has one month to answer an access request. */
+const DATA_REQUEST_SLA_DAYS = 30;
 
 @Injectable()
 export class UsersService {
@@ -14,6 +18,7 @@ export class UsersService {
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService,
     private readonly cache: CacheService,
+    private readonly mailer: MailerService,
   ) {}
 
   private async hasActiveSubscription(userId: string): Promise<boolean> {
@@ -273,6 +278,120 @@ export class UsersService {
    * object. Each section is fetched defensively so a failure in one collection
    * never blocks the rest of the export.
    */
+  /**
+   * File a request for a copy of the user's personal data.
+   *
+   * The app used to call `getUserDataExport` and hand the JSON straight to the
+   * user. That was changed so every copy of personal data leaves through us —
+   * so this records the request, tells the team, and confirms to the user. The
+   * export itself is now produced from the admin panel.
+   *
+   * An open request is returned as-is rather than duplicated: tapping the button
+   * twice is not two rights being exercised, and a queue full of duplicates is
+   * how the one-month deadline gets missed.
+   */
+  async requestDataExport(userId: string, source = 'app') {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const existing = await this.prisma.dataExportRequest.findFirst({
+      where: { userId, status: 'pending' },
+      orderBy: { requestedAt: 'desc' },
+    });
+    if (existing) {
+      return {
+        status: 'pending' as const,
+        alreadyRequested: true,
+        email: existing.email,
+        requestedAt: existing.requestedAt,
+        dueBy: this.dataRequestDueDate(existing.requestedAt),
+      };
+    }
+
+    const request = await this.prisma.dataExportRequest.create({
+      data: { userId, email: user.email, source },
+    });
+
+    // Both emails are best-effort: the request is already recorded, and failing
+    // the call would only make the user file it again.
+    void this.notifyTeamOfDataRequest(request.id, user.email).catch((e) =>
+      this.logger.error(`[UsersService] data-request team notification failed: ${e?.message}`),
+    );
+    void this.confirmDataRequestToUser(user.email, request.requestedAt).catch((e) =>
+      this.logger.warn(`[UsersService] data-request user confirmation failed: ${e?.message}`),
+    );
+
+    this.logger.log(`[UsersService] data export requested by userId=${userId} requestId=${request.id}`);
+
+    return {
+      status: 'pending' as const,
+      alreadyRequested: false,
+      email: request.email,
+      requestedAt: request.requestedAt,
+      dueBy: this.dataRequestDueDate(request.requestedAt),
+    };
+  }
+
+  /** Whether this user already has an open request — drives the button's state. */
+  async getDataExportRequestStatus(userId: string) {
+    const existing = await this.prisma.dataExportRequest.findFirst({
+      where: { userId, status: 'pending' },
+      orderBy: { requestedAt: 'desc' },
+    });
+    if (!existing) return { status: 'none' as const };
+    return {
+      status: 'pending' as const,
+      email: existing.email,
+      requestedAt: existing.requestedAt,
+      dueBy: this.dataRequestDueDate(existing.requestedAt),
+    };
+  }
+
+  private dataRequestDueDate(from: Date): Date {
+    const due = new Date(from);
+    due.setDate(due.getDate() + DATA_REQUEST_SLA_DAYS);
+    return due;
+  }
+
+  private async notifyTeamOfDataRequest(requestId: string, userEmail: string) {
+    const to = (process.env.PRIVACY_REQUEST_EMAIL || process.env.ADMIN_EMAIL || '').trim();
+    if (!to) {
+      // Loud on purpose. Without a recipient the request sits in the database
+      // unseen, and a missed access request is a regulator problem, not a bug.
+      this.logger.error(
+        `[UsersService] PRIVACY_REQUEST_EMAIL is not set — nobody was told about data request ${requestId}. ` +
+          `Handle it from the admin panel.`,
+      );
+      return;
+    }
+    await this.mailer.sendEmail({
+      to,
+      subject: `[EatSense] Data export requested — ${userEmail}`,
+      text:
+        `${userEmail} asked for a copy of their personal data.\n\n` +
+        `Request id: ${requestId}\n` +
+        `Deadline: ${this.dataRequestDueDate(new Date()).toISOString().slice(0, 10)} (GDPR Art. 12(3), one month)\n\n` +
+        `Generate the file in the admin panel under "Data requests" and send it to the address above.`,
+    });
+  }
+
+  private async confirmDataRequestToUser(email: string, requestedAt: Date) {
+    await this.mailer.sendEmail({
+      to: email,
+      subject: 'EatSense — we received your data request',
+      text:
+        `Hello,\n\n` +
+        `We received your request for a copy of the personal data EatSense holds about your account.\n\n` +
+        `We will prepare the file and send it to this address within ${DATA_REQUEST_SLA_DAYS} days ` +
+        `(requested on ${requestedAt.toISOString().slice(0, 10)}).\n\n` +
+        `If you did not make this request, reply to this email and we will cancel it.\n\n` +
+        `— EatSense`,
+    });
+  }
+
   async getUserDataExport(userId: string) {
     const safe = async <T>(label: string, fn: () => Promise<T>): Promise<T | null> => {
       try {

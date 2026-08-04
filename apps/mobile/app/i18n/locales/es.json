@@ -2138,11 +2138,8 @@
     "themeMonochrome": "Mono",
     "themeRose": "Rosa",
     "themeBeige": "Beige",
-    "exportData": "Exportar mis datos",
-    "exportError": "No se pudieron exportar tus datos. Inténtalo de nuevo.",
-    "exportSaved": "Tu exportación de datos se guardó en la carpeta de la app.",
     "myConsents": "Mis consentimientos",
-    "privacyDataHint": "Descarga una copia de tus datos o revisa los consentimientos que has dado.",
+    "privacyDataHint": "Pídenos una copia de tus datos por correo o revisa los consentimientos que has dado.",
     "myConsentsHint": "Avisos y consentimientos que has aceptado en la app.",
     "noConsents": "Aún no hay consentimientos registrados.",
     "consentTypes": {
@@ -2155,7 +2152,17 @@
       "food_scanning": "Escaneo de alimentos",
       "expert_marketplace": "Mercado de expertos",
       "general_health_disclaimer": "Aviso general de salud"
-    }
+    },
+    "requestData": "Solicitar mis datos",
+    "dataRequestPending": "Solicitud en curso",
+    "dataRequestConfirmTitle": "¿Solicitar una copia de tus datos?",
+    "dataRequestConfirmBody": "Prepararemos todo lo que guardamos sobre tu cuenta y te lo enviaremos por correo en un plazo de 30 días.",
+    "dataRequestConfirmCta": "Enviar solicitud",
+    "dataRequestSentTitle": "Solicitud recibida",
+    "dataRequestSentBody": "Prepararemos una copia de tus datos y la enviaremos a {{email}} en un plazo de 30 días.",
+    "dataRequestAlreadyTitle": "Solicitud ya recibida",
+    "dataRequestAlreadyBody": "Ya estamos preparando tus datos y los enviaremos a {{email}}.",
+    "dataRequestError": "No se pudo enviar tu solicitud. Inténtalo de nuevo."
   },
   "recently": {
     "analyzing": "Analyzing...",

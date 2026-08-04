@@ -1139,9 +1139,20 @@ class ApiService {
     });
   }
 
-  // GDPR: full export of personal data we hold for this user.
-  async exportMyData() {
-    return this.request('/users/export');
+  /**
+   * GDPR: ask for a copy of the personal data we hold.
+   *
+   * This used to be `GET /users/export`, which returned the whole export and let
+   * the app write the file itself. Personal data now only leaves through us:
+   * this files a request and we email the copy back.
+   */
+  async requestMyData() {
+    return this.request('/users/data-request', { method: 'POST' });
+  }
+
+  /** Whether an earlier request is still open — the button reflects it. */
+  async getMyDataRequestStatus() {
+    return this.request('/users/data-request');
   }
 
   // ========== Disclaimer Consents (server-side record) ==========

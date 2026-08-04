@@ -553,6 +553,7 @@
       <div class="tab icon-inline" data-tab="reviews" onclick="switchTab('reviews')" id="tabbtn-reviews" title="Отзывы клиентов на экспертов">Reviews</div>
       <div class="tab icon-inline" data-tab="experts" onclick="switchTab('experts')" id="tabbtn-experts" title="Заявки на роль эксперта: проверка документов и одобрение">Experts</div>
       <div class="tab icon-inline" data-tab="posts" onclick="switchTab('posts')" id="tabbtn-posts" title="Модерация постов сообщества (Best Places и обычные посты)">Posts</div>
+      <div class="tab icon-inline" data-tab="datarequests" onclick="switchTab('datarequests')" id="tabbtn-datarequests" title="Запросы пользователей на копию своих данных (GDPR). По закону ответить нужно в течение 30 дней">Data requests</div>
       <div class="tab icon-inline" data-tab="pharmacies" onclick="switchTab('pharmacies')" id="tabbtn-pharmacies" title="Коды аптек: пациент вводит код и привязывает аптеку без ввода адреса/почты">Pharmacies</div>
     </div>
     <script>
@@ -763,6 +764,18 @@
       </div>
 
       <!-- PHARMACY CODES TAB -->
+      <div id="tab-datarequests" style="display:none">
+        <div class="card" style="margin-bottom:16px">
+          <h3 style="margin:0 0 4px">Запросы на выгрузку данных (GDPR)</h3>
+          <p class="modal-subtitle" style="margin:0 0 12px">
+            Пользователь больше не скачивает свои данные сам — он оставляет заявку, а файл отправляем мы.
+            По ст. 12(3) GDPR ответить нужно <b>в течение 30 дней</b> с момента заявки.
+            Нажмите «Скачать JSON», отправьте файл на указанную почту и отметьте «Выполнено».
+          </p>
+          <button class="btn" onclick="loadDataRequests()">Обновить</button>
+        </div>
+        <div id="datarequests-list"></div>
+      </div>
       <div id="tab-pharmacies" style="display:none">
         <div class="card" style="margin-bottom:16px">
           <h3 style="margin:0 0 4px">Create pharmacy code</h3>
@@ -1023,7 +1036,7 @@
     // ===== TABS =====
     function switchTab(tab) {
       document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-      ['suggestions', 'reports', 'reviews', 'experts', 'posts', 'pharmacies'].forEach(t => {
+      ['suggestions', 'reports', 'reviews', 'experts', 'posts', 'pharmacies', 'datarequests'].forEach(t => {
         document.getElementById('tab-' + t).style.display = tab === t ? 'block' : 'none';
       });
       if (tab === 'suggestions') loadSuggestions();
@@ -1031,6 +1044,75 @@
       if (tab === 'experts') loadExperts();
       if (tab === 'posts') loadPendingPosts();
       if (tab === 'pharmacies') loadPharmacyCodes();
+      if (tab === 'datarequests') loadDataRequests();
+    }
+
+    // ===== GDPR DATA REQUESTS =====
+    // The app can no longer generate a personal-data export; it only files a
+    // request. This queue is the other half of that — without it a request would
+    // sit in the database unseen until the legal deadline passed.
+    async function loadDataRequests() {
+      const list = document.getElementById('datarequests-list');
+      list.innerHTML = '<div class="loading">Loading data requests...</div>';
+      try {
+        const items = asArr(await fetchAPI('/admin/data-requests?status=all'));
+        if (!items.length) {
+          list.innerHTML = '<div class="card"><p class="modal-subtitle" style="margin:0">Заявок пока нет.</p></div>';
+          return;
+        }
+        list.innerHTML = items.map(function (r) {
+          var pending = r.status === 'pending';
+          var badge = pending
+            ? (r.overdue
+                ? '<span style="color:#DC2626;font-weight:700">ПРОСРОЧЕНО</span>'
+                : '<span style="color:#B45309;font-weight:700">осталось ' + r.daysLeft + ' дн.</span>')
+            : '<span style="color:#059669;font-weight:700">' + r.status + '</span>';
+          return '<div class="card" style="margin-bottom:12px">'
+            + '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">'
+            + '<div><b>' + escapeHtml(r.email) + '</b>'
+            + '<div class="modal-subtitle" style="margin:4px 0 0">Заявка: '
+            + new Date(r.requestedAt).toLocaleString('ru-RU')
+            + ' · Ответить до: ' + new Date(r.dueBy).toLocaleDateString('ru-RU') + '</div></div>'
+            + '<div>' + badge + '</div></div>'
+            + (pending
+                ? '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">'
+                  + '<button class="btn" onclick="downloadDataExport(\'' + r.id + '\')">Скачать JSON</button>'
+                  + '<button class="btn" onclick="fulfilDataRequest(\'' + r.id + '\')">Отметить выполненным</button>'
+                  + '</div>'
+                : '')
+            + '</div>';
+        }).join('');
+      } catch (e) {
+        list.innerHTML = '<div class="card"><p style="color:#DC2626;margin:0">' + escapeHtml(e.message) + '</p></div>';
+      }
+    }
+
+    async function downloadDataExport(id) {
+      try {
+        const res = await fetchAPI('/admin/data-requests/' + id + '/export');
+        const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'eatsense-data-' + (res.request.email || id).replace(/[^a-z0-9]+/gi, '-') + '.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        alert('Не удалось сформировать выгрузку: ' + e.message);
+      }
+    }
+
+    async function fulfilDataRequest(id) {
+      const note = prompt('Комментарий (как отправили, например «выслано на почту 05.08»)') || '';
+      try {
+        await fetchAPI('/admin/data-requests/' + id + '/fulfil', {
+          method: 'POST',
+          body: JSON.stringify({ note: note }),
+        });
+        loadDataRequests();
+      } catch (e) {
+        alert('Не удалось отметить: ' + e.message);
+      }
     }
 
     // ===== PHARMACY ACCESS CODES =====

@@ -1326,11 +1326,8 @@
     "themeMonochrome": "Mono",
     "themeRose": "Rose",
     "themeBeige": "Beige",
-    "exportData": "Export my data",
-    "exportError": "Could not export your data. Please try again.",
-    "exportSaved": "Your data export was saved to the app folder.",
     "myConsents": "My consents",
-    "privacyDataHint": "Download a copy of your data or review the consents you have given.",
+    "privacyDataHint": "Ask us for a copy of your data by email, or review the consents you have given.",
     "myConsentsHint": "Disclaimers and consents you have accepted in the app.",
     "noConsents": "No consents recorded yet.",
     "consentTypes": {
@@ -1343,7 +1340,17 @@
       "food_scanning": "Food scanning",
       "expert_marketplace": "Expert marketplace",
       "general_health_disclaimer": "General health disclaimer"
-    }
+    },
+    "requestData": "Request my data",
+    "dataRequestPending": "Data request in progress",
+    "dataRequestConfirmTitle": "Request a copy of your data?",
+    "dataRequestConfirmBody": "We will prepare everything we hold about your account and email it to you within 30 days.",
+    "dataRequestConfirmCta": "Send request",
+    "dataRequestSentTitle": "Request received",
+    "dataRequestSentBody": "We will prepare a copy of your data and send it to {{email}} within 30 days.",
+    "dataRequestAlreadyTitle": "Request already received",
+    "dataRequestAlreadyBody": "We are already preparing your data and will send it to {{email}}.",
+    "dataRequestError": "Could not send your request. Please try again."
   },
   "camera": {
     "requestingPermission": "Requesting camera permission...",

@@ -90,6 +90,9 @@ model User {
   // Apple Health / Health Connect
   healthDailyMetrics HealthDailyMetric[]
 
+  // GDPR data-access requests (we send the copy, the app no longer generates it)
+  dataExportRequests DataExportRequest[]
+
   @@map("users")
 }
 
@@ -542,16 +545,16 @@ model AnalysisCorrection {
 /// Doubles as the DB-backed counter for DailyLimitGuard: before this table
 /// existed the fridge quota silently failed OPEN whenever Redis was down.
 model FridgeScan {
-  id             String   @id @default(cuid())
-  userId         String
+  id            String   @id @default(cuid())
+  userId        String
   /// FridgeIngredient[] as returned to the client (after the user's edits, if any).
-  ingredients    Json
+  ingredients   Json
   /// How many items the model detected vs. how many the user ended up with.
   /// The difference is a free, labeled correction signal for the vision model.
-  detectedCount  Int      @default(0) @map("detected_count")
-  editedCount    Int      @default(0) @map("edited_count")
-  locale         String   @default("en")
-  createdAt      DateTime @default(now()) @map("created_at")
+  detectedCount Int      @default(0) @map("detected_count")
+  editedCount   Int      @default(0) @map("edited_count")
+  locale        String   @default("en")
+  createdAt     DateTime @default(now()) @map("created_at")
 
   user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   recipes FridgeRecipe[]
@@ -1678,25 +1681,25 @@ enum CommunityReportStatus {
 }
 
 model CommunityGroup {
-  id           String                @id @default(cuid())
-  name         String
-  slug         String                @unique
-  description  String?
-  imageUrl     String?
-  type         CommunityGroupType
-  city         String?
-  country      String?
-  isSeeded     Boolean               @default(false)
+  id              String                @id @default(cuid())
+  name            String
+  slug            String                @unique
+  description     String?
+  imageUrl        String?
+  type            CommunityGroupType
+  city            String?
+  country         String?
+  isSeeded        Boolean               @default(false)
   // Display-only baseline so pilot groups don't look empty. Shown member count =
   // real memberships + baseMemberCount; real joins increment honestly on top.
-  baseMemberCount Int                @default(0) @map("base_member_count")
-  createdAt    DateTime              @default(now())
-  updatedAt    DateTime              @updatedAt
-  createdById  String?
-  createdBy    User?                 @relation("CreatedGroups", fields: [createdById], references: [id])
-  memberships  CommunityMembership[]
-  posts        CommunityPost[]
-  userProfiles UserProfile[]
+  baseMemberCount Int                   @default(0) @map("base_member_count")
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  createdById     String?
+  createdBy       User?                 @relation("CreatedGroups", fields: [createdById], references: [id])
+  memberships     CommunityMembership[]
+  posts           CommunityPost[]
+  userProfiles    UserProfile[]
 
   @@map("community_groups")
 }
@@ -1954,4 +1957,35 @@ model ScheduledConsultation {
   @@index([clientId, startAt])
   @@index([status, startAt])
   @@map("scheduled_consultations")
+}
+
+/// A user asking for a copy of their personal data (GDPR Art. 15 / 20).
+///
+/// The app used to build and hand over the export itself. That was changed on
+/// request so every copy leaves the company through us: the user files a request
+/// here, we generate the file from the admin panel and email it back.
+///
+/// The trade-off is a legal deadline. Art. 12(3) gives the controller ONE MONTH
+/// to answer, so `requestedAt` is not decoration — it is the clock. Nothing else
+/// in the product has a statutory response time attached to it.
+model DataExportRequest {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  /// Copied at request time: the address we promised to send it to, even if the
+  /// account email changes afterwards.
+  email       String
+  /// pending | fulfilled | rejected
+  status      String    @default("pending")
+  /// Where the request came from — 'app' today, room for web/email later.
+  source      String    @default("app")
+  requestedAt DateTime  @default(now()) @map("requested_at")
+  fulfilledAt DateTime? @map("fulfilled_at")
+  /// Free-form note for whoever handles it (how it was sent, why refused, …).
+  note        String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, requestedAt])
+  @@index([userId, requestedAt])
+  @@map("data_export_requests")
 }

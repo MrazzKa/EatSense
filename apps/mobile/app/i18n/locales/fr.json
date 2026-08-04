@@ -2436,11 +2436,8 @@
     "themeMonochrome": "Monochrome",
     "themeRose": "Rosé",
     "themeBeige": "Sable",
-    "exportData": "Exporter mes données",
-    "exportError": "Impossible d'exporter vos données. Veuillez réessayer.",
-    "exportSaved": "Votre export de données a été enregistré dans le dossier de l'application.",
     "myConsents": "Mes consentements",
-    "privacyDataHint": "Téléchargez une copie de vos données ou consultez les consentements que vous avez donnés.",
+    "privacyDataHint": "Demandez-nous une copie de vos données par e-mail, ou consultez les consentements que vous avez donnés.",
     "myConsentsHint": "Avertissements et consentements que vous avez acceptés dans l'application.",
     "noConsents": "Aucun consentement enregistré pour le moment.",
     "consentTypes": {
@@ -2453,7 +2450,17 @@
       "food_scanning": "Analyse des aliments",
       "expert_marketplace": "Place de marché des experts",
       "general_health_disclaimer": "Avertissement général sur la santé"
-    }
+    },
+    "requestData": "Demander mes données",
+    "dataRequestPending": "Demande en cours",
+    "dataRequestConfirmTitle": "Demander une copie de vos données ?",
+    "dataRequestConfirmBody": "Nous préparerons tout ce que nous conservons sur votre compte et vous l'enverrons par e-mail sous 30 jours.",
+    "dataRequestConfirmCta": "Envoyer la demande",
+    "dataRequestSentTitle": "Demande reçue",
+    "dataRequestSentBody": "Nous préparerons une copie de vos données et l'enverrons à {{email}} sous 30 jours.",
+    "dataRequestAlreadyTitle": "Demande déjà reçue",
+    "dataRequestAlreadyBody": "Nous préparons déjà vos données et les enverrons à {{email}}.",
+    "dataRequestError": "Impossible d'envoyer votre demande. Veuillez réessayer."
   },
   "recently": {
     "analyzing": "Analyse en cours...",
