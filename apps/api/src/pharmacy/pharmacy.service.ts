@@ -475,6 +475,104 @@ export class PharmacyService {
     return this.prisma.pharmacyAccessCode.update({ where: { id }, data: { isActive } });
   }
 
+  /**
+   * Edit a pharmacy code and push the change to everyone already linked to it.
+   *
+   * The propagation is the point. `applyPharmacyCode` COPIES the pharmacy's
+   * details into each PharmacyConnection at link time, and `createOrder` reads
+   * the email off the connection — so correcting the code alone would change
+   * nothing for existing patients, and their orders would keep going to the old
+   * address. That is exactly how a wrong address survives unnoticed: the
+   * registry looks right while the orders do not follow it.
+   *
+   * The code string itself is deliberately not editable — connections are keyed
+   * by it, and renaming would orphan every patient who already linked.
+   */
+  async adminUpdatePharmacyCode(
+    id: string,
+    input: {
+      pharmacyName?: string;
+      pharmacyEmail?: string | null;
+      pharmacyAddress?: string | null;
+      pharmacyPhone?: string | null;
+      pharmacyWebsite?: string | null;
+      language?: string;
+    },
+  ) {
+    const access = await this.prisma.pharmacyAccessCode.findUnique({ where: { id } });
+    if (!access) throw new NotFoundException('Pharmacy code not found');
+
+    const data: any = {};
+    if (input.pharmacyName !== undefined) data.pharmacyName = input.pharmacyName;
+    if (input.pharmacyEmail !== undefined) data.pharmacyEmail = input.pharmacyEmail || null;
+    if (input.pharmacyAddress !== undefined) data.pharmacyAddress = input.pharmacyAddress || null;
+    if (input.pharmacyPhone !== undefined) data.pharmacyPhone = input.pharmacyPhone || null;
+    if (input.pharmacyWebsite !== undefined) data.pharmacyWebsite = input.pharmacyWebsite || null;
+    if (input.language !== undefined) data.language = normalizePharmacyLang(input.language);
+
+    if (Object.keys(data).length === 0) return access;
+
+    const updated = await this.prisma.pharmacyAccessCode.update({ where: { id }, data });
+
+    const propagated = await this.prisma.pharmacyConnection.updateMany({
+      where: { pharmacyCode: access.code },
+      data,
+    });
+
+    this.logger.log(
+      `[Pharmacy] Code ${access.code} updated (${Object.keys(data).join(', ')}); ` +
+        `propagated to ${propagated.count} linked patient(s)`,
+    );
+
+    return { ...updated, propagatedConnections: propagated.count };
+  }
+
+  /**
+   * Which pharmacies would actually receive an order right now.
+   *
+   * Order forwarding needs three things at once — the PHARMACY_FORWARD_ORDERS
+   * flag, an email on the code, and that same email on each patient's
+   * connection — and when it silently is not happening there is no way to tell
+   * which of the three is missing. This reports all three.
+   */
+  async adminPharmacyDeliveryStatus() {
+    const codes = await this.prisma.pharmacyAccessCode.findMany({ orderBy: { createdAt: 'desc' }, take: 200 });
+
+    const rows = await Promise.all(
+      codes.map(async (c) => {
+        const connections = await this.prisma.pharmacyConnection.findMany({
+          where: { pharmacyCode: c.code },
+          select: { id: true, pharmacyEmail: true, isActive: true },
+        });
+        const mismatched = connections.filter(
+          (conn) => (conn.pharmacyEmail || null) !== (c.pharmacyEmail || null),
+        ).length;
+        return {
+          id: c.id,
+          code: c.code,
+          pharmacyName: c.pharmacyName,
+          pharmacyEmail: c.pharmacyEmail,
+          isActive: c.isActive,
+          linkedPatients: connections.length,
+          // Linked before the email was set/corrected — their orders still go to
+          // whatever was copied at link time.
+          patientsWithStaleEmail: mismatched,
+          // A pharmacy whose "own" address is ours receives nothing; the order
+          // just comes back to the team and looks forwarded.
+          emailIsOurs: !!c.pharmacyEmail && /@eatsense\.ch$/i.test(c.pharmacyEmail),
+          missingEmail: !c.pharmacyEmail,
+        };
+      }),
+    );
+
+    return {
+      forwardOrdersEnabled: this.forwardOrdersToPharmacy,
+      forwardLowStockEnabled: this.forwardLowStockToPharmacy,
+      teamEmail: this.orderEmail,
+      pharmacies: rows,
+    };
+  }
+
   // QR (PNG data URL) for the universal link patients scan to link this pharmacy.
   async adminGetPharmacyCodeQr(id: string) {
     const access = await this.prisma.pharmacyAccessCode.findUnique({ where: { id } });

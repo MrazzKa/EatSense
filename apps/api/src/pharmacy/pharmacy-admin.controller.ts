@@ -65,6 +65,38 @@ export class PharmacyAdminController {
     return this.pharmacyService.adminGetPharmacyCodeQr(id);
   }
 
+  /**
+   * Which pharmacies actually receive orders. Checked before `/`, otherwise the
+   * `:id/...` routes would not be the issue — but "delivery-status" would be
+   * matched as an id by a future `@Get(':id')`.
+   */
+  @Get('delivery-status')
+  async deliveryStatus(@Headers('x-admin-secret') adminSecret: string) {
+    this.validateAdmin(adminSecret);
+    return this.pharmacyService.adminPharmacyDeliveryStatus();
+  }
+
+  @Post(':id')
+  async update(
+    @Headers('x-admin-secret') adminSecret: string,
+    @Param('id') id: string,
+    @Body() body: {
+      pharmacyName?: string;
+      pharmacyEmail?: string;
+      pharmacyAddress?: string;
+      pharmacyPhone?: string;
+      pharmacyWebsite?: string;
+      language?: string;
+    },
+  ) {
+    this.validateAdmin(adminSecret);
+    try {
+      return await this.pharmacyService.adminUpdatePharmacyCode(id, body || {});
+    } catch (err: any) {
+      throw new BadRequestException(err?.message || 'Failed to update pharmacy code');
+    }
+  }
+
   @Post(':id/active')
   async setActive(
     @Headers('x-admin-secret') adminSecret: string,

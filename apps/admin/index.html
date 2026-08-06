@@ -801,6 +801,7 @@
           </form>
         </div>
         <div class="stat-bar" id="pharmacies-stats"></div>
+        <div id="pharmacies-delivery"></div>
         <div id="pharmacies-list"><div class="loading">Loading pharmacy codes...</div></div>
       </div>
     </div>
@@ -1123,6 +1124,7 @@
         const data = await fetchAPI('/admin/pharmacy-codes');
         const items = asArr(data);
         document.getElementById('pharmacies-stats').textContent = items.length + ' codes';
+        renderPharmacyDelivery();
         if (!items.length) {
           list.innerHTML = '<div class="empty-state">No pharmacy codes yet. Create one above.</div>';
           return;
@@ -1137,6 +1139,7 @@
               </div>
               <div style="display:flex;gap:8px">
                 <button class="btn btn-outline btn-sm" onclick="copyPharmacyCode('${escapeHtml(c.code)}')">Copy code</button>
+                <button class="btn btn-outline btn-sm" onclick="editPharmacyCode('${c.id}')">Edit</button>
                 <button class="btn btn-outline btn-sm" onclick="showPharmacyQR('${c.id}')">QR</button>
                 <button class="btn btn-outline btn-sm" onclick="togglePharmacyCode('${c.id}', ${!c.isActive})">${c.isActive ? 'Deactivate' : 'Activate'}</button>
               </div>
@@ -1145,6 +1148,82 @@
         `).join('');
       } catch (err) {
         list.innerHTML = `<div class="empty-state">Error: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    /**
+     * Does an order actually reach the pharmacy?
+     *
+     * Three things must line up — the PHARMACY_FORWARD_ORDERS flag, an email on
+     * the code, and that same email on each linked patient's connection. When
+     * one is missing nothing errors: the order simply arrives at our inbox and
+     * looks forwarded. This spells out which one is missing.
+     */
+    async function renderPharmacyDelivery() {
+      const box = document.getElementById('pharmacies-delivery');
+      if (!box) return;
+      box.innerHTML = '<div class="loading">Checking order delivery...</div>';
+      try {
+        const d = await fetchAPI('/admin/pharmacy-codes/delivery-status');
+        const warn = [];
+        if (!d.forwardOrdersEnabled) {
+          warn.push('Пересылка заказов в аптеки <b>выключена</b> (PHARMACY_FORWARD_ORDERS). Заказы приходят только нам.');
+        }
+        if (!d.forwardLowStockEnabled) {
+          warn.push('Уведомления о заканчивающихся лекарствах в аптеки выключены (PHARMACY_FORWARD_LOW_STOCK) — приходят только нам.');
+        }
+        (d.pharmacies || []).forEach(function (p) {
+          if (p.missingEmail) {
+            warn.push('<b>' + escapeHtml(p.pharmacyName) + '</b>: не указана почта — заказы уходят только нам.');
+          } else if (p.emailIsOurs) {
+            warn.push('<b>' + escapeHtml(p.pharmacyName) + '</b>: в поле почты стоит наш адрес (' + escapeHtml(p.pharmacyEmail) + ') — аптека заказы не получает.');
+          }
+          if (p.patientsWithStaleEmail > 0) {
+            warn.push('<b>' + escapeHtml(p.pharmacyName) + '</b>: у ' + p.patientsWithStaleEmail + ' из ' + p.linkedPatients
+              + ' привязанных пациентов сохранён старый адрес. Нажмите Edit и сохраните — адрес обновится у всех.');
+          }
+        });
+        const rows = (d.pharmacies || []).map(function (p) {
+          var ok = d.forwardOrdersEnabled && p.pharmacyEmail && !p.emailIsOurs && p.patientsWithStaleEmail === 0;
+          return '<div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid #eee">'
+            + '<div>' + (ok ? '\u2705 ' : '\u26A0\uFE0F ') + escapeHtml(p.pharmacyName)
+            + '<span style="color:#6b7280"> \u00B7 ' + escapeHtml(p.pharmacyEmail || 'no email') + '</span></div>'
+            + '<div style="color:#6b7280;white-space:nowrap">' + p.linkedPatients + ' linked</div></div>';
+        }).join('');
+        box.innerHTML = '<div class="card" style="margin-bottom:16px">'
+          + '<h3 style="margin:0 0 4px">Доходят ли заказы до аптек</h3>'
+          + (warn.length
+              ? '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:10px;padding:10px 12px;margin:8px 0;font-size:13px;line-height:1.6">'
+                + warn.map(function (w) { return '\u2022 ' + w; }).join('<br>') + '</div>'
+              : '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:10px 12px;margin:8px 0;font-size:13px">'
+                + 'Всё настроено: заказы уходят и нам, и в аптеку.</div>')
+          + rows + '</div>';
+      } catch (e) {
+        box.innerHTML = '<div class="card"><p style="color:#DC2626;margin:0">' + escapeHtml(e.message) + '</p></div>';
+      }
+    }
+
+    // Editing a code also rewrites it on every patient already linked to it —
+    // otherwise their orders keep going to the address copied at link time.
+    async function editPharmacyCode(id) {
+      try {
+        const items = asArr(await fetchAPI('/admin/pharmacy-codes'));
+        const c = items.find(function (x) { return x.id === id; });
+        if (!c) return alert('Code not found');
+        const email = prompt('Почта аптеки (заказы уходят сюда). Пустое поле — не пересылать.', c.pharmacyEmail || '');
+        if (email === null) return;
+        const name = prompt('Название аптеки', c.pharmacyName || '');
+        if (name === null) return;
+        const phone = prompt('Телефон', c.pharmacyPhone || '');
+        if (phone === null) return;
+        const res = await fetchAPI('/admin/pharmacy-codes/' + id, {
+          method: 'POST',
+          body: JSON.stringify({ pharmacyEmail: email.trim(), pharmacyName: name.trim(), pharmacyPhone: phone.trim() }),
+        });
+        alert('Сохранено. Обновлено у привязанных пациентов: ' + (res.propagatedConnections != null ? res.propagatedConnections : 0));
+        loadPharmacyCodes();
+      } catch (e) {
+        alert('Не удалось сохранить: ' + e.message);
       }
     }
 
