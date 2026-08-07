@@ -284,6 +284,13 @@ export class PharmacyService {
   // Low-stock alerts go to the team only by default. Set PHARMACY_FORWARD_LOW_STOCK=true
   // to also send the connected pharmacy a low-stock heads-up (in its language).
   private readonly forwardLowStockToPharmacy = process.env.PHARMACY_FORWARD_LOW_STOCK === 'true';
+  // Once a pharmacy receives its orders directly, our copy is duplication: the
+  // pharmacy acts on the email and we just get noise. So the team copy is a
+  // *fallback* — it goes out only when the pharmacy did not get the mail (no
+  // address on the connection, forwarding off, or the send failed), which keeps
+  // an order from silently disappearing. Set PHARMACY_TEAM_COPY=true to receive
+  // every pharmacy email again (useful while onboarding a new partner).
+  private readonly alwaysCopyTeam = process.env.PHARMACY_TEAM_COPY === 'true';
 
   constructor(
     private readonly prisma: PrismaService,
@@ -569,6 +576,9 @@ export class PharmacyService {
       forwardOrdersEnabled: this.forwardOrdersToPharmacy,
       forwardLowStockEnabled: this.forwardLowStockToPharmacy,
       teamEmail: this.orderEmail,
+      // 'always' = we get a copy of every email; 'fallback' = only when the
+      // pharmacy did not get it.
+      teamCopyMode: this.alwaysCopyTeam ? 'always' : 'fallback',
       pharmacies: rows,
     };
   }
@@ -708,24 +718,30 @@ export class PharmacyService {
 
     const subject = `[EatSense] New medication order from ${userName}`;
 
-    // Send to EatSense team (always, English)
-    try {
-      await this.mailer.sendEmail({ to: this.orderEmail, subject, text, html: teamHtml, category: 'pharmacy' });
-      this.logger.log(`[Pharmacy] Order email sent to EatSense for order ${order.id}`);
-    } catch (err) {
-      this.logger.error(`[Pharmacy] Failed to send order email for order ${order.id}:`, err);
-    }
-
-    // Also send to pharmacy if they have email configured (in their language).
-    // Gated by PHARMACY_FORWARD_ORDERS so the pilot routes orders to our team first.
+    // The pharmacy is the real recipient — send there first (in its language),
+    // gated by PHARMACY_FORWARD_ORDERS.
+    let deliveredToPharmacy = false;
     if (pharmacyEmail && this.forwardOrdersToPharmacy) {
       try {
         const pharmaHtml = this.buildOrderEmail({ ...orderEmailArgs, lang: pharmacyLang });
         const pharmaSubject = `[EatSense] ${PHARMA_I18N[pharmacyLang].orderSubject} ${userName}`;
         await this.mailer.sendEmail({ to: pharmacyEmail, subject: pharmaSubject, text, html: pharmaHtml, category: 'pharmacy' });
+        deliveredToPharmacy = true;
         this.logger.log(`[Pharmacy] Order email sent to pharmacy ${pharmacyEmail} (${pharmacyLang}) for order ${order.id}`);
       } catch (err) {
         this.logger.error(`[Pharmacy] Failed to send email to pharmacy ${pharmacyEmail}:`, err);
+      }
+    }
+
+    // Team copy (English): only when the pharmacy did not get it, so nobody has
+    // to chase an order that reached no one.
+    if (!deliveredToPharmacy || this.alwaysCopyTeam) {
+      try {
+        const teamSubject = deliveredToPharmacy ? subject : `${subject} — NOT delivered to pharmacy`;
+        await this.mailer.sendEmail({ to: this.orderEmail, subject: teamSubject, text, html: teamHtml, category: 'pharmacy' });
+        this.logger.log(`[Pharmacy] Order email sent to EatSense for order ${order.id}`);
+      } catch (err) {
+        this.logger.error(`[Pharmacy] Failed to send order email for order ${order.id}:`, err);
       }
     }
 
@@ -965,20 +981,28 @@ export class PharmacyService {
     const shortId = order.id.slice(-8).toUpperCase();
     const plain = `[EatSense] ${PHARMA_I18N.en.replyFromCustomer} — ${PHARMA_I18N.en.orderId} #${shortId}\n\n${userName}: ${text}`;
 
-    try {
-      const teamHtml = this.buildClientReplyEmail({ userName, orderId: order.id, text, lang: 'en' });
-      await this.mailer.sendEmail({ to: this.orderEmail, subject: `[EatSense] Customer reply — order #${shortId}`, text: plain, html: teamHtml, category: 'pharmacy' });
-    } catch (err) {
-      this.logger.error(`[Pharmacy] Failed to send client reply (team) for order ${order.id}:`, err);
-    }
-
     const pharmacyEmail = (order as any).pharmacyConnection?.pharmacyEmail;
+    let deliveredToPharmacy = false;
     if (pharmacyEmail && this.forwardOrdersToPharmacy) {
       try {
         const pharmaHtml = this.buildClientReplyEmail({ userName, orderId: order.id, text, lang: pharmacyLang });
         await this.mailer.sendEmail({ to: pharmacyEmail, subject: `[EatSense] ${PHARMA_I18N[pharmacyLang].replyFromCustomer} #${shortId}`, text: plain, html: pharmaHtml, category: 'pharmacy' });
+        deliveredToPharmacy = true;
       } catch (err) {
         this.logger.error(`[Pharmacy] Failed to send client reply to pharmacy ${pharmacyEmail}:`, err);
+      }
+    }
+
+    // Team copy only as a fallback — see alwaysCopyTeam.
+    if (!deliveredToPharmacy || this.alwaysCopyTeam) {
+      try {
+        const teamHtml = this.buildClientReplyEmail({ userName, orderId: order.id, text, lang: 'en' });
+        const teamSubject = deliveredToPharmacy
+          ? `[EatSense] Customer reply — order #${shortId}`
+          : `[EatSense] Customer reply — order #${shortId} — NOT delivered to pharmacy`;
+        await this.mailer.sendEmail({ to: this.orderEmail, subject: teamSubject, text: plain, html: teamHtml, category: 'pharmacy' });
+      } catch (err) {
+        this.logger.error(`[Pharmacy] Failed to send client reply (team) for order ${order.id}:`, err);
       }
     }
 
@@ -1152,24 +1176,12 @@ export class PharmacyService {
       `The customer's medication supply is running low.`,
     ].join('\n');
 
-    // Send to EatSense (always, English, lists all pharmacies).
-    try {
-      const teamHtml = this.buildLowStockEmail({
-        userName, userEmail: user.email, medicationName, dosage, remainingStock,
-        lowStockThreshold, daysRemaining, pharmacies: user.pharmacyConnections as any[], lang: 'en',
-      });
-      const subject = `[EatSense] Low stock alert: ${medicationName} for ${userName}`;
-      await this.mailer.sendEmail({ to: this.orderEmail, subject, text, html: teamHtml, category: 'pharmacy' });
-      this.logger.log(`[Pharmacy] Low stock alert sent for ${medicationName}`);
-    } catch (err) {
-      this.logger.error(`[Pharmacy] Failed to send low stock alert:`, err);
-    }
-
     // By default we do NOT email the connected pharmacy on a low-stock crossing
     // (confirmation-based pilot: the patient is nudged via push and the pharmacy
     // is contacted only after an explicit refill order). Set
     // PHARMACY_FORWARD_LOW_STOCK=true to also send each connected pharmacy a
     // low-stock heads-up in its own language.
+    let deliveredToPharmacy = false;
     if (this.forwardLowStockToPharmacy) {
       for (const pharmacy of user.pharmacyConnections as any[]) {
         if (!pharmacy?.pharmacyEmail) continue;
@@ -1181,10 +1193,26 @@ export class PharmacyService {
           });
           const pharmaSubject = `[EatSense] ${PHARMA_I18N[pharmacyLang].lowStockSubject}: ${medicationName}`;
           await this.mailer.sendEmail({ to: pharmacy.pharmacyEmail, subject: pharmaSubject, text, html: pharmaHtml, category: 'pharmacy' });
+          deliveredToPharmacy = true;
           this.logger.log(`[Pharmacy] Low stock alert sent to pharmacy ${pharmacy.pharmacyEmail} (${pharmacyLang}) for ${medicationName}`);
         } catch (err) {
           this.logger.error(`[Pharmacy] Failed to send low stock alert to pharmacy ${pharmacy.pharmacyEmail}:`, err);
         }
+      }
+    }
+
+    // Team copy (English, lists all pharmacies) only when no pharmacy got it.
+    if (!deliveredToPharmacy || this.alwaysCopyTeam) {
+      try {
+        const teamHtml = this.buildLowStockEmail({
+          userName, userEmail: user.email, medicationName, dosage, remainingStock,
+          lowStockThreshold, daysRemaining, pharmacies: user.pharmacyConnections as any[], lang: 'en',
+        });
+        const subject = `[EatSense] Low stock alert: ${medicationName} for ${userName}`;
+        await this.mailer.sendEmail({ to: this.orderEmail, subject, text, html: teamHtml, category: 'pharmacy' });
+        this.logger.log(`[Pharmacy] Low stock alert sent for ${medicationName}`);
+      } catch (err) {
+        this.logger.error(`[Pharmacy] Failed to send low stock alert:`, err);
       }
     }
   }
