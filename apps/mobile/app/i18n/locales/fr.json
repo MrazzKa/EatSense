@@ -677,7 +677,8 @@
     "create": "Créer",
     "notNow": "Plus tard",
     "allow": "Autoriser",
-    "sending": "Envoi…"
+    "sending": "Envoi…",
+    "remove": "Retirer"
   },
   "tooltips": {
     "scanMeal": {
@@ -5094,5 +5095,166 @@
     "sleepHours": "Sommeil (h)",
     "addedToGoal": "{{kcal}} kcal ajoutées à l’objectif du jour parce que vous avez bougé",
     "noBonusYet": "Bougez davantage aujourd’hui et votre objectif calorique augmente avec vous."
+  },
+  "bodyMap": {
+    "title": "Ce qui vous gêne",
+    "dashboardTitle": "Ce qui vous gêne",
+    "dashboardSubtitle": "Marquez-le sur le corps et notez ce que vous ressentez",
+    "hintPick": "Touchez les zones qui vous gênent — jusqu’à trois.",
+    "viewFront": "Devant",
+    "viewBack": "Derrière",
+    "maxZonesTitle": "C’est assez pour une entrée",
+    "maxZonesBody": "Vous pouvez marquer jusqu’à trois zones à la fois. Retirez-en une pour en ajouter une autre.",
+    "stepOf": "Zone {{current}} sur {{total}}",
+    "severityLabel": "À quel point est-ce fort ?",
+    "severityBands": {
+      "mild": "Légère",
+      "moderate": "Modérée",
+      "severe": "Forte",
+      "extreme": "Insupportable"
+    },
+    "checkTitle": "Est-ce que l’un de ces points s’applique en ce moment ?",
+    "checkSubtitle": "Cochez ce qui s’applique. Si rien ne s’applique, continuez simplement.",
+    "emergencyTitle": "Cela demande une personne, pas une application",
+    "emergencyBody": "Ce que vous avez coché peut être urgent. Appelez les secours ou rendez-vous aux urgences maintenant. Nous enregistrerons quand même cette entrée.",
+    "emergencyNumber": "112",
+    "emergencyCall": "Appeler le {{number}}",
+    "noteLabel": "Souhaitez-vous ajouter autre chose ?",
+    "notePlaceholder": "Facultatif — avec vos propres mots",
+    "disclaimer": "Ceci est un journal, pas un diagnostic. EatSense n’interprète pas les symptômes — montrez cette note à un médecin.",
+    "save": "Enregistrer dans le journal",
+    "saveFailed": "Enregistrement impossible. Vérifiez votre connexion et réessayez.",
+    "savedTitle": "Enregistré dans votre journal",
+    "savedBody": "C’est désormais sur la même ligne de temps que vos repas, vos médicaments et vos analyses.",
+    "historyTitle": "Dernières entrées",
+    "zones": {
+      "head": "Tête",
+      "neck": "Cou",
+      "chest": "Poitrine",
+      "shoulder_right": "Épaule droite",
+      "shoulder_left": "Épaule gauche",
+      "arm_right": "Bras droit",
+      "arm_left": "Bras gauche",
+      "abdomen_hypochondrium_right": "Hypochondre droit",
+      "abdomen_epigastrium": "Creux de l’estomac",
+      "abdomen_hypochondrium_left": "Hypochondre gauche",
+      "abdomen_lower": "Bas-ventre",
+      "pelvis": "Bassin",
+      "leg_right": "Jambe droite",
+      "leg_left": "Jambe gauche",
+      "neck_back": "Nuque",
+      "back_upper": "Haut du dos",
+      "flank_left": "Flanc gauche",
+      "flank_right": "Flanc droit",
+      "back_lower": "Bas du dos",
+      "glutes": "Fessiers",
+      "leg_back_left": "Jambe gauche (arrière)",
+      "leg_back_right": "Jambe droite (arrière)"
+    },
+    "questions": {
+      "onset": {
+        "label": "Quand cela a-t-il commencé ?",
+        "options": {
+          "today": "Aujourd’hui",
+          "days": "Il y a quelques jours",
+          "weeks": "Il y a quelques semaines",
+          "months": "Il y a des mois",
+          "recurring": "Ça va et ça vient"
+        }
+      },
+      "frequency": {
+        "label": "À quelle fréquence ?",
+        "options": {
+          "constant": "En permanence",
+          "daily": "Plusieurs fois par jour",
+          "weekly": "Plusieurs fois par semaine",
+          "rare": "Moins souvent"
+        }
+      },
+      "character": {
+        "label": "À quoi cela ressemble-t-il ?",
+        "options": {
+          "aching": "Sourde",
+          "sharp": "Aiguë",
+          "burning": "Brûlure",
+          "pressing": "Oppressante",
+          "cramping": "Crampes",
+          "throbbing": "Pulsatile"
+        }
+      },
+      "worse": {
+        "label": "Qu’est-ce qui l’aggrave ?",
+        "options": {
+          "after_eating": "Après avoir mangé",
+          "empty_stomach": "À jeun",
+          "movement": "En bougeant",
+          "rest": "Au repos",
+          "night": "La nuit",
+          "stress": "Le stress",
+          "unknown": "Je ne sais pas"
+        }
+      },
+      "relief": {
+        "label": "Qu’est-ce qui soulage ?",
+        "options": {
+          "food": "Manger",
+          "medication": "Un médicament",
+          "rest": "Le repos",
+          "warmth": "La chaleur",
+          "nothing": "Rien"
+        }
+      },
+      "head_trigger": {
+        "label": "Qu’est-ce qui précède habituellement ?",
+        "options": {
+          "sleep": "Manque de sommeil",
+          "hunger": "La faim",
+          "screen": "Du temps d’écran",
+          "stress": "Le stress",
+          "weather": "La météo",
+          "unknown": "Je ne sais pas"
+        }
+      },
+      "related_food": {
+        "label": "Est-ce lié à un aliment en particulier ?",
+        "options": {
+          "yes": "Oui",
+          "no": "Non",
+          "unsure": "Pas sûr"
+        }
+      },
+      "stool_change": {
+        "label": "Vos selles ont-elles changé ?",
+        "options": {
+          "none": "Aucun changement",
+          "loose": "Molles",
+          "constipation": "Constipation",
+          "alternating": "En alternance"
+        }
+      },
+      "injury": {
+        "label": "Y a-t-il eu une blessure ?",
+        "options": {
+          "yes": "Oui",
+          "no": "Non"
+        }
+      }
+    },
+    "redFlags": {
+      "chest_pain_radiating": "Douleur thoracique irradiant vers le bras, le cou ou la mâchoire",
+      "sudden_breathlessness": "Essoufflement soudain et sévère",
+      "fainting": "Évanouissement ou malaise important",
+      "blood_in_stool_vomit_urine": "Du sang dans les selles, les vomissements ou les urines",
+      "worst_headache": "Le pire mal de tête de votre vie, survenu brutalement",
+      "one_sided_weakness": "Faiblesse ou engourdissement d’un côté du corps, ou troubles de la parole",
+      "high_fever_abdominal_pain": "Fièvre supérieure à 39 °C avec de fortes douleurs abdominales",
+      "persistent_vomiting": "Vomissements qui durent depuis plus d’une journée"
+    },
+    "historyHint": "Touchez pour enregistrer à nouveau les mêmes zones.",
+    "deleteTitle": "Supprimer cette entrée ?",
+    "deleteBody": "Elle disparaîtra de votre journal. Cette action est irréversible.",
+    "deleteFailed": "Suppression impossible. Vérifiez votre connexion et réessayez.",
+    "severityAria": "{{value}} sur {{max}}",
+    "diaryA11y": "Symptômes : {{zones}}"
   }
 }

@@ -37,10 +37,17 @@ export const validatePhone = (phone: string): boolean => {
   return phoneRegex.test(phone) && phone.replace(/\D/g, '').length >= 10;
 };
 
+/**
+ * Accepts only http(s).
+ *
+ * `new URL()` alone is not validation — it happily parses `ftp://example.com`
+ * and, more to the point, `javascript:alert(1)`. Anything this function blesses
+ * could end up in a link or a WebView, so the scheme allowlist is the whole job.
+ */
 export const validateUrl = (url: string): boolean => {
   try {
-    new URL(url);
-    return true;
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
   } catch {
     return false;
   }

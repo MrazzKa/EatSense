@@ -134,6 +134,27 @@ describe('SecurityManager', () => {
       const sanitized = securityManager.sanitizeInput(input);
       expect(sanitized).toBe('Hello World');
     });
+
+    // The three below are the bypasses the previous regex-blacklist version let
+    // through. They are the reason the implementation stopped being a blacklist.
+    it('should not leave the payload behind when a script tag is unclosed', () => {
+      expect(securityManager.sanitizeInput('<script>alert(1)')).toBe('');
+      expect(securityManager.sanitizeInput('Hi<script src="x.js">')).toBe('Hi');
+    });
+
+    it('should see through whitespace hidden inside a scheme', () => {
+      expect(securityManager.sanitizeInput('java\tscript:alert(1)')).toBe('');
+      expect(securityManager.sanitizeInput('JaVaScRiPt:alert(1)')).toBe('');
+      expect(securityManager.sanitizeInput('vbscript:msgbox(1)')).toBe('');
+      expect(securityManager.sanitizeInput('data:text/html,<h1>x</h1>')).toBe('');
+    });
+
+    it('should leave ordinary text alone', () => {
+      expect(securityManager.sanitizeInput('  Борщ, 350 г  ')).toBe('Борщ, 350 г');
+      expect(securityManager.sanitizeInput('5 > 3 and 2 < 4')).toBe('5  3 and 2  4');
+      expect(securityManager.sanitizeInput('')).toBe('');
+      expect(securityManager.sanitizeInput(null as any)).toBe('');
+    });
   });
 
   describe('Input Validation', () => {

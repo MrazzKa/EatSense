@@ -1,5 +1,10 @@
 module.exports = function (api) {
-  api.cache(true);
+  // NOT api.cache(true). The plugin list below branches on NODE_ENV/BABEL_ENV, and
+  // `cache(true)` tells Babel the config can never change — so the first result is
+  // reused for every later call, env change or not. That is how a "production"
+  // build quietly ships with console.log still in it. Keying the cache on the env
+  // makes the branch and the cache agree.
+  api.cache.using(() => `${process.env.NODE_ENV}:${process.env.BABEL_ENV}`);
 
   const plugins = [
     [

@@ -17,40 +17,11 @@ import { syncMealsToHealth } from '../hooks/useHealthSync';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { formatCalories } from '../utils/nutritionFormat';
+import { severityColor } from '../features/bodymap/severity';
+import { zoneNameKey } from '../features/bodymap/catalog';
+import { buildDiaryDays } from '../utils/diaryDays';
 
 const MACRO_COLORS = { protein: '#3B82F6', carbs: '#F59E0B', fat: '#22C55E' };
-
-const toNum = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
-
-// Day key (local YYYY-MM-DD) from a meal's consumedAt/createdAt.
-function dayKeyOf(meal) {
-  const raw = meal?.consumedAt || meal?.createdAt || null;
-  const d = raw ? new Date(raw) : null;
-  if (!d || isNaN(d.getTime())) return null;
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-// Group meals into per-day buckets with totals, newest day first.
-function groupByDay(meals) {
-  const map = new Map();
-  for (const meal of meals || []) {
-    const key = dayKeyOf(meal);
-    if (!key) continue;
-    if (!map.has(key)) {
-      map.set(key, { key, date: new Date(meal.consumedAt || meal.createdAt), count: 0, calories: 0, protein: 0, carbs: 0, fat: 0 });
-    }
-    const b = map.get(key);
-    b.count += 1;
-    b.calories += toNum(meal.totalCalories ?? meal.calories);
-    b.protein += toNum(meal.totalProtein ?? meal.protein);
-    b.carbs += toNum(meal.totalCarbs ?? meal.carbs);
-    b.fat += toNum(meal.totalFat ?? meal.fat);
-  }
-  return Array.from(map.values()).sort((a, b) => b.key.localeCompare(a.key));
-}
 
 export default function DiaryJournalScreen() {
   const navigation = useNavigation();
@@ -65,8 +36,15 @@ export default function DiaryJournalScreen() {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const meals = await ApiService.getMeals();
-      setDays(groupByDay(Array.isArray(meals) ? meals : []));
+      // Symptom history is a nice-to-have on this screen: if it fails the diary
+      // still has to render, so it resolves to an empty list rather than
+      // rejecting the pair.
+      const [meals, symptomRes] = await Promise.all([
+        ApiService.getMeals(),
+        ApiService.getSymptomReports(60).catch(() => null),
+      ]);
+      const reports = Array.isArray(symptomRes?.reports) ? symptomRes.reports : [];
+      setDays(buildDiaryDays(Array.isArray(meals) ? meals : [], reports));
       // Mirror logged meals into Apple Health / Health Connect. Meals are created
       // server-side (analysis, fridge recipe, manual), so there is no single
       // client-side "meal created" moment to hook — the diary load is where we
@@ -94,37 +72,86 @@ export default function DiaryJournalScreen() {
     return date.toLocaleDateString(language || 'en', { weekday: 'short', day: 'numeric', month: 'long' });
   }, [t, language]);
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.card}
-      activeOpacity={0.7}
-      onPress={() => navigation.navigate('MealHistory', { date: item.date.toISOString() })}
-    >
-      <View style={styles.cardTop}>
-        <Text style={styles.dayLabel}>{labelForDay(item.date, item.key)}</Text>
-        <View style={styles.kcalPill}>
-          <Text style={styles.kcalText}>{formatCalories(Math.round(item.calories))}</Text>
-        </View>
+  // Up to three zones on one line, then "+N" — a day card is a summary, and a
+  // wrapped list of eight body parts stops being one.
+  const renderSymptoms = (symptoms) => {
+    if (!symptoms || symptoms.length === 0) return null;
+    const shown = symptoms.slice(0, 3);
+    const rest = symptoms.length - shown.length;
+    const names = symptoms.map((s) => t(zoneNameKey(s.zoneId), s.zoneId)).join(', ');
+
+    return (
+      <View
+        style={styles.symptomRow}
+        accessible
+        accessibilityLabel={t('bodyMap.diaryA11y', 'Symptoms: {{zones}}').replace('{{zones}}', names)}
+      >
+        <Ionicons name="body-outline" size={15} color={colors.textTertiary} />
+        {shown.map((symptom, i) => (
+          <View key={`${symptom.zoneId}-${i}`} style={styles.symptomChip}>
+            <View style={[styles.dot, { backgroundColor: severityColor(symptom.severity) }]} />
+            <Text style={styles.symptomText} numberOfLines={1}>
+              {t(zoneNameKey(symptom.zoneId), symptom.zoneId)}
+            </Text>
+          </View>
+        ))}
+        {rest > 0 && <Text style={styles.symptomMore}>+{rest}</Text>}
       </View>
-      <View style={styles.macrosRow}>
-        <View style={styles.macroChip}>
-          <View style={[styles.dot, { backgroundColor: MACRO_COLORS.protein }]} />
-          <Text style={styles.macroText}>{Math.round(item.protein)}{t('dashboard.gramShort')}</Text>
+    );
+  };
+
+  const renderItem = ({ item }) => {
+    const hasMeals = item.count > 0;
+
+    const body = (
+      <>
+        <View style={[styles.cardTop, !hasMeals && item.symptoms.length > 0 && styles.cardTopTight]}>
+          <Text style={styles.dayLabel}>{labelForDay(item.date, item.key)}</Text>
+          {hasMeals && (
+            <View style={styles.kcalPill}>
+              <Text style={styles.kcalText}>{formatCalories(Math.round(item.calories))}</Text>
+            </View>
+          )}
         </View>
-        <View style={styles.macroChip}>
-          <View style={[styles.dot, { backgroundColor: MACRO_COLORS.carbs }]} />
-          <Text style={styles.macroText}>{Math.round(item.carbs)}{t('dashboard.gramShort')}</Text>
-        </View>
-        <View style={styles.macroChip}>
-          <View style={[styles.dot, { backgroundColor: MACRO_COLORS.fat }]} />
-          <Text style={styles.macroText}>{Math.round(item.fat)}{t('dashboard.gramShort')}</Text>
-        </View>
-        <View style={{ flex: 1 }} />
-        <Text style={styles.countText}>{t('mealHistory.mealsCount', { count: item.count })}</Text>
-        <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} style={{ marginLeft: 4 }} />
-      </View>
-    </TouchableOpacity>
-  );
+        {hasMeals && (
+          <View style={styles.macrosRow}>
+            <View style={styles.macroChip}>
+              <View style={[styles.dot, { backgroundColor: MACRO_COLORS.protein }]} />
+              <Text style={styles.macroText}>{Math.round(item.protein)}{t('dashboard.gramShort')}</Text>
+            </View>
+            <View style={styles.macroChip}>
+              <View style={[styles.dot, { backgroundColor: MACRO_COLORS.carbs }]} />
+              <Text style={styles.macroText}>{Math.round(item.carbs)}{t('dashboard.gramShort')}</Text>
+            </View>
+            <View style={styles.macroChip}>
+              <View style={[styles.dot, { backgroundColor: MACRO_COLORS.fat }]} />
+              <Text style={styles.macroText}>{Math.round(item.fat)}{t('dashboard.gramShort')}</Text>
+            </View>
+            <View style={{ flex: 1 }} />
+            <Text style={styles.countText}>{t('mealHistory.mealsCount', { count: item.count })}</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} style={{ marginLeft: 4 }} />
+          </View>
+        )}
+        {renderSymptoms(item.symptoms)}
+      </>
+    );
+
+    // A day with symptoms but no meals has nothing to open — MealHistory would
+    // be an empty screen — so it is a plain card rather than a dead link.
+    if (!hasMeals) {
+      return <View style={styles.card}>{body}</View>;
+    }
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.7}
+        onPress={() => navigation.navigate('MealHistory', { date: item.date.toISOString() })}
+      >
+        {body}
+      </TouchableOpacity>
+    );
+  };
 
   const renderHeader = () => (
     <View style={[styles.header, { borderBottomColor: colors.border || colors.borderMuted }]}>
@@ -190,6 +217,8 @@ const createStyles = (colors) =>
       borderColor: colors.border || colors.borderMuted,
     },
     cardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+    // No macros row underneath means the 12px gap would hang in the air.
+    cardTopTight: { marginBottom: 0 },
     dayLabel: { fontSize: 16, fontWeight: '700', color: colors.textPrimary || colors.text, textTransform: 'capitalize' },
     kcalPill: {
       backgroundColor: (colors.primary || '#4F46E5') + '18',
@@ -202,6 +231,19 @@ const createStyles = (colors) =>
     macroChip: { flexDirection: 'row', alignItems: 'center', marginRight: 14 },
     dot: { width: 8, height: 8, borderRadius: 4, marginRight: 5 },
     macroText: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
+    symptomRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 12,
+      paddingTop: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.borderMuted || colors.border,
+    },
+    symptomChip: { flexDirection: 'row', alignItems: 'center', maxWidth: '45%' },
+    symptomText: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
+    symptomMore: { fontSize: 13, fontWeight: '600', color: colors.textTertiary },
     countText: { fontSize: 13, color: colors.textTertiary },
     empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
     emptyTitle: { fontSize: 18, fontWeight: '700', marginTop: 16, textAlign: 'center' },

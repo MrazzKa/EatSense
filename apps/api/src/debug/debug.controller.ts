@@ -9,16 +9,24 @@ export class DebugController {
     private readonly config: ConfigService,
   ) {}
 
+  /**
+   * Client-side debug log.
+   *
+   * Accepts either a batch (`{ entries: [...] }`, what the app sends since it
+   * started buffering these instead of posting one per navigation) or a single
+   * object, which is what builds already in the wild still send. Each entry is
+   * logged on its own line either way, so `grep CLIENT_LOG` keeps working.
+   */
   @Post('client-log')
   logClient(@Body() body: any) {
-    console.log(
-      '[CLIENT_LOG]',
-      JSON.stringify({
-        ...body,
-        ts: new Date().toISOString(),
-      }),
-    );
-    return { ok: true };
+    const entries = Array.isArray(body?.entries) ? body.entries : [body];
+    const ts = new Date().toISOString();
+    // A batch arrives at once but the lines describe different moments, so each
+    // keeps its own `at` when the client sent one.
+    for (const entry of entries.slice(0, 100)) {
+      console.log('[CLIENT_LOG]', JSON.stringify({ ...entry, ts }));
+    }
+    return { ok: true, received: entries.length };
   }
 
   @Post('rehydrate-foods')

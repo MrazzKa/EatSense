@@ -126,7 +126,8 @@
     "create": "Create",
     "notNow": "Not now",
     "allow": "Allow",
-    "sending": "Sending…"
+    "sending": "Sending…",
+    "remove": "Remove"
   },
   "tooltips": {
     "scanMeal": {
@@ -5129,5 +5130,166 @@
     "sleepHours": "Sleep h",
     "addedToGoal": "{{kcal}} kcal added to today’s goal because you moved",
     "noBonusYet": "Move more today and your calorie goal grows with you."
+  },
+  "bodyMap": {
+    "title": "What is bothering you",
+    "dashboardTitle": "What is bothering you",
+    "dashboardSubtitle": "Mark it on the body and log how it feels",
+    "hintPick": "Tap the areas that bother you — up to three.",
+    "viewFront": "Front",
+    "viewBack": "Back",
+    "maxZonesTitle": "Enough for one report",
+    "maxZonesBody": "You can mark up to three areas at a time. Remove one to add another.",
+    "stepOf": "Area {{current}} of {{total}}",
+    "severityLabel": "How strong is it?",
+    "severityBands": {
+      "mild": "Mild",
+      "moderate": "Moderate",
+      "severe": "Severe",
+      "extreme": "Unbearable"
+    },
+    "checkTitle": "Is any of this happening right now?",
+    "checkSubtitle": "Tick anything that applies. If nothing does, just continue.",
+    "emergencyTitle": "This needs a person, not an app",
+    "emergencyBody": "What you ticked can be urgent. Call emergency services or go to A&E now. We will still save this report for you.",
+    "emergencyNumber": "112",
+    "emergencyCall": "Call {{number}}",
+    "noteLabel": "Anything else worth writing down?",
+    "notePlaceholder": "Optional — in your own words",
+    "disclaimer": "This is a diary, not a diagnosis. EatSense does not interpret symptoms — take this record to a doctor.",
+    "save": "Save to diary",
+    "saveFailed": "Could not save. Check your connection and try again.",
+    "savedTitle": "Saved to your diary",
+    "savedBody": "It now sits on the same timeline as your meals, medication and lab results.",
+    "historyTitle": "Recent reports",
+    "zones": {
+      "head": "Head",
+      "neck": "Neck",
+      "chest": "Chest",
+      "shoulder_right": "Right shoulder",
+      "shoulder_left": "Left shoulder",
+      "arm_right": "Right arm",
+      "arm_left": "Left arm",
+      "abdomen_hypochondrium_right": "Upper right abdomen",
+      "abdomen_epigastrium": "Upper middle abdomen",
+      "abdomen_hypochondrium_left": "Upper left abdomen",
+      "abdomen_lower": "Lower abdomen",
+      "pelvis": "Pelvis",
+      "leg_right": "Right leg",
+      "leg_left": "Left leg",
+      "neck_back": "Back of the neck",
+      "back_upper": "Upper back",
+      "flank_left": "Left flank",
+      "flank_right": "Right flank",
+      "back_lower": "Lower back",
+      "glutes": "Buttocks",
+      "leg_back_left": "Left leg (back)",
+      "leg_back_right": "Right leg (back)"
+    },
+    "questions": {
+      "onset": {
+        "label": "When did it start?",
+        "options": {
+          "today": "Today",
+          "days": "A few days ago",
+          "weeks": "A few weeks ago",
+          "months": "Months ago",
+          "recurring": "It comes and goes"
+        }
+      },
+      "frequency": {
+        "label": "How often?",
+        "options": {
+          "constant": "Constantly",
+          "daily": "Several times a day",
+          "weekly": "Several times a week",
+          "rare": "Less often"
+        }
+      },
+      "character": {
+        "label": "What does it feel like?",
+        "options": {
+          "aching": "Aching",
+          "sharp": "Sharp",
+          "burning": "Burning",
+          "pressing": "Pressing",
+          "cramping": "Cramping",
+          "throbbing": "Throbbing"
+        }
+      },
+      "worse": {
+        "label": "What makes it worse?",
+        "options": {
+          "after_eating": "After eating",
+          "empty_stomach": "On an empty stomach",
+          "movement": "When I move",
+          "rest": "At rest",
+          "night": "At night",
+          "stress": "Stress",
+          "unknown": "Not sure"
+        }
+      },
+      "relief": {
+        "label": "What helps?",
+        "options": {
+          "food": "Eating",
+          "medication": "Medication",
+          "rest": "Rest",
+          "warmth": "Warmth",
+          "nothing": "Nothing"
+        }
+      },
+      "head_trigger": {
+        "label": "What usually comes before it?",
+        "options": {
+          "sleep": "Poor sleep",
+          "hunger": "Hunger",
+          "screen": "Screen time",
+          "stress": "Stress",
+          "weather": "Weather",
+          "unknown": "Not sure"
+        }
+      },
+      "related_food": {
+        "label": "Is it linked to a particular food?",
+        "options": {
+          "yes": "Yes",
+          "no": "No",
+          "unsure": "Not sure"
+        }
+      },
+      "stool_change": {
+        "label": "Has your stool changed?",
+        "options": {
+          "none": "No change",
+          "loose": "Loose",
+          "constipation": "Constipation",
+          "alternating": "Alternating"
+        }
+      },
+      "injury": {
+        "label": "Was there an injury?",
+        "options": {
+          "yes": "Yes",
+          "no": "No"
+        }
+      }
+    },
+    "redFlags": {
+      "chest_pain_radiating": "Chest pain spreading to the arm, neck or jaw",
+      "sudden_breathlessness": "Sudden severe shortness of breath",
+      "fainting": "Fainting or nearly fainting",
+      "blood_in_stool_vomit_urine": "Blood in your stool, vomit or urine",
+      "worst_headache": "The worst headache of your life, starting suddenly",
+      "one_sided_weakness": "Weakness or numbness on one side, or trouble speaking",
+      "high_fever_abdominal_pain": "Fever above 39 °C together with severe abdominal pain",
+      "persistent_vomiting": "Vomiting that has not stopped for more than a day"
+    },
+    "historyHint": "Tap one to log the same areas again.",
+    "deleteTitle": "Delete this report?",
+    "deleteBody": "It will be removed from your diary. This cannot be undone.",
+    "deleteFailed": "Could not delete. Check your connection and try again.",
+    "severityAria": "{{value}} out of {{max}}",
+    "diaryA11y": "Symptoms: {{zones}}"
   }
 }

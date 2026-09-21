@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import ApiService from '../services/apiService';
 import { useAuth } from './AuthContext';
 import { LevelUpModal } from '../components/LevelUpModal';
@@ -142,8 +142,15 @@ export function MascotProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Every callback below is already stable; the inline object literal was what
+  // handed consumers a new value on every render of this provider.
+  const value = useMemo(
+    () => ({ mascot, loading, createMascot, updateMascot, deleteMascot, addXp, refreshMascot }),
+    [mascot, loading, createMascot, updateMascot, deleteMascot, addXp, refreshMascot],
+  );
+
   return (
-    <MascotContext.Provider value={{ mascot, loading, createMascot, updateMascot, deleteMascot, addXp, refreshMascot }}>
+    <MascotContext.Provider value={value}>
       {children}
       <LevelUpModal
         visible={levelUpVisible}

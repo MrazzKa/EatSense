@@ -840,6 +840,39 @@ class ApiService {
     return this.request(`/health-metrics${query ? `?${query}` : ''}`);
   }
 
+  // ── Body map (symptom reports) ───────────────────────────────────────────
+  /**
+   * Log a "what is bothering you" report.
+   *
+   * Zone ids and answer values come from `src/features/bodymap/catalog.ts` and
+   * are validated server-side against its own copy — a 400 here means the two
+   * catalogues have drifted, not that the user did something wrong.
+   */
+  async createSymptomReport(payload: {
+    entries: { zoneId: string; severity: number; answers?: Record<string, string> }[];
+    redFlags?: string[];
+    note?: string;
+    reportedAt?: string;
+    locale?: string;
+  }) {
+    return this.request('/symptoms/reports', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /** Symptom history, newest first. Keyset pagination via `cursor`. */
+  async getSymptomReports(limit = 20, cursor?: string) {
+    const params = new URLSearchParams();
+    params.set('limit', String(limit));
+    if (cursor) params.set('cursor', cursor);
+    return this.request(`/symptoms/reports?${params.toString()}`);
+  }
+
+  async deleteSymptomReport(id: string) {
+    return this.request(`/symptoms/reports/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  }
+
   // ── Privacy consents ─────────────────────────────────────────────────────
   /** Read granular privacy consents (all default to false). */
   async getConsents() {

@@ -101,11 +101,22 @@ module.exports = [
       'react-native/no-inline-styles': 'off',
       'react-native/no-color-literals': 'off',
       'react-native/no-raw-text': 'off',
+      // Plain JS only. This block also matches .ts/.tsx, and the base rule does
+      // not understand TypeScript: it reads parameter names inside *type*
+      // annotations — `onPress: (id: string) => void` in an interface — as dead
+      // bindings, and reported 162 of those across the app. The TS-aware
+      // '@typescript-eslint/no-unused-vars' above already covers those files, so
+      // the base rule is turned back off for them here.
       'no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^(_|[A-Z_]+)$', ignoreRestSiblings: true },
       ],
     },
+  },
+  {
+    // See the note above: TypeScript files use the TS-aware rule only.
+    files: ['**/*.{ts,tsx}'],
+    rules: { 'no-unused-vars': 'off' },
   },
   {
     files: ['src/types/enums.ts', 'src/utils/logger.ts'],

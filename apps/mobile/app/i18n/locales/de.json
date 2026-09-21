@@ -984,7 +984,8 @@
     "create": "Erstellen",
     "notNow": "Nicht jetzt",
     "allow": "Erlauben",
-    "sending": "Senden…"
+    "sending": "Senden…",
+    "remove": "Entfernen"
   },
   "dashboard": {
     "addFood": {
@@ -5128,5 +5129,166 @@
     "sleepHours": "Schlaf (Std.)",
     "addedToGoal": "{{kcal}} kcal zum heutigen Ziel addiert, weil du dich bewegt hast",
     "noBonusYet": "Beweg dich heute mehr — dein Kalorienziel wächst mit."
+  },
+  "bodyMap": {
+    "title": "Was Sie belastet",
+    "dashboardTitle": "Was Sie belastet",
+    "dashboardSubtitle": "Am Körper markieren und festhalten, wie es sich anfühlt",
+    "hintPick": "Tippen Sie die Bereiche an, die Sie belasten — bis zu drei.",
+    "viewFront": "Vorne",
+    "viewBack": "Hinten",
+    "maxZonesTitle": "Für einen Eintrag reicht das",
+    "maxZonesBody": "Sie können bis zu drei Bereiche gleichzeitig markieren. Entfernen Sie einen, um einen anderen hinzuzufügen.",
+    "stepOf": "Bereich {{current}} von {{total}}",
+    "severityLabel": "Wie stark ist es?",
+    "severityBands": {
+      "mild": "Leicht",
+      "moderate": "Mäßig",
+      "severe": "Stark",
+      "extreme": "Unerträglich"
+    },
+    "checkTitle": "Trifft gerade etwas davon zu?",
+    "checkSubtitle": "Markieren Sie, was zutrifft. Wenn nichts zutrifft, fahren Sie einfach fort.",
+    "emergencyTitle": "Das gehört zu einem Menschen, nicht in eine App",
+    "emergencyBody": "Was Sie markiert haben, kann dringend sein. Rufen Sie den Notruf oder fahren Sie in die Notaufnahme. Den Eintrag speichern wir trotzdem.",
+    "emergencyNumber": "112",
+    "emergencyCall": "{{number}} anrufen",
+    "noteLabel": "Möchten Sie noch etwas festhalten?",
+    "notePlaceholder": "Optional — in Ihren eigenen Worten",
+    "disclaimer": "Das ist ein Tagebuch, keine Diagnose. EatSense deutet keine Symptome — zeigen Sie diesen Eintrag einer Ärztin oder einem Arzt.",
+    "save": "Ins Tagebuch eintragen",
+    "saveFailed": "Konnte nicht gespeichert werden. Prüfen Sie die Verbindung und versuchen Sie es erneut.",
+    "savedTitle": "Im Tagebuch gespeichert",
+    "savedBody": "Es steht jetzt auf derselben Zeitachse wie Ihre Mahlzeiten, Medikamente und Laborwerte.",
+    "historyTitle": "Letzte Einträge",
+    "zones": {
+      "head": "Kopf",
+      "neck": "Hals",
+      "chest": "Brustkorb",
+      "shoulder_right": "Rechte Schulter",
+      "shoulder_left": "Linke Schulter",
+      "arm_right": "Rechter Arm",
+      "arm_left": "Linker Arm",
+      "abdomen_hypochondrium_right": "Rechter Oberbauch",
+      "abdomen_epigastrium": "Oberbauch (Magengrube)",
+      "abdomen_hypochondrium_left": "Linker Oberbauch",
+      "abdomen_lower": "Unterbauch",
+      "pelvis": "Becken",
+      "leg_right": "Rechtes Bein",
+      "leg_left": "Linkes Bein",
+      "neck_back": "Nacken",
+      "back_upper": "Oberer Rücken",
+      "flank_left": "Linke Flanke",
+      "flank_right": "Rechte Flanke",
+      "back_lower": "Unterer Rücken",
+      "glutes": "Gesäß",
+      "leg_back_left": "Linkes Bein (hinten)",
+      "leg_back_right": "Rechtes Bein (hinten)"
+    },
+    "questions": {
+      "onset": {
+        "label": "Wann hat es angefangen?",
+        "options": {
+          "today": "Heute",
+          "days": "Vor ein paar Tagen",
+          "weeks": "Vor einigen Wochen",
+          "months": "Vor Monaten",
+          "recurring": "Es kommt und geht"
+        }
+      },
+      "frequency": {
+        "label": "Wie oft?",
+        "options": {
+          "constant": "Ständig",
+          "daily": "Mehrmals täglich",
+          "weekly": "Mehrmals pro Woche",
+          "rare": "Seltener"
+        }
+      },
+      "character": {
+        "label": "Wie fühlt es sich an?",
+        "options": {
+          "aching": "Dumpf",
+          "sharp": "Stechend",
+          "burning": "Brennend",
+          "pressing": "Drückend",
+          "cramping": "Krampfartig",
+          "throbbing": "Pochend"
+        }
+      },
+      "worse": {
+        "label": "Was macht es schlimmer?",
+        "options": {
+          "after_eating": "Nach dem Essen",
+          "empty_stomach": "Auf nüchternen Magen",
+          "movement": "Bei Bewegung",
+          "rest": "In Ruhe",
+          "night": "Nachts",
+          "stress": "Stress",
+          "unknown": "Weiß ich nicht"
+        }
+      },
+      "relief": {
+        "label": "Was hilft?",
+        "options": {
+          "food": "Essen",
+          "medication": "Medikament",
+          "rest": "Ruhe",
+          "warmth": "Wärme",
+          "nothing": "Nichts"
+        }
+      },
+      "head_trigger": {
+        "label": "Was geht dem meist voraus?",
+        "options": {
+          "sleep": "Zu wenig Schlaf",
+          "hunger": "Hunger",
+          "screen": "Lange am Bildschirm",
+          "stress": "Stress",
+          "weather": "Wetter",
+          "unknown": "Weiß ich nicht"
+        }
+      },
+      "related_food": {
+        "label": "Hängt es mit einem bestimmten Essen zusammen?",
+        "options": {
+          "yes": "Ja",
+          "no": "Nein",
+          "unsure": "Nicht sicher"
+        }
+      },
+      "stool_change": {
+        "label": "Hat sich der Stuhlgang verändert?",
+        "options": {
+          "none": "Unverändert",
+          "loose": "Weich",
+          "constipation": "Verstopfung",
+          "alternating": "Wechselnd"
+        }
+      },
+      "injury": {
+        "label": "Gab es eine Verletzung?",
+        "options": {
+          "yes": "Ja",
+          "no": "Nein"
+        }
+      }
+    },
+    "redFlags": {
+      "chest_pain_radiating": "Brustschmerz, der in Arm, Hals oder Kiefer ausstrahlt",
+      "sudden_breathlessness": "Plötzliche starke Atemnot",
+      "fainting": "Ohnmacht oder Beinahe-Ohnmacht",
+      "blood_in_stool_vomit_urine": "Blut im Stuhl, im Erbrochenen oder im Urin",
+      "worst_headache": "Plötzlich einsetzende, stärkste Kopfschmerzen",
+      "one_sided_weakness": "Schwäche oder Taubheit auf einer Körperseite oder Sprachstörungen",
+      "high_fever_abdominal_pain": "Fieber über 39 °C zusammen mit starken Bauchschmerzen",
+      "persistent_vomiting": "Erbrechen, das seit über einem Tag anhält"
+    },
+    "historyHint": "Tippen Sie darauf, um dieselben Bereiche erneut einzutragen.",
+    "deleteTitle": "Diesen Eintrag löschen?",
+    "deleteBody": "Er verschwindet aus Ihrem Tagebuch. Das lässt sich nicht rückgängig machen.",
+    "deleteFailed": "Konnte nicht gelöscht werden. Prüfen Sie die Verbindung und versuchen Sie es erneut.",
+    "severityAria": "{{value}} von {{max}}",
+    "diaryA11y": "Symptome: {{zones}}"
   }
 }

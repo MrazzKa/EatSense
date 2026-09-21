@@ -14,7 +14,10 @@ export const truncate = (str: string, length: number): string => {
 export const slugify = (str: string): string => {
   return str
     .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
+    // Punctuation becomes a word boundary rather than vanishing. Deleting it
+    // turned "Hello@World#Test" into "helloworldtest"; a slug is meant to stay
+    // readable, so the separator is what survives.
+    .replace(/[^\w\s-]+/g, '-')
     .replace(/[\s_-]+/g, '-')
     .replace(/^-+|-+$/g, '');
 };

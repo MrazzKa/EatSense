@@ -2,7 +2,13 @@
 // App.js - Main navigation structure
 import React, { useEffect, useState } from 'react';
 import { DefaultTheme, NavigationContainer, useNavigation } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+// Native stack, not the JS one. @react-navigation/stack animates every
+// transition on the JS thread; native-stack hands the push/pop to UINavigationController
+// on iOS and Fragment transactions on Android, which is the single biggest reason
+// this app used to feel "not quite native" when moving between screens. Every
+// option the app actually uses — presentation card/modal/fullScreenModal,
+// animationTypeForReplace, gestureEnabled, headerShown — is supported here.
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 // Register WebRTC + crypto globals required by LiveKit before any LiveKit code
@@ -70,6 +76,7 @@ const DiaryJournalScreen = withSuspense(React.lazy(() => import('./src/screens/D
 const FridgeScanScreen = withSuspense(React.lazy(() => import('./src/screens/FridgeScanScreen')));
 const FridgeHistoryScreen = withSuspense(React.lazy(() => import('./src/screens/FridgeHistoryScreen')));
 const HealthSyncScreen = withSuspense(React.lazy(() => import('./src/screens/HealthSyncScreen')));
+const BodyMapScreen = withSuspense(React.lazy(() => import('./src/screens/BodyMapScreen')));
 const ScientificSourcesScreen = withSuspense(React.lazy(() => import('./src/screens/ScientificSourcesScreen')));
 const ReportsScreen = withSuspense(React.lazy(() => import('./src/screens/ReportsScreen')));
 const BestPlacesScreen = withSuspense(React.lazy(() => import('./src/screens/BestPlacesScreen')));
@@ -87,7 +94,7 @@ const CommunityGuidelinesScreen = withSuspense(React.lazy(() => import('./src/sc
 
 import { clientLog } from './src/utils/clientLog';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 // Component to set up notification action handlers with navigation
 function NotificationActionsHandler() {
@@ -359,6 +366,16 @@ function AppContent() {
                 component={HealthSyncScreen}
                 options={{
                   presentation: 'card',
+                  headerShown: false,
+                }}
+              />
+              {/* Body map — "what is bothering you". Modal: it is a task with a
+                  start and an end, not a place you browse to. */}
+              <Stack.Screen
+                name="BodyMap"
+                component={BodyMapScreen}
+                options={{
+                  presentation: 'modal',
                   headerShown: false,
                 }}
               />

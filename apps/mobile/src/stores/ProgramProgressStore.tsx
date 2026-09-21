@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { programProgressService } from '../services/programProgressService';
 import { createCache } from '../utils/cacheUtils';
@@ -272,36 +272,54 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
   //   loadProgress();
   // }, [loadProgress]);
 
-  const value: ProgramProgressContextValue = {
-    activeProgram,
-    loading,
-    error,
-    loadProgress,
-    refreshProgress,
-    invalidateCache,
-    updateChecklist,
-    completeDay,
-    markCelebrationShown,
-    setProgram: useCallback((program: ProgramProgress | null) => {
-      // FIX: Don't clear activeProgram if program is null - preserve previous value
-      // This prevents tracker from disappearing during "Slow Dashboard Load" or errors
-      // Only update if program is not null, or if we're explicitly clearing (program === null AND no cached value)
-      if (program) {
-        setActiveProgram(program);
-        cache.current.set(CACHE_KEY, program);
-      } else {
-        // Only clear if we're certain there's no active program (no cached value)
-        // This prevents clearing during slow loads when API temporarily returns null
-        const cached = cache.current.get(CACHE_KEY);
-        if (!cached) {
-          // No cached value and null program - truly no active program
-          setActiveProgram(null);
-          cache.current.delete(CACHE_KEY);
-        }
-        // If we have cached value, keep it (prevents tracker from disappearing)
-      }
-    }, []),
-  };
+  // Hoisted out of the context object. It was declared as an inline useCallback
+  // inside the object literal, which works but hides a hook in the middle of a
+  // data structure — and the object itself was rebuilt on every render anyway.
+  const setProgram = useCallback((program: ProgramProgress | null) => {
+    // Don't clear activeProgram when program is null — preserve the previous
+    // value. This is what stops the tracker disappearing during a slow dashboard
+    // load or a transient API error.
+    if (program) {
+      setActiveProgram(program);
+      cache.current.set(CACHE_KEY, program);
+      return;
+    }
+    // Only clear when we are certain there is no active program, i.e. nothing
+    // cached either. With a cached value we keep it.
+    const cached = cache.current.get(CACHE_KEY);
+    if (!cached) {
+      setActiveProgram(null);
+      cache.current.delete(CACHE_KEY);
+    }
+  }, []);
+
+  // Every function above is stable, so this only changes when the data does.
+  const value = useMemo<ProgramProgressContextValue>(
+    () => ({
+      activeProgram,
+      loading,
+      error,
+      loadProgress,
+      refreshProgress,
+      invalidateCache,
+      updateChecklist,
+      completeDay,
+      markCelebrationShown,
+      setProgram,
+    }),
+    [
+      activeProgram,
+      loading,
+      error,
+      loadProgress,
+      refreshProgress,
+      invalidateCache,
+      updateChecklist,
+      completeDay,
+      markCelebrationShown,
+      setProgram,
+    ],
+  );
 
   return (
     <ProgramProgressContext.Provider value={value}>

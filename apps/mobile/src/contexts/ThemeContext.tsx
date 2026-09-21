@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tokens as baseTokens, palettes } from '../design/tokens';
@@ -86,14 +86,14 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const toggleTheme = async (mode: string) => {
+  const toggleTheme = useCallback(async (mode: string) => {
     try {
       setThemeMode(mode);
       await AsyncStorage.setItem('themeMode', mode);
     } catch (error) {
       console.error('Error saving theme preference:', error);
     }
-  };
+  }, []);
 
   const palette = useMemo(() => {
     if (themeMode === 'monochrome') {
@@ -137,17 +137,29 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [isDark, palette, themeMode]);
 
-  const getColor = (key: string) => (palette as any)[key] ?? key;
+  const getColor = useCallback((key: string) => (palette as any)[key] ?? key, [palette]);
 
-  const value = {
-    isDark,
-    themeMode,
-    colors: palette,
-    tokens: themeTokens,
-    toggleTheme,
-    reduceMotion,
-    getColor,
-  };
+  /**
+   * Memoised, and this one matters more than most.
+   *
+   * Every screen in the app reads the theme through `useTheme()`. Building a
+   * fresh object here meant that any re-render of this provider — a stray parent
+   * update, a reduce-motion event — handed every consumer a new context value
+   * and re-rendered the entire tree. `palette` and `themeTokens` are already
+   * memoised; the object wrapping them was the leak.
+   */
+  const value = useMemo(
+    () => ({
+      isDark,
+      themeMode,
+      colors: palette,
+      tokens: themeTokens,
+      toggleTheme,
+      reduceMotion,
+      getColor,
+    }),
+    [isDark, themeMode, palette, themeTokens, toggleTheme, reduceMotion, getColor],
+  );
 
   return (
     <ThemeContext.Provider value={value}>

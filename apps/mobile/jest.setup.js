@@ -20,6 +20,20 @@ beforeAll(async () => {
 });
 
 /**
+ * AsyncStorage is a native module, so under Jest it throws
+ * "NativeModule: AsyncStorage is null" the moment anything imports it. That is
+ * ThemeContext, which is imported by almost every component — so the failure
+ * showed up as 17 component suites dying on an error that had nothing to do with
+ * the component under test.
+ *
+ * The package ships an in-memory mock for exactly this; use it rather than a
+ * hand-rolled stub, so behaviour stays in step with the real module.
+ */
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+);
+
+/**
  * Reanimated ships its own Jest mock; without it every animated component throws
  * on render because the worklet runtime does not exist under Jest.
  */

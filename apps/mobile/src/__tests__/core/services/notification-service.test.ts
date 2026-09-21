@@ -87,7 +87,10 @@ describe('NotificationService', () => {
     
     await notificationService.sendPushNotification('user1', 'Test Title', 'Test message');
     
-    expect(consoleSpy).toHaveBeenCalledWith('Push notification sent to user user1: Test Title - Test message');
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Push notification sent to user user1: Test Title - Test message',
+      undefined,
+    );
     
     consoleSpy.mockRestore();
   });
@@ -97,7 +100,10 @@ describe('NotificationService', () => {
     
     await notificationService.sendEmailNotification('user1', 'Test Subject', 'Test body');
     
-    expect(consoleSpy).toHaveBeenCalledWith('Email notification sent to user user1: Test Subject');
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Email notification sent to user user1: Test Subject',
+      'Test body',
+    );
     
     consoleSpy.mockRestore();
   });

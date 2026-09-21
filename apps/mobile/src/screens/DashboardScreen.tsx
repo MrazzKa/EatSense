@@ -1514,6 +1514,35 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </Animated.View>
 
+        {/* 2b. Body map — "what is bothering you". Shares the assistant card's
+            shape on purpose: same kind of entry point, one tap from the day. */}
+        <Animated.View
+          style={[
+            styles.aiAssistantContainer,
+            {
+              opacity: cardAnimations.suggested,
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.aiAssistantButton}
+            onPress={() => navigation.navigate('BodyMap')}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+          >
+            <View style={[styles.aiAssistantIcon, styles.bodyMapIcon]}>
+              <Ionicons name="body" size={24} color={colors.onPrimary || colors.inverseText} />
+            </View>
+            <View style={styles.aiAssistantContent}>
+              <Text style={styles.aiAssistantTitle}>{t('bodyMap.dashboardTitle')}</Text>
+              <Text style={styles.aiAssistantSubtitle}>
+                {t('bodyMap.dashboardSubtitle')}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+          </TouchableOpacity>
+        </Animated.View>
+
         {/* PART A: Section 5 - Nutrition section */}
         {/* TODO: replaced by Monthly PDF report */}
 
@@ -2124,6 +2153,9 @@ const createStyles = (tokens) =>
     aiAssistantSubtitle: {
       fontSize: 14,
       color: tokens.colors.textSecondary,
+    },
+    bodyMapIcon: {
+      backgroundColor: tokens.colors.secondary,
     },
     suggestedFoodSummaryCard: {
       borderRadius: tokens.radii.lg,

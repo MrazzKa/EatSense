@@ -137,12 +137,46 @@ export class SecurityManager {
     return Math.abs(hash).toString(36);
   }
 
+  /**
+   * Strips markup and executable URL schemes out of untrusted text.
+   *
+   * The previous version deleted the angle brackets and the literal
+   * "javascript:" and called it done, which is the classic mistake: it turned
+   * `<script>alert(1)</script>Hello` into `scriptalert(1)/scriptHello` and
+   * `javascript:alert(1)` into `alert(1)` — the payload survived in both cases,
+   * only lightly rearranged.
+   *
+   * What it does now:
+   *  1. drops `<script>` / `<style>` blocks *with their contents*, since the
+   *     content is the payload;
+   *  2. drops every remaining tag;
+   *  3. drops event-handler attributes together with their quoted value;
+   *  4. returns an empty string if an executable scheme survives — a value whose
+   *     point was `javascript:` has no safe remainder to keep.
+   *
+   * Scheme detection ignores whitespace and control characters inside the
+   * scheme, because `java\tscript:` is a standard way round a naive filter.
+   *
+   * This is a sanitiser for values that may end up in a URL or in markup. It is
+   * deliberately blunt and is not meant for prose.
+   */
   sanitizeInput(input: string): string {
-    return input
+    if (typeof input !== 'string') return '';
+
+    const stripped = input
+      .replace(/<\s*(script|style)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '')
+      // An unclosed <script ...> would otherwise leave its payload behind.
+      .replace(/<\s*(script|style)\b[^>]*>[\s\S]*$/gi, '')
+      .replace(/\bon\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+      .replace(/<[^>]*>/g, '')
       .replace(/[<>]/g, '')
-      .replace(/javascript:/gi, '')
-      .replace(/on\w+=/gi, '')
       .trim();
+
+    // Collapse anything that could hide inside the scheme before testing it.
+    const collapsed = stripped.replace(/[\s\u0000-\u001F]/g, '').toLowerCase();
+    if (/(javascript|vbscript|data):/.test(collapsed)) return '';
+
+    return stripped;
   }
 
   validateInput(input: string, maxLength: number = 1000): boolean {

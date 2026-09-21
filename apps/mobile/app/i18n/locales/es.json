@@ -612,7 +612,8 @@
     "create": "Crear",
     "notNow": "Ahora no",
     "allow": "Permitir",
-    "sending": "Enviando…"
+    "sending": "Enviando…",
+    "remove": "Quitar"
   },
   "dashboard": {
     "addFood": {
@@ -5094,5 +5095,166 @@
     "sleepHours": "Sueño (h)",
     "addedToGoal": "{{kcal}} kcal añadidas al objetivo de hoy porque te has movido",
     "noBonusYet": "Muévete más hoy y tu objetivo de calorías crece contigo."
+  },
+  "bodyMap": {
+    "title": "Qué te molesta",
+    "dashboardTitle": "Qué te molesta",
+    "dashboardSubtitle": "Márcalo en el cuerpo y anota cómo se siente",
+    "hintPick": "Toca las zonas que te molestan — hasta tres.",
+    "viewFront": "Delante",
+    "viewBack": "Detrás",
+    "maxZonesTitle": "Suficiente para un registro",
+    "maxZonesBody": "Puedes marcar hasta tres zonas a la vez. Quita una para añadir otra.",
+    "stepOf": "Zona {{current}} de {{total}}",
+    "severityLabel": "¿Qué tan fuerte es?",
+    "severityBands": {
+      "mild": "Leve",
+      "moderate": "Moderada",
+      "severe": "Fuerte",
+      "extreme": "Insoportable"
+    },
+    "checkTitle": "¿Está ocurriendo algo de esto ahora mismo?",
+    "checkSubtitle": "Marca lo que corresponda. Si no corresponde nada, simplemente continúa.",
+    "emergencyTitle": "Esto necesita a una persona, no una aplicación",
+    "emergencyBody": "Lo que has marcado puede ser urgente. Llama a emergencias o acude a urgencias ahora. De todos modos guardaremos este registro.",
+    "emergencyNumber": "112",
+    "emergencyCall": "Llamar al {{number}}",
+    "noteLabel": "¿Quieres añadir algo más?",
+    "notePlaceholder": "Opcional — con tus palabras",
+    "disclaimer": "Esto es un diario, no un diagnóstico. EatSense no interpreta síntomas — lleva este registro a un médico.",
+    "save": "Guardar en el diario",
+    "saveFailed": "No se pudo guardar. Comprueba la conexión e inténtalo de nuevo.",
+    "savedTitle": "Guardado en tu diario",
+    "savedBody": "Ahora está en la misma línea de tiempo que tus comidas, tus medicamentos y tus análisis.",
+    "historyTitle": "Registros recientes",
+    "zones": {
+      "head": "Cabeza",
+      "neck": "Cuello",
+      "chest": "Pecho",
+      "shoulder_right": "Hombro derecho",
+      "shoulder_left": "Hombro izquierdo",
+      "arm_right": "Brazo derecho",
+      "arm_left": "Brazo izquierdo",
+      "abdomen_hypochondrium_right": "Hipocondrio derecho",
+      "abdomen_epigastrium": "Boca del estómago",
+      "abdomen_hypochondrium_left": "Hipocondrio izquierdo",
+      "abdomen_lower": "Bajo vientre",
+      "pelvis": "Pelvis",
+      "leg_right": "Pierna derecha",
+      "leg_left": "Pierna izquierda",
+      "neck_back": "Nuca",
+      "back_upper": "Parte alta de la espalda",
+      "flank_left": "Costado izquierdo",
+      "flank_right": "Costado derecho",
+      "back_lower": "Zona lumbar",
+      "glutes": "Glúteos",
+      "leg_back_left": "Pierna izquierda (atrás)",
+      "leg_back_right": "Pierna derecha (atrás)"
+    },
+    "questions": {
+      "onset": {
+        "label": "¿Cuándo empezó?",
+        "options": {
+          "today": "Hoy",
+          "days": "Hace unos días",
+          "weeks": "Hace unas semanas",
+          "months": "Hace meses",
+          "recurring": "Va y viene"
+        }
+      },
+      "frequency": {
+        "label": "¿Con qué frecuencia?",
+        "options": {
+          "constant": "Constantemente",
+          "daily": "Varias veces al día",
+          "weekly": "Varias veces a la semana",
+          "rare": "Menos a menudo"
+        }
+      },
+      "character": {
+        "label": "¿Cómo se siente?",
+        "options": {
+          "aching": "Sorda",
+          "sharp": "Aguda",
+          "burning": "Ardor",
+          "pressing": "Opresiva",
+          "cramping": "Calambres",
+          "throbbing": "Pulsátil"
+        }
+      },
+      "worse": {
+        "label": "¿Qué lo empeora?",
+        "options": {
+          "after_eating": "Después de comer",
+          "empty_stomach": "En ayunas",
+          "movement": "Al moverme",
+          "rest": "En reposo",
+          "night": "Por la noche",
+          "stress": "El estrés",
+          "unknown": "No lo sé"
+        }
+      },
+      "relief": {
+        "label": "¿Qué ayuda?",
+        "options": {
+          "food": "Comer",
+          "medication": "Un medicamento",
+          "rest": "Descansar",
+          "warmth": "El calor",
+          "nothing": "Nada"
+        }
+      },
+      "head_trigger": {
+        "label": "¿Qué suele precederlo?",
+        "options": {
+          "sleep": "Dormir poco",
+          "hunger": "El hambre",
+          "screen": "Mucho tiempo de pantalla",
+          "stress": "El estrés",
+          "weather": "El clima",
+          "unknown": "No lo sé"
+        }
+      },
+      "related_food": {
+        "label": "¿Está relacionado con algún alimento?",
+        "options": {
+          "yes": "Sí",
+          "no": "No",
+          "unsure": "No estoy seguro"
+        }
+      },
+      "stool_change": {
+        "label": "¿Han cambiado tus deposiciones?",
+        "options": {
+          "none": "Sin cambios",
+          "loose": "Blandas",
+          "constipation": "Estreñimiento",
+          "alternating": "Alternando"
+        }
+      },
+      "injury": {
+        "label": "¿Hubo alguna lesión?",
+        "options": {
+          "yes": "Sí",
+          "no": "No"
+        }
+      }
+    },
+    "redFlags": {
+      "chest_pain_radiating": "Dolor en el pecho que se irradia al brazo, el cuello o la mandíbula",
+      "sudden_breathlessness": "Falta de aire repentina e intensa",
+      "fainting": "Desmayo o sensación de desmayo",
+      "blood_in_stool_vomit_urine": "Sangre en las heces, el vómito o la orina",
+      "worst_headache": "El peor dolor de cabeza de tu vida, de aparición súbita",
+      "one_sided_weakness": "Debilidad o entumecimiento en un lado del cuerpo, o dificultad para hablar",
+      "high_fever_abdominal_pain": "Fiebre de más de 39 °C junto con dolor abdominal intenso",
+      "persistent_vomiting": "Vómitos que no cesan desde hace más de un día"
+    },
+    "historyHint": "Toca para registrar las mismas zonas otra vez.",
+    "deleteTitle": "¿Eliminar este registro?",
+    "deleteBody": "Desaparecerá de tu diario. Esta acción no se puede deshacer.",
+    "deleteFailed": "No se pudo eliminar. Comprueba la conexión e inténtalo de nuevo.",
+    "severityAria": "{{value}} de {{max}}",
+    "diaryA11y": "Síntomas: {{zones}}"
   }
 }

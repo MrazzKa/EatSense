@@ -90,6 +90,9 @@ model User {
   // Apple Health / Health Connect
   healthDailyMetrics HealthDailyMetric[]
 
+  // Body map ("what is bothering you") — self-reported symptoms by body zone
+  symptomReports SymptomReport[]
+
   // GDPR data-access requests (we send the copy, the app no longer generates it)
   dataExportRequests DataExportRequest[]
 
@@ -621,6 +624,70 @@ model HealthDailyMetric {
   @@unique([userId, date])
   @@index([userId, date])
   @@map("health_daily_metrics")
+}
+
+/// One "what is bothering you" submission: the user marked up to a few zones on
+/// the body silhouette, rated each and answered a short questionnaire.
+///
+/// This is a DIARY entry, not an assessment. Nothing here is interpreted, scored
+/// against any clinical rule, or turned into advice — that is a deliberate
+/// product boundary, because interpreting symptoms is what turns software into a
+/// regulated medical device. What it buys us is the timeline: symptoms already
+/// sit next to meals, medication doses and lab results for the same user, which
+/// is the raw material for the "what triggers this" work later.
+model SymptomReport {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  /// When the user says the symptoms happened — defaults to submission time but
+  /// is editable, because people log in the evening what hurt at lunch.
+  reportedAt DateTime @default(now()) @map("reported_at")
+  note       String?
+  /// Highest severity across entries. Denormalised so the history list and any
+  /// trend chart never have to load the entries.
+  maxSeverity Int     @map("max_severity")
+  /// True when the user ticked anything on the emergency checklist. We still
+  /// store the report (it is their record), but the app shows the "call
+  /// emergency services" screen instead of anything resembling guidance.
+  redFlagged Boolean  @default(false) @map("red_flagged")
+  /// Which emergency items were ticked, by catalogue id.
+  redFlags   String[] @default([]) @map("red_flags")
+  /// UI language at capture time. Answers are stored as catalogue ids and are
+  /// language-independent; `note` is free text in whatever language this says.
+  locale     String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries SymptomEntry[]
+
+  @@index([userId, reportedAt])
+  @@map("symptom_reports")
+}
+
+/// One marked body zone inside a report.
+///
+/// Normalised rather than a JSON blob on the report so that "how often does the
+/// upper-right abdomen come up for this user" stays a plain indexed query.
+model SymptomEntry {
+  id       String @id @default(cuid())
+  reportId String @map("report_id")
+  /// Catalogue id of the zone, e.g. "abdomen_epigastrium". The catalogue lives
+  /// in code (symptom-catalog.ts) on both sides; the server validates against it
+  /// and the app owns how it is drawn and translated.
+  zoneId   String @map("zone_id")
+  /// 1..10, as the user set the slider.
+  severity Int
+  /// Answers keyed by question id, e.g. { "onset": "days", "character": "burning" }.
+  /// Values are catalogue ids, never free text — free text lives on the report.
+  answers  Json   @default("{}")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  report SymptomReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@index([zoneId])
+  @@map("symptom_entries")
 }
 
 // P3.1: Medication Schedule Model (legacy - kept for backward compatibility)
