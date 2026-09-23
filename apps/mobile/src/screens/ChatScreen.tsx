@@ -753,6 +753,16 @@ export default function ChatScreen({ navigation, route }) {
                                     : (t('experts.consultationCompleted') || 'Completed')}
                     </Text>
                 </View>
+                {isActive && conversationId ? (
+                    <TouchableOpacity
+                        style={styles.headerAction}
+                        onPress={() => navigation.navigate('VideoCall', { conversationId })}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('experts.startVideo') || 'Start video call'}
+                    >
+                        <Ionicons name="videocam" size={22} color={colors.primary || '#2563EB'} />
+                    </TouchableOpacity>
+                ) : null}
                 <TouchableOpacity style={styles.headerAction} onPress={handleMoreMenu}>
                     <Ionicons name="ellipsis-vertical" size={22} color={colors.textPrimary || '#212121'} />
                 </TouchableOpacity>

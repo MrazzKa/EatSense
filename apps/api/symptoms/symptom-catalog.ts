@@ -120,8 +120,21 @@ export const RED_FLAGS: readonly string[] = Object.freeze([
 export const SEVERITY_MIN = 1;
 export const SEVERITY_MAX = 10;
 
-/** How many zones one report may carry — more than this stops being a report. */
+/** How many marks one report may carry — more than this stops being a report. */
 export const MAX_ZONES_PER_REPORT = 3;
+
+/**
+ * The silhouette's coordinate space.
+ *
+ * A mark carries the exact point the user tapped. The server does not draw
+ * anything, but it does have to reject coordinates that cannot have come from
+ * the silhouette — a point outside this box is a bug or a forged request, and
+ * either way it must not enter the timeline.
+ */
+export const BODY_VIEWBOX = { width: 200, height: 440 };
+
+/** Which silhouette a mark was placed on. */
+export const BODY_VIEWS = ['front', 'back'] as const;
 
 /** Free-text note cap. Long enough for context, short enough not to be a journal. */
 export const MAX_NOTE_LENGTH = 1000;
@@ -155,6 +168,10 @@ export function isKnownRedFlag(flagId: string): boolean {
   return RED_FLAG_SET.has(flagId);
 }
 
+export function isKnownView(view: string): boolean {
+  return (BODY_VIEWS as readonly string[]).includes(view);
+}
+
 /** Question ids a zone may legitimately carry, in display order. */
 export function questionIdsForZone(zoneId: string): string[] {
   const zone = ZONES_BY_ID.get(zoneId);
@@ -182,6 +199,8 @@ export function describeCatalog() {
     version: 1,
     severity: { min: SEVERITY_MIN, max: SEVERITY_MAX },
     maxZonesPerReport: MAX_ZONES_PER_REPORT,
+    viewBox: BODY_VIEWBOX,
+    views: BODY_VIEWS,
     zones: ZONES,
     commonQuestions: COMMON_QUESTIONS,
     groupQuestions: GROUP_QUESTIONS,

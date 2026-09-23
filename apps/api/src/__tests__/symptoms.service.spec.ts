@@ -171,6 +171,42 @@ describe('SymptomsService.create', () => {
     expect(prisma.calls[0].data.reportedAt.getTime()).toBe(earlier.getTime());
   });
 
+  it('stores the exact point the user tapped', async () => {
+    const { service, prisma } = makeService();
+    await service.create(
+      USER,
+      dto({ entries: [{ zoneId: 'chest', severity: 5, x: 103.4, y: 111.2, view: 'front' }] as any }),
+    );
+    expect(prisma.calls[0].data.entries.create[0]).toMatchObject({
+      x: 103.4,
+      y: 111.2,
+      view: 'front',
+    });
+  });
+
+  it('treats a half-written point as no point at all', async () => {
+    // One axis is not a location. Storing it would put the mark on the wrong
+    // part of the body the next time the report is drawn.
+    const { service, prisma } = makeService();
+    await service.create(
+      USER,
+      dto({ entries: [{ zoneId: 'chest', severity: 5, x: 103.4, view: 'front' }] as any }),
+    );
+    const written = prisma.calls[0].data.entries.create[0];
+    expect(written.x).toBeNull();
+    expect(written.y).toBeNull();
+    expect(written.view).toBeNull();
+  });
+
+  it('accepts a report with no point, as older apps send', async () => {
+    const { service, prisma } = makeService();
+    await service.create(USER, dto());
+    const written = prisma.calls[0].data.entries.create[0];
+    expect(written.x).toBeNull();
+    expect(written.y).toBeNull();
+    expect(written.zoneId).toBe('abdomen_epigastrium');
+  });
+
   it('normalises a blank note to null rather than storing whitespace', async () => {
     const { service, prisma } = makeService();
     await service.create(USER, dto({ note: '   ' }));

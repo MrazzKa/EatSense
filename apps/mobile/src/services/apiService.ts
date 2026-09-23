@@ -849,7 +849,15 @@ class ApiService {
    * catalogues have drifted, not that the user did something wrong.
    */
   async createSymptomReport(payload: {
-    entries: { zoneId: string; severity: number; answers?: Record<string, string> }[];
+    entries: {
+      zoneId: string;
+      severity: number;
+      answers?: Record<string, string>;
+      /** Where the user tapped, in the silhouette's 200x440 space. */
+      x?: number;
+      y?: number;
+      view?: 'front' | 'back';
+    }[];
     redFlags?: string[];
     note?: string;
     reportedAt?: string;
@@ -871,6 +879,27 @@ class ApiService {
 
   async deleteSymptomReport(id: string) {
     return this.request(`/symptoms/reports/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  }
+
+  // ── Hotline ──────────────────────────────────────────────────────────────
+  /** Whether the line is open, how long the wait is, and this user's open request. */
+  async getHotlineStatus() {
+    return this.request('/hotline/status');
+  }
+
+  async createHotlineRequest(payload: {
+    reason?: string;
+    symptomReportId?: string;
+    locale?: string;
+  }) {
+    return this.request('/hotline/requests', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async cancelHotlineRequest(id: string) {
+    return this.request(`/hotline/requests/${encodeURIComponent(id)}/cancel`, { method: 'POST' });
   }
 
   // ── Privacy consents ─────────────────────────────────────────────────────

@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  Modal,
   KeyboardAvoidingView,
   Platform,
   useWindowDimensions,
@@ -20,28 +21,33 @@ import Slider from '@react-native-community/slider';
 import * as Haptics from 'expo-haptics';
 import ApiService from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { BodySilhouette } from '../features/bodymap/BodySilhouette';
+import type { BodyMark, SilhouettePalette } from '../features/bodymap/BodySilhouette';
 import { SEVERITY_COLORS, severityColor } from '../features/bodymap/severity';
-import type { SilhouettePalette } from '../features/bodymap/BodySilhouette';
-import type { BodyView, Question } from '../features/bodymap/catalog';
+import type { BodyView, Gender, Question } from '../features/bodymap/catalog';
 import {
   BODY_VIEWBOX,
   MAX_NOTE_LENGTH,
-  MAX_ZONES_PER_REPORT,
+  MAX_POINTS_PER_REPORT,
   RED_FLAGS,
   SEVERITY_MAX,
   SEVERITY_MIN,
-  getZone,
+  defaultPointForZone,
+  genderFromProfile,
+  markableZones,
   questionsForZone,
   severityBand,
+  viewForZone,
+  zoneAt,
   zoneNameKey,
 } from '../features/bodymap/catalog';
 
 /**
  * "What is bothering you" — the body map.
  *
- * Four steps: mark zones on the silhouette, rate and describe each one, tick the
+ * Four steps: put points on the silhouette, describe each one, tick the
  * emergency checklist, save. The result is a diary entry and nothing more.
  *
  * The screen deliberately never tells the user what their symptoms might mean.
@@ -54,15 +60,9 @@ import {
 
 type Step = 'pick' | 'detail' | 'check' | 'saved';
 
-/**
- * Whatever `useI18n` hands back, rather than a hand-written signature — i18next's
- * `t` is a set of overloads that no simplified type matches, and pinning it here
- * keeps the memoised cards compiling if the hook ever changes.
- */
-type Translate = ReturnType<typeof useI18n>['t'];
-
-interface ZoneState {
-  severity: number;
+interface Mark extends BodyMark {
+  /** Which silhouette the point was placed on. */
+  view: BodyView;
   answers: Record<string, string>;
 }
 
@@ -70,15 +70,34 @@ interface HistoryReport {
   id: string;
   reportedAt: string;
   maxSeverity: number;
-  entries: { zoneId: string; severity: number; answers?: Record<string, string> }[];
+  entries: {
+    zoneId: string;
+    severity: number;
+    answers?: Record<string, string> | null;
+    x?: number | null;
+    y?: number | null;
+    view?: string | null;
+  }[];
 }
 
 /**
- * Vertical chrome above and below the silhouette (header, hint, view toggle,
+ * Vertical chrome above and below the silhouette (header, hint, controls,
  * footer, safe areas). Used to size the body so the whole of it fits without
  * scrolling — hunting for a leg by scrolling makes the map feel broken.
  */
-const PICK_STEP_CHROME = 340;
+const PICK_STEP_CHROME = 360;
+
+/** Tapping within this many viewBox units of a pin removes it. */
+const PIN_TOUCH_RADIUS = 14;
+
+let markCounter = 0;
+const nextMarkId = () => `mark-${++markCounter}`;
+
+/**
+ * Whatever `useI18n` hands back, rather than a hand-written signature — i18next's
+ * `t` is a set of overloads that no simplified type matches.
+ */
+type Translate = ReturnType<typeof useI18n>['t'];
 
 // ---------------------------------------------------------------------------
 // Module-level sub-components. Declared here rather than inside the screen so
@@ -91,21 +110,19 @@ const PICK_STEP_CHROME = 340;
  *
  * Memoised, and it takes the stable `onAnswer` rather than a freshly-built
  * closure, so dragging the severity slider re-renders the slider card only.
- * Six of these re-rendering on every pixel of a drag is exactly the kind of
- * waste that makes the app feel like a web page.
  */
 const QuestionCard = memo(function QuestionCard({
-  zoneId,
+  markId,
   question,
   value,
   onAnswer,
   t,
   styles,
 }: {
-  zoneId: string;
+  markId: string;
   question: Question;
   value?: string;
-  onAnswer: (zoneId: string, questionId: string, answerId: string) => void;
+  onAnswer: (markId: string, questionId: string, answerId: string) => void;
   t: Translate;
   styles: any;
 }) {
@@ -121,7 +138,7 @@ const QuestionCard = memo(function QuestionCard({
             <TouchableOpacity
               key={option}
               style={[styles.chip, active && styles.chipActive]}
-              onPress={() => onAnswer(zoneId, question.id, option)}
+              onPress={() => onAnswer(markId, question.id, option)}
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
               activeOpacity={0.8}
@@ -168,13 +185,14 @@ const CheckRow = memo(function CheckRow({
       <Text style={[styles.checkText, checked && styles.checkTextActive]}>{label}</Text>
     </TouchableOpacity>
   );
-})
+});
 
 // ---------------------------------------------------------------------------
 
 export default function BodyMapScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
+  const { user } = useAuth();
   const { t, language } = useI18n();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -182,25 +200,25 @@ export default function BodyMapScreen() {
 
   const [step, setStep] = useState<Step>('pick');
   const [view, setView] = useState<BodyView>('front');
-  const [zones, setZones] = useState<Record<string, ZoneState>>({});
+  // Seeded from the profile so most people never touch the switch, but still a
+  // switch: the profile can be wrong, empty, or simply not how someone wants to
+  // be drawn.
+  const [gender, setGender] = useState<Gender>(() => genderFromProfile((user as any)?.gender));
+  const [marks, setMarks] = useState<Mark[]>([]);
   const [detailIndex, setDetailIndex] = useState(0);
   const [redFlags, setRedFlags] = useState<string[]>([]);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
   const [history, setHistory] = useState<HistoryReport[]>([]);
-
-  const zoneIds = useMemo(() => Object.keys(zones), [zones]);
-  const severityByZone = useMemo(() => {
-    const out: Record<string, number> = {};
-    for (const [id, state] of Object.entries(zones)) out[id] = state.severity;
-    return out;
-  }, [zones]);
+  const [zonePickerOpen, setZonePickerOpen] = useState(false);
+  const [savedReportId, setSavedReportId] = useState<string | null>(null);
 
   const emergency = redFlags.length > 0;
+  const visibleMarks = useMemo(() => marks.filter((m) => m.view === view), [marks, view]);
 
   /** Fit the whole body on screen, but never smaller than a thumb can aim at. */
   const silhouetteWidth = useMemo(() => {
-    const byWidth = Math.min(screenWidth - 72, 264);
+    const byWidth = Math.min(screenWidth - 72, 250);
     const byHeight =
       ((screenHeight - PICK_STEP_CHROME) * BODY_VIEWBOX.width) / BODY_VIEWBOX.height;
     return Math.max(150, Math.min(byWidth, byHeight));
@@ -228,16 +246,9 @@ export default function BodyMapScreen() {
 
   const silhouettePalette = useMemo<SilhouettePalette>(
     () => ({
-      // `surface` against the page background, not `surfaceMuted`: the muted
-      // token is a hair away from the page colour in the light theme (#F8FAFC on
-      // #F4F5F7), which left the body all but invisible until something was
-      // selected. Inert parts take the page colour so they read as outline-only
-      // ghosts — that is what tells a thumb not to bother tapping them.
-      idle: colors.surface,
+      body: colors.surface,
       outline: colors.borderStrong,
-      inert: colors.background,
-      inertOutline: colors.borderMuted,
-      selectedOutline: colors.textPrimary,
+      pinRing: colors.surface,
       ...SEVERITY_COLORS,
     }),
     [colors],
@@ -245,68 +256,96 @@ export default function BodyMapScreen() {
 
   const zoneLabel = useCallback((zoneId: string) => t(zoneNameKey(zoneId), zoneId), [t]);
 
+  const warnFull = useCallback(() => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+    Alert.alert(
+      t('bodyMap.maxZonesTitle', 'Enough for one report'),
+      t('bodyMap.maxZonesBody', 'You can mark up to three places at a time.'),
+    );
+  }, [t]);
+
+  const removeMark = useCallback((markId: string) => {
+    Haptics.selectionAsync().catch(() => {});
+    setMarks((prev) => prev.filter((m) => m.id !== markId));
+  }, []);
+
   /**
-   * What a screen reader announces for a zone. The severity has to live in the
-   * label because react-native-svg drops `accessibilityState`, so "selected"
-   * would never be spoken otherwise.
+   * A tap on the silhouette.
+   *
+   * Near an existing pin it removes that pin — same gesture, nothing extra to
+   * learn. Off the body it does nothing at all: a mark floating beside the
+   * figure would be meaningless, and an error message for missing a leg would
+   * just be nagging.
+   *
+   * Note the side effects sit out here and the state updater stays pure. Alerts
+   * and haptics inside a setState updater fire twice the moment React
+   * double-invokes it, which it is entitled to do.
    */
-  const zoneA11yLabel = useCallback(
-    (zoneId: string, severity?: number) =>
-      severity
-        ? `${zoneLabel(zoneId)}, ${t('bodyMap.severityAria', '{{value}} out of {{max}}')
-            .replace('{{value}}', String(severity))
-            .replace('{{max}}', String(SEVERITY_MAX))}`
-        : zoneLabel(zoneId),
-    [zoneLabel, t],
-  );
+  const handleTapBody = useCallback(
+    (x: number, y: number) => {
+      const hit = marks.find(
+        (m) => m.view === view && Math.hypot(m.x - x, m.y - y) <= PIN_TOUCH_RADIUS,
+      );
+      if (hit) {
+        removeMark(hit.id);
+        return;
+      }
 
-  const toggleZone = useCallback(
-    (zoneId: string) => {
-      // Decide and fire the side effects out here, and keep the updater pure.
-      // Alerts and haptics inside a setState updater fire twice the moment React
-      // double-invokes it, which it is entitled to do — the user would get two
-      // stacked "up to three areas" dialogs from one tap.
-      const alreadyMarked = !!zones[zoneId];
+      const zoneId = zoneAt(view, gender, x, y);
+      if (!zoneId) return;
 
-      if (!alreadyMarked && zoneIds.length >= MAX_ZONES_PER_REPORT) {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
-        Alert.alert(
-          t('bodyMap.maxZonesTitle', 'Enough for one report'),
-          t('bodyMap.maxZonesBody', 'You can mark up to three areas at a time.'),
-        );
+      if (marks.length >= MAX_POINTS_PER_REPORT) {
+        warnFull();
         return;
       }
 
       Haptics.selectionAsync().catch(() => {});
-      setZones((prev) => {
-        if (prev[zoneId]) {
-          const next = { ...prev };
-          delete next[zoneId];
-          return next;
-        }
-        // Middle of the scale: a default of 1 or 10 would bias what people report.
-        return { ...prev, [zoneId]: { severity: 5, answers: {} } };
-      });
+      // Middle of the scale: a default of 1 or 10 would bias what people report.
+      setMarks((prev) => [
+        ...prev,
+        { id: nextMarkId(), zoneId, view, x, y, severity: 5, answers: {} },
+      ]);
     },
-    [zones, zoneIds.length, t],
+    [marks, view, gender, removeMark, warnFull],
   );
 
-  const setSeverity = useCallback((zoneId: string, severity: number) => {
-    setZones((prev) =>
-      prev[zoneId] ? { ...prev, [zoneId]: { ...prev[zoneId], severity } } : prev,
-    );
+  /**
+   * The list route into the same thing — for screen readers, which cannot aim at
+   * a drawing, and for anyone who would simply rather pick a name.
+   */
+  const addMarkForZone = useCallback(
+    (zoneId: string) => {
+      setZonePickerOpen(false);
+      if (marks.length >= MAX_POINTS_PER_REPORT) {
+        warnFull();
+        return;
+      }
+      const point = defaultPointForZone(view, gender, zoneId);
+      if (!point) return;
+      Haptics.selectionAsync().catch(() => {});
+      setMarks((prev) => [
+        ...prev,
+        { id: nextMarkId(), zoneId, view, x: point.x, y: point.y, severity: 5, answers: {} },
+      ]);
+    },
+    [marks.length, view, gender, warnFull],
+  );
+
+  const setSeverity = useCallback((markId: string, severity: number) => {
+    setMarks((prev) => prev.map((m) => (m.id === markId ? { ...m, severity } : m)));
   }, []);
 
-  const setAnswer = useCallback((zoneId: string, questionId: string, answerId: string) => {
-    setZones((prev) => {
-      const current = prev[zoneId];
-      if (!current) return prev;
-      // Tapping the selected chip again clears it — every question is optional.
-      const answers = { ...current.answers };
-      if (answers[questionId] === answerId) delete answers[questionId];
-      else answers[questionId] = answerId;
-      return { ...prev, [zoneId]: { ...current, answers } };
-    });
+  const setAnswer = useCallback((markId: string, questionId: string, answerId: string) => {
+    setMarks((prev) =>
+      prev.map((m) => {
+        if (m.id !== markId) return m;
+        // Tapping the selected chip again clears it — every question is optional.
+        const answers = { ...m.answers };
+        if (answers[questionId] === answerId) delete answers[questionId];
+        else answers[questionId] = answerId;
+        return { ...m, answers };
+      }),
+    );
   }, []);
 
   const toggleRedFlag = useCallback((flagId: string) => {
@@ -316,20 +355,35 @@ export default function BodyMapScreen() {
   }, []);
 
   /** Re-open a past report as a starting point — repeat complaints repeat. */
-  const repeatReport = useCallback((report: HistoryReport) => {
-    const next: Record<string, ZoneState> = {};
-    for (const entry of (report.entries || []).slice(0, MAX_ZONES_PER_REPORT)) {
-      // A zone retired from the catalogue since that report would have no name
-      // and no place on the silhouette, so it is dropped rather than crashed on.
-      if (!getZone(entry.zoneId)) continue;
-      next[entry.zoneId] = { severity: entry.severity, answers: { ...(entry.answers || {}) } };
-    }
-    const first = Object.keys(next)[0];
-    if (!first) return;
-    Haptics.selectionAsync().catch(() => {});
-    setZones(next);
-    setView(getZone(first)!.view);
-  }, []);
+  const repeatReport = useCallback(
+    (report: HistoryReport) => {
+      const next: Mark[] = [];
+      for (const entry of (report.entries || []).slice(0, MAX_POINTS_PER_REPORT)) {
+        const entryView: BodyView = entry.view === 'back' ? 'back' : viewForZone(entry.zoneId);
+        // Reports written before points existed carry only a zone, so the mark
+        // is placed at a sensible spot inside it rather than dropped.
+        const point =
+          typeof entry.x === 'number' && typeof entry.y === 'number'
+            ? { x: entry.x, y: entry.y }
+            : defaultPointForZone(entryView, gender, entry.zoneId);
+        if (!point) continue;
+        next.push({
+          id: nextMarkId(),
+          zoneId: entry.zoneId,
+          view: entryView,
+          x: point.x,
+          y: point.y,
+          severity: entry.severity,
+          answers: { ...(entry.answers || {}) },
+        });
+      }
+      if (next.length === 0) return;
+      Haptics.selectionAsync().catch(() => {});
+      setMarks(next);
+      setView(next[0].view);
+    },
+    [gender],
+  );
 
   const confirmDeleteReport = useCallback(
     (report: HistoryReport) => {
@@ -362,30 +416,37 @@ export default function BodyMapScreen() {
   );
 
   const save = useCallback(async () => {
-    if (zoneIds.length === 0 || saving) return;
+    if (marks.length === 0 || saving) return;
     setSaving(true);
     try {
-      await ApiService.createSymptomReport({
-        entries: zoneIds.map((zoneId) => ({
-          zoneId,
-          severity: zones[zoneId].severity,
-          answers: zones[zoneId].answers,
+      const report = (await ApiService.createSymptomReport({
+        entries: marks.map((mark) => ({
+          zoneId: mark.zoneId,
+          severity: mark.severity,
+          answers: mark.answers,
+          // Rounded: sub-unit precision on a 200-wide body is noise, and whole
+          // tenths stay readable in the admin panel.
+          x: Math.round(mark.x * 10) / 10,
+          y: Math.round(mark.y * 10) / 10,
+          view: mark.view,
         })),
         redFlags,
         note: note.trim() || undefined,
         locale: language,
-      });
+      })) as { id?: string } | null;
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      setSavedReportId(report?.id ?? null);
       setStep('saved');
     } catch (error: any) {
       Alert.alert(
         t('common.error', 'Error'),
-        error?.message || t('bodyMap.saveFailed', 'Could not save. Check your connection and try again.'),
+        error?.message ||
+          t('bodyMap.saveFailed', 'Could not save. Check your connection and try again.'),
       );
     } finally {
       setSaving(false);
     }
-  }, [zoneIds, zones, redFlags, note, language, saving, t]);
+  }, [marks, redFlags, note, language, saving, t]);
 
   const callEmergency = useCallback(() => {
     const number = t('bodyMap.emergencyNumber', '112');
@@ -397,50 +458,90 @@ export default function BodyMapScreen() {
   const renderPick = () => (
     <>
       <Text style={styles.stepHint}>
-        {t('bodyMap.hintPick', 'Tap the areas that bother you — up to three.')}
+        {marks.length > 0
+          ? t('bodyMap.hintTapAgain', 'Tap a point again to remove it.')
+          : t('bodyMap.hintPick', 'Tap the body where it bothers you — up to three points.')}
       </Text>
 
-      <View style={styles.viewToggle}>
-        {(['front', 'back'] as BodyView[]).map((v) => (
-          <TouchableOpacity
-            key={v}
-            style={[styles.viewTab, view === v && styles.viewTabActive]}
-            onPress={() => setView(v)}
-            accessibilityRole="button"
-            accessibilityState={{ selected: view === v }}
-          >
-            <Text style={[styles.viewTabText, view === v && styles.viewTabTextActive]}>
-              {v === 'front' ? t('bodyMap.viewFront', 'Front') : t('bodyMap.viewBack', 'Back')}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      <View style={styles.controlsRow}>
+        <View style={[styles.segment, styles.segmentGrow]}>
+          {(['front', 'back'] as BodyView[]).map((v) => (
+            <TouchableOpacity
+              key={v}
+              style={[styles.segmentTab, view === v && styles.segmentTabActive]}
+              onPress={() => setView(v)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: view === v }}
+            >
+              <Text style={[styles.segmentText, view === v && styles.segmentTextActive]}>
+                {v === 'front' ? t('bodyMap.viewFront', 'Front') : t('bodyMap.viewBack', 'Back')}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.segment}>
+          {(['male', 'female'] as Gender[]).map((g) => (
+            <TouchableOpacity
+              key={g}
+              style={[
+                styles.segmentTab,
+                styles.segmentTabNarrow,
+                gender === g && styles.segmentTabActive,
+              ]}
+              onPress={() => setGender(g)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: gender === g }}
+              accessibilityLabel={
+                g === 'male'
+                  ? t('bodyMap.genderMale', 'Male body')
+                  : t('bodyMap.genderFemale', 'Female body')
+              }
+            >
+              <Ionicons
+                name={g === 'male' ? 'male' : 'female'}
+                size={17}
+                color={gender === g ? colors.textPrimary : colors.textTertiary}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       <BodySilhouette
         view={view}
-        selected={severityByZone}
-        onToggleZone={toggleZone}
-        labelFor={zoneA11yLabel}
+        gender={gender}
+        marks={visibleMarks}
+        onTapBody={handleTapBody}
         palette={silhouettePalette}
         width={silhouetteWidth}
+        accessibilityLabel={t(
+          'bodyMap.bodyA11y',
+          'Body diagram. Use “Choose from a list” below to mark a place.',
+        )}
       />
 
-      {zoneIds.length > 0 && (
+      <TouchableOpacity
+        style={styles.listLink}
+        onPress={() => setZonePickerOpen(true)}
+        accessibilityRole="button"
+        activeOpacity={0.7}
+      >
+        <Ionicons name="list-outline" size={16} color={colors.primary} />
+        <Text style={styles.listLinkText}>{t('bodyMap.chooseFromList', 'Choose from a list')}</Text>
+      </TouchableOpacity>
+
+      {marks.length > 0 && (
         <View style={styles.selectedList}>
-          {zoneIds.map((zoneId) => (
-            <View key={zoneId} style={styles.selectedPill}>
-              <View
-                style={[
-                  styles.selectedDot,
-                  { backgroundColor: severityColor(zones[zoneId].severity) },
-                ]}
-              />
-              <Text style={styles.selectedPillText}>{zoneLabel(zoneId)}</Text>
+          {marks.map((mark) => (
+            <View key={mark.id} style={styles.selectedPill}>
+              <View style={[styles.selectedDot, { backgroundColor: severityColor(mark.severity) }]} />
+              <Text style={styles.selectedPillText}>{zoneLabel(mark.zoneId)}</Text>
               <TouchableOpacity
-                onPress={() => toggleZone(zoneId)}
+                onPress={() => removeMark(mark.id)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 accessibilityRole="button"
-                accessibilityLabel={`${t('common.remove', 'Remove')}: ${zoneLabel(zoneId)}`}
+                accessibilityLabel={`${t('common.remove', 'Remove')}: ${zoneLabel(mark.zoneId)}`}
               >
                 <Ionicons name="close" size={15} color={colors.textTertiary} />
               </TouchableOpacity>
@@ -449,11 +550,11 @@ export default function BodyMapScreen() {
         </View>
       )}
 
-      {history.length > 0 && zoneIds.length === 0 && (
+      {history.length > 0 && marks.length === 0 && (
         <View style={styles.historyBlock}>
           <Text style={styles.sectionLabel}>{t('bodyMap.historyTitle', 'Recent reports')}</Text>
           <Text style={styles.historyHint}>
-            {t('bodyMap.historyHint', 'Tap one to log the same areas again.')}
+            {t('bodyMap.historyHint', 'Tap one to log the same places again.')}
           </Text>
           {history.map((report) => (
             <TouchableOpacity
@@ -484,26 +585,25 @@ export default function BodyMapScreen() {
   );
 
   const renderDetail = () => {
-    const zoneId = zoneIds[detailIndex];
-    if (!zoneId) return null;
-    const state = zones[zoneId];
-    const questions = questionsForZone(zoneId);
-    const band = severityBand(state.severity);
+    const mark = marks[detailIndex];
+    if (!mark) return null;
+    const questions = questionsForZone(mark.zoneId);
+    const band = severityBand(mark.severity);
 
     return (
       <>
         <Text style={styles.stepCounter}>
           {t('bodyMap.stepOf', 'Area {{current}} of {{total}}')
             .replace('{{current}}', String(detailIndex + 1))
-            .replace('{{total}}', String(zoneIds.length))}
+            .replace('{{total}}', String(marks.length))}
         </Text>
-        <Text style={styles.zoneTitle}>{zoneLabel(zoneId)}</Text>
+        <Text style={styles.zoneTitle}>{zoneLabel(mark.zoneId)}</Text>
 
         <View style={styles.card}>
           <View style={styles.severityHead}>
             <Text style={styles.cardLabel}>{t('bodyMap.severityLabel', 'How strong is it?')}</Text>
             <Text style={[styles.severityValue, { color: SEVERITY_COLORS[band] }]}>
-              {state.severity} · {t(`bodyMap.severityBands.${band}`, band)}
+              {mark.severity} · {t(`bodyMap.severityBands.${band}`, band)}
             </Text>
           </View>
           <Slider
@@ -511,8 +611,8 @@ export default function BodyMapScreen() {
             minimumValue={SEVERITY_MIN}
             maximumValue={SEVERITY_MAX}
             step={1}
-            value={state.severity}
-            onValueChange={(v: number) => setSeverity(zoneId, Math.round(v))}
+            value={mark.severity}
+            onValueChange={(v: number) => setSeverity(mark.id, Math.round(v))}
             minimumTrackTintColor={SEVERITY_COLORS[band]}
             maximumTrackTintColor={colors.borderMuted}
             thumbTintColor={SEVERITY_COLORS[band]}
@@ -520,16 +620,18 @@ export default function BodyMapScreen() {
           />
           <View style={styles.scaleLegend}>
             <Text style={styles.scaleLegendText}>{t('bodyMap.severityBands.mild', 'Mild')}</Text>
-            <Text style={styles.scaleLegendText}>{t('bodyMap.severityBands.extreme', 'Unbearable')}</Text>
+            <Text style={styles.scaleLegendText}>
+              {t('bodyMap.severityBands.extreme', 'Unbearable')}
+            </Text>
           </View>
         </View>
 
         {questions.map((question) => (
           <QuestionCard
             key={question.id}
-            zoneId={zoneId}
+            markId={mark.id}
             question={question}
-            value={state.answers[question.id]}
+            value={mark.answers[question.id]}
             onAnswer={setAnswer}
             t={t}
             styles={styles}
@@ -574,7 +676,12 @@ export default function BodyMapScreen() {
                 'What you ticked can be urgent. Call emergency services or go to A&E now. We will still save this report for you.',
               )}
             </Text>
-            <TouchableOpacity style={styles.emergencyBtn} onPress={callEmergency} activeOpacity={0.85}>
+            <TouchableOpacity
+              style={styles.emergencyBtn}
+              onPress={callEmergency}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+            >
               <Ionicons name="call" size={16} color={colors.onPrimary} />
               <Text style={styles.emergencyBtnText}>
                 {t('bodyMap.emergencyCall', 'Call {{number}}').replace(
@@ -588,7 +695,9 @@ export default function BodyMapScreen() {
       )}
 
       <View style={styles.card}>
-        <Text style={styles.cardLabel}>{t('bodyMap.noteLabel', 'Anything else worth writing down?')}</Text>
+        <Text style={styles.cardLabel}>
+          {t('bodyMap.noteLabel', 'Anything else worth writing down?')}
+        </Text>
         <TextInput
           style={styles.noteInput}
           value={note}
@@ -624,12 +733,29 @@ export default function BodyMapScreen() {
         )}
       </Text>
       <TouchableOpacity
-        style={styles.primaryBtn}
+        style={[styles.primaryBtn, styles.savedPrimary]}
+        onPress={() =>
+          navigation.replace('Hotline', {
+            symptomReportId: savedReportId ?? undefined,
+            reason: note.trim() || undefined,
+          })
+        }
+        activeOpacity={0.85}
+        accessibilityRole="button"
+      >
+        <Ionicons name="chatbubbles-outline" size={18} color={colors.onPrimary} />
+        <Text style={styles.primaryBtnText}>
+          {t('bodyMap.showSpecialist', 'Show this to a specialist')}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.savedSecondary}
         onPress={() => navigation.goBack()}
         activeOpacity={0.85}
         accessibilityRole="button"
       >
-        <Text style={styles.primaryBtnText}>{t('common.done', 'Done')}</Text>
+        <Text style={styles.savedSecondaryText}>{t('common.done', 'Done')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -643,7 +769,7 @@ export default function BodyMapScreen() {
       return;
     }
     if (step === 'check') {
-      setDetailIndex(Math.max(zoneIds.length - 1, 0));
+      setDetailIndex(Math.max(marks.length - 1, 0));
       setStep('detail');
     }
   };
@@ -655,7 +781,7 @@ export default function BodyMapScreen() {
       return;
     }
     if (step === 'detail') {
-      if (detailIndex < zoneIds.length - 1) setDetailIndex(detailIndex + 1);
+      if (detailIndex < marks.length - 1) setDetailIndex(detailIndex + 1);
       else setStep('check');
     }
   };
@@ -664,12 +790,17 @@ export default function BodyMapScreen() {
     if (step === 'saved') return null;
 
     const isLast = step === 'check';
-    const canAdvance = step === 'pick' ? zoneIds.length > 0 : true;
+    const canAdvance = step === 'pick' ? marks.length > 0 : true;
 
     return (
       <View style={styles.footer}>
         {step !== 'pick' && (
-          <TouchableOpacity style={styles.secondaryBtn} onPress={goBackStep} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.secondaryBtn}
+            onPress={goBackStep}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+          >
             <Text style={styles.secondaryBtnText}>{t('common.back', 'Back')}</Text>
           </TouchableOpacity>
         )}
@@ -728,6 +859,44 @@ export default function BodyMapScreen() {
 
         {renderFooter()}
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={zonePickerOpen}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setZonePickerOpen(false)}
+      >
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => setZonePickerOpen(false)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.close', 'Close')}
+            >
+              <Ionicons name="close" size={24} color={colors.textPrimary} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>
+              {t('bodyMap.chooseFromList', 'Choose from a list')}
+            </Text>
+            <View style={{ width: 24 }} />
+          </View>
+          <ScrollView contentContainerStyle={styles.body}>
+            {markableZones(view).map((zoneId) => (
+              <TouchableOpacity
+                key={zoneId}
+                style={styles.zoneRow}
+                onPress={() => addMarkForZone(zoneId)}
+                accessibilityRole="button"
+                activeOpacity={0.7}
+              >
+                <Text style={styles.zoneRowText}>{zoneLabel(zoneId)}</Text>
+                <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -746,7 +915,7 @@ const createStyles = (colors: any) =>
     headerTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
     body: { paddingHorizontal: 20, paddingBottom: 28 },
 
-    stepHint: { fontSize: 14, color: colors.textSecondary, lineHeight: 20, marginBottom: 16 },
+    stepHint: { fontSize: 14, color: colors.textSecondary, lineHeight: 20, marginBottom: 14 },
     stepCounter: {
       fontSize: 12,
       fontWeight: '700',
@@ -757,21 +926,43 @@ const createStyles = (colors: any) =>
     },
     zoneTitle: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, marginBottom: 16 },
 
-    viewToggle: {
+    controlsRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
+    segment: {
       flexDirection: 'row',
       backgroundColor: colors.surfaceMuted,
       borderRadius: 12,
       padding: 3,
-      marginBottom: 18,
       borderWidth: 1,
       borderColor: colors.borderMuted,
     },
-    viewTab: { flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: 'center' },
-    viewTabActive: { backgroundColor: colors.surface },
-    viewTabText: { fontSize: 14, fontWeight: '600', color: colors.textSecondary },
-    viewTabTextActive: { color: colors.textPrimary },
+    segmentGrow: { flex: 1 },
+    segmentTab: { flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: 'center' },
+    segmentTabNarrow: { flex: 0, paddingHorizontal: 14 },
+    segmentTabActive: { backgroundColor: colors.surface },
+    segmentText: { fontSize: 14, fontWeight: '600', color: colors.textSecondary },
+    segmentTextActive: { color: colors.textPrimary },
 
-    selectedList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 20 },
+    listLink: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 7,
+      marginTop: 14,
+      paddingVertical: 8,
+    },
+    listLinkText: { fontSize: 14, fontWeight: '600', color: colors.primary },
+
+    zoneRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderMuted,
+    },
+    zoneRowText: { fontSize: 15.5, color: colors.textPrimary },
+
+    selectedList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
     selectedPill: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -786,7 +977,7 @@ const createStyles = (colors: any) =>
     selectedDot: { width: 9, height: 9, borderRadius: 5 },
     selectedPillText: { fontSize: 13.5, fontWeight: '600', color: colors.textPrimary },
 
-    historyBlock: { marginTop: 28 },
+    historyBlock: { marginTop: 24 },
     sectionLabel: {
       fontSize: 12,
       fontWeight: '700',
@@ -889,6 +1080,9 @@ const createStyles = (colors: any) =>
       marginBottom: 20,
     },
     savedTitle: { fontSize: 20, fontWeight: '800', color: colors.textPrimary, marginBottom: 8 },
+    savedPrimary: { flexDirection: 'row', gap: 9, alignSelf: 'stretch' },
+    savedSecondary: { marginTop: 12, paddingVertical: 12, alignSelf: 'stretch', alignItems: 'center' },
+    savedSecondaryText: { fontSize: 15, fontWeight: '600', color: colors.textSecondary },
     savedBody: {
       fontSize: 14.5,
       color: colors.textSecondary,

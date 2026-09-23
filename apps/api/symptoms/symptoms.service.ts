@@ -18,7 +18,7 @@ const REPORT_LIST_SELECT = {
   redFlags: true,
   createdAt: true,
   entries: {
-    select: { id: true, zoneId: true, severity: true, answers: true },
+    select: { id: true, zoneId: true, severity: true, answers: true, x: true, y: true, view: true },
     orderBy: { severity: 'desc' as const },
   },
 } as const;
@@ -70,6 +70,9 @@ export class SymptomsService {
             zoneId: e.zoneId,
             severity: e.severity,
             answers: e.answers,
+            x: e.x,
+            y: e.y,
+            view: e.view,
           })),
         },
       },
@@ -145,6 +148,9 @@ export class SymptomsService {
     zoneId: string;
     severity: number;
     answers: Record<string, string>;
+    x: number | null;
+    y: number | null;
+    view: string | null;
   } {
     if (!isKnownZone(entry.zoneId)) {
       throw new BadRequestException(`Unknown body zone: ${entry.zoneId}`);
@@ -163,7 +169,18 @@ export class SymptomsService {
       answers[questionId] = answerId as string;
     }
 
-    return { zoneId: entry.zoneId, severity: entry.severity, answers };
+    // A point is all-or-nothing: half a coordinate is not a location, and
+    // storing one axis would put a mark on the wrong part of the body later.
+    const hasPoint = typeof entry.x === 'number' && typeof entry.y === 'number';
+
+    return {
+      zoneId: entry.zoneId,
+      severity: entry.severity,
+      answers,
+      x: hasPoint ? entry.x! : null,
+      y: hasPoint ? entry.y! : null,
+      view: hasPoint ? entry.view ?? null : null,
+    };
   }
 
   private resolveReportedAt(raw?: string): Date {

@@ -77,6 +77,7 @@ const FridgeScanScreen = withSuspense(React.lazy(() => import('./src/screens/Fri
 const FridgeHistoryScreen = withSuspense(React.lazy(() => import('./src/screens/FridgeHistoryScreen')));
 const HealthSyncScreen = withSuspense(React.lazy(() => import('./src/screens/HealthSyncScreen')));
 const BodyMapScreen = withSuspense(React.lazy(() => import('./src/screens/BodyMapScreen')));
+const HotlineScreen = withSuspense(React.lazy(() => import('./src/screens/HotlineScreen')));
 const ScientificSourcesScreen = withSuspense(React.lazy(() => import('./src/screens/ScientificSourcesScreen')));
 const ReportsScreen = withSuspense(React.lazy(() => import('./src/screens/ReportsScreen')));
 const BestPlacesScreen = withSuspense(React.lazy(() => import('./src/screens/BestPlacesScreen')));
@@ -374,6 +375,14 @@ function AppContent() {
               <Stack.Screen
                 name="BodyMap"
                 component={BodyMapScreen}
+                options={{
+                  presentation: 'modal',
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="Hotline"
+                component={HotlineScreen}
                 options={{
                   presentation: 'modal',
                   headerShown: false,

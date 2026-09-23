@@ -1573,7 +1573,8 @@
     "paymentSubmittedBody": "Votre chat sera débloqué dès que le paiement sera confirmé.",
     "consultations": "Rendez-vous",
     "education": "Formation",
-    "minutesShort": "min"
+    "minutesShort": "min",
+    "startVideo": "Démarrer l’appel vidéo"
   },
   "feedbackScreen": {
     "alerts": {
@@ -5100,11 +5101,11 @@
     "title": "Ce qui vous gêne",
     "dashboardTitle": "Ce qui vous gêne",
     "dashboardSubtitle": "Marquez-le sur le corps et notez ce que vous ressentez",
-    "hintPick": "Touchez les zones qui vous gênent — jusqu’à trois.",
+    "hintPick": "Touchez le corps là où ça vous gêne — jusqu’à trois points.",
     "viewFront": "Devant",
     "viewBack": "Derrière",
     "maxZonesTitle": "C’est assez pour une entrée",
-    "maxZonesBody": "Vous pouvez marquer jusqu’à trois zones à la fois. Retirez-en une pour en ajouter une autre.",
+    "maxZonesBody": "Vous pouvez marquer jusqu’à trois endroits à la fois. Retirez-en un pour en ajouter un autre.",
     "stepOf": "Zone {{current}} sur {{total}}",
     "severityLabel": "À quel point est-ce fort ?",
     "severityBands": {
@@ -5250,11 +5251,38 @@
       "high_fever_abdominal_pain": "Fièvre supérieure à 39 °C avec de fortes douleurs abdominales",
       "persistent_vomiting": "Vomissements qui durent depuis plus d’une journée"
     },
-    "historyHint": "Touchez pour enregistrer à nouveau les mêmes zones.",
+    "historyHint": "Touchez pour enregistrer à nouveau les mêmes endroits.",
     "deleteTitle": "Supprimer cette entrée ?",
     "deleteBody": "Elle disparaîtra de votre journal. Cette action est irréversible.",
     "deleteFailed": "Suppression impossible. Vérifiez votre connexion et réessayez.",
     "severityAria": "{{value}} sur {{max}}",
-    "diaryA11y": "Symptômes : {{zones}}"
+    "diaryA11y": "Symptômes : {{zones}}",
+    "hintTapAgain": "Touchez un point à nouveau pour le retirer.",
+    "genderMale": "Corps masculin",
+    "genderFemale": "Corps féminin",
+    "chooseFromList": "Choisir dans une liste",
+    "bodyA11y": "Schéma du corps. Utilisez « Choisir dans une liste » ci-dessous pour marquer un endroit.",
+    "showSpecialist": "Montrer à un spécialiste"
+  },
+  "hotline": {
+    "answeredSoon": "Réponse généralement en quelques minutes.",
+    "attachedReport": "Votre relevé de la carte du corps sera joint.",
+    "bookInstead": "Prendre rendez-vous à la place",
+    "closed": "La ligne est fermée",
+    "connect": "Me mettre en relation",
+    "dashboardSubtitle": "Parler maintenant à un spécialiste en nutrition",
+    "dashboardTitle": "Ligne directe",
+    "disclaimer": "Nos spécialistes conseillent en nutrition. Ce n’est pas un service d’urgence — en cas d’urgence, appelez les secours.",
+    "noSchedule": "Personne n’est sur la ligne pour le moment.",
+    "offline": "Pas de connexion",
+    "open": "Sur la ligne maintenant : {{count}}",
+    "opensAt": "Ouvre {{when}}",
+    "reasonLabel": "Que se passe-t-il ?",
+    "reasonPlaceholder": "Une phrase suffit",
+    "requestFailed": "Impossible de joindre la ligne. Réessayez.",
+    "title": "Ligne directe",
+    "waitEstimate": "Réponse généralement sous {{minutes}} min",
+    "waitHint": "Vous pouvez fermer l’application — nous vous préviendrons.",
+    "waiting": "Recherche d’un spécialiste"
   }
 }

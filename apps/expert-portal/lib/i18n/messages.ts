@@ -33,6 +33,30 @@ type MessagesShape = {
     reviews: string;
     profile: string;
     signOut: string;
+    hotline: string;
+  };
+  hotline: {
+    title: string;
+    subtitle: string;
+    onTheLine: string;
+    offTheLine: string;
+    goOnline: string;
+    goOffline: string;
+    onlineUntil: string;
+    queue: string;
+    queueEmpty: string;
+    accept: string;
+    accepting: string;
+    taken: string;
+    openChat: string;
+    complete: string;
+    waitingSince: string;
+    reason: string;
+    noReason: string;
+    bodyMapAttached: string;
+    shifts: string;
+    shiftsHint: string;
+    notOnDuty: string;
   };
   common: {
     save: string;
@@ -469,7 +493,8 @@ type MessagesShape = {
 };
 
 const en: MessagesShape = {
-  nav: { dashboard: 'Dashboard', chats: 'Chats', clients: 'Clients', calendar: 'Calendar', consultations: 'Bookings', offers: 'Offers', earnings: 'Earnings', reviews: 'Reviews', profile: 'My Profile', signOut: 'Sign out' },
+  nav: { dashboard: 'Dashboard', chats: 'Chats', clients: 'Clients', calendar: 'Calendar', consultations: 'Bookings', offers: 'Offers', earnings: 'Earnings', reviews: 'Reviews', profile: 'My Profile', hotline: 'Hotline', signOut: 'Sign out' },
+  hotline: { title: 'Hotline', subtitle: 'Answer people who need a specialist right now.', onTheLine: 'On the line', offTheLine: 'Off the line', goOnline: 'Go on the line', goOffline: 'Go off the line', onlineUntil: 'Until {{time}}', queue: 'Waiting', queueEmpty: 'Nobody is waiting right now.', accept: 'Take it', accepting: 'Taking...', taken: 'Taken by someone else', openChat: 'Open chat', complete: 'Mark finished', waitingSince: 'Waiting since {{time}}', reason: 'Reason', noReason: 'No description given', bodyMapAttached: 'Body map record attached', shifts: 'Duty windows', shiftsHint: 'Recurring hours when you are shown as available.', notOnDuty: 'Go on the line to see the queue.' },
   common: {
     save: 'Save changes', saving: 'Saving...', saved: 'Saved!', cancel: 'Cancel', delete: 'Delete', deleting: 'Deleting...',
     edit: 'Edit', create: 'Create', creating: 'Creating...', loading: 'Loading...', upload: 'Upload', uploading: 'Uploading...',
@@ -710,7 +735,8 @@ const en: MessagesShape = {
 };
 
 const ru: MessagesShape = {
-  nav: { dashboard: 'Обзор', chats: 'Чаты', clients: 'Клиенты', calendar: 'Календарь', consultations: 'Встречи', offers: 'Услуги', earnings: 'Выплаты', reviews: 'Отзывы', profile: 'Мой профиль', signOut: 'Выйти' },
+  nav: { dashboard: 'Обзор', chats: 'Чаты', clients: 'Клиенты', calendar: 'Календарь', consultations: 'Встречи', offers: 'Услуги', earnings: 'Выплаты', reviews: 'Отзывы', profile: 'Мой профиль', hotline: 'Горячая линия', signOut: 'Выйти' },
+  hotline: { title: 'Горячая линия', subtitle: 'Отвечайте тем, кому специалист нужен прямо сейчас.', onTheLine: 'На линии', offTheLine: 'Не на линии', goOnline: 'Встать на линию', goOffline: 'Уйти с линии', onlineUntil: 'До {{time}}', queue: 'Ожидают', queueEmpty: 'Сейчас никто не ждёт.', accept: 'Взять', accepting: 'Берём...', taken: 'Уже взял другой специалист', openChat: 'Открыть чат', complete: 'Завершить', waitingSince: 'Ждёт с {{time}}', reason: 'Повод', noReason: 'Описание не заполнено', bodyMapAttached: 'Приложена запись с карты тела', shifts: 'Дежурные окна', shiftsHint: 'Повторяющиеся часы, когда вас показывают доступным.', notOnDuty: 'Встаньте на линию, чтобы видеть очередь.' },
   common: {
     save: 'Сохранить', saving: 'Сохранение...', saved: 'Сохранено!', cancel: 'Отмена', delete: 'Удалить', deleting: 'Удаление...',
     edit: 'Изменить', create: 'Создать', creating: 'Создание...', loading: 'Загрузка...', upload: 'Загрузить', uploading: 'Загрузка...',
@@ -951,7 +977,8 @@ const ru: MessagesShape = {
 };
 
 const kk: MessagesShape = {
-  nav: { dashboard: 'Шолу', chats: 'Чаттар', clients: 'Клиенттер', calendar: 'Күнтізбе', consultations: 'Кездесулер', offers: 'Қызметтер', earnings: 'Төлемдер', reviews: 'Пікірлер', profile: 'Менің профилім', signOut: 'Шығу' },
+  nav: { dashboard: 'Шолу', chats: 'Чаттар', clients: 'Клиенттер', calendar: 'Күнтізбе', consultations: 'Кездесулер', offers: 'Қызметтер', earnings: 'Төлемдер', reviews: 'Пікірлер', profile: 'Менің профилім', hotline: 'Жедел желі', signOut: 'Шығу' },
+  hotline: { title: 'Жедел желі', subtitle: 'Маман дәл қазір қажет адамдарға жауап беріңіз.', onTheLine: 'Желіде', offTheLine: 'Желіде емес', goOnline: 'Желіге шығу', goOffline: 'Желіден шығу', onlineUntil: '{{time}} дейін', queue: 'Күтуде', queueEmpty: 'Қазір ешкім күтіп тұрған жоқ.', accept: 'Алу', accepting: 'Алынуда...', taken: 'Оны басқа маман алып қойды', openChat: 'Чатты ашу', complete: 'Аяқтау', waitingSince: '{{time}} бастап күтуде', reason: 'Себебі', noReason: 'Сипаттама берілмеген', bodyMapAttached: 'Дене картасының жазбасы тіркелген', shifts: 'Кезекшілік терезелері', shiftsHint: 'Сіз қолжетімді деп көрсетілетін қайталанатын сағаттар.', notOnDuty: 'Кезекті көру үшін желіге шығыңыз.' },
   common: {
     save: 'Сақтау', saving: 'Сақталуда...', saved: 'Сақталды!', cancel: 'Бас тарту', delete: 'Жою', deleting: 'Жойылуда...',
     edit: 'Өзгерту', create: 'Жасау', creating: 'Жасалуда...', loading: 'Жүктелуде...', upload: 'Жүктеу', uploading: 'Жүктелуде...',
@@ -1192,7 +1219,8 @@ const kk: MessagesShape = {
 };
 
 const de: MessagesShape = {
-  nav: { dashboard: 'Übersicht', chats: 'Chats', clients: 'Klienten', calendar: 'Kalender', consultations: 'Termine', offers: 'Angebote', earnings: 'Einnahmen', reviews: 'Bewertungen', profile: 'Mein Profil', signOut: 'Abmelden' },
+  nav: { dashboard: 'Übersicht', chats: 'Chats', clients: 'Klienten', calendar: 'Kalender', consultations: 'Termine', offers: 'Angebote', earnings: 'Einnahmen', reviews: 'Bewertungen', profile: 'Mein Profil', hotline: 'Hotline', signOut: 'Abmelden' },
+  hotline: { title: 'Hotline', subtitle: 'Antworten Sie Menschen, die jetzt eine Fachkraft brauchen.', onTheLine: 'Auf der Linie', offTheLine: 'Nicht auf der Linie', goOnline: 'Auf die Linie gehen', goOffline: 'Linie verlassen', onlineUntil: 'Bis {{time}}', queue: 'Wartend', queueEmpty: 'Im Moment wartet niemand.', accept: 'Übernehmen', accepting: 'Wird übernommen...', taken: 'Bereits von jemand anderem übernommen', openChat: 'Chat öffnen', complete: 'Abschliessen', waitingSince: 'Wartet seit {{time}}', reason: 'Anliegen', noReason: 'Keine Beschreibung angegeben', bodyMapAttached: 'Eintrag aus der Körperkarte angehängt', shifts: 'Dienstfenster', shiftsHint: 'Wiederkehrende Zeiten, in denen Sie als verfügbar erscheinen.', notOnDuty: 'Gehen Sie auf die Linie, um die Warteschlange zu sehen.' },
   common: {
     save: 'Änderungen speichern', saving: 'Speichern...', saved: 'Gespeichert!', cancel: 'Abbrechen', delete: 'Löschen', deleting: 'Löschen...',
     edit: 'Bearbeiten', create: 'Erstellen', creating: 'Erstellen...', loading: 'Laden...', upload: 'Hochladen', uploading: 'Hochladen...',
@@ -1433,7 +1461,8 @@ const de: MessagesShape = {
 };
 
 const fr: MessagesShape = {
-  nav: { dashboard: 'Tableau de bord', chats: 'Messages', clients: 'Clients', calendar: 'Calendrier', consultations: 'Rendez-vous', offers: 'Offres', earnings: 'Revenus', reviews: 'Avis', profile: 'Mon Profil', signOut: 'Se déconnecter' },
+  nav: { dashboard: 'Tableau de bord', chats: 'Messages', clients: 'Clients', calendar: 'Calendrier', consultations: 'Rendez-vous', offers: 'Offres', earnings: 'Revenus', reviews: 'Avis', profile: 'Mon Profil', hotline: 'Ligne directe', signOut: 'Se déconnecter' },
+  hotline: { title: 'Ligne directe', subtitle: 'Répondez aux personnes qui ont besoin d’un spécialiste maintenant.', onTheLine: 'Sur la ligne', offTheLine: 'Hors ligne', goOnline: 'Se mettre sur la ligne', goOffline: 'Quitter la ligne', onlineUntil: 'Jusqu’à {{time}}', queue: 'En attente', queueEmpty: 'Personne n’attend pour le moment.', accept: 'Prendre', accepting: 'Prise en charge...', taken: 'Déjà pris par quelqu’un d’autre', openChat: 'Ouvrir le chat', complete: 'Terminer', waitingSince: 'En attente depuis {{time}}', reason: 'Motif', noReason: 'Aucune description fournie', bodyMapAttached: 'Relevé de la carte du corps joint', shifts: 'Créneaux de garde', shiftsHint: 'Heures récurrentes pendant lesquelles vous apparaissez disponible.', notOnDuty: 'Mettez-vous sur la ligne pour voir la file.' },
   common: {
     save: 'Enregistrer', saving: 'Enregistrement...', saved: 'Enregistré !', cancel: 'Annuler', delete: 'Supprimer', deleting: 'Suppression...',
     edit: 'Modifier', create: 'Créer', creating: 'Création...', loading: 'Chargement...', upload: 'Téléverser', uploading: 'Téléversement...',
@@ -1674,7 +1703,8 @@ const fr: MessagesShape = {
 };
 
 const es: MessagesShape = {
-  nav: { dashboard: 'Panel', chats: 'Chats', clients: 'Clientes', calendar: 'Calendario', consultations: 'Citas', offers: 'Servicios', earnings: 'Ingresos', reviews: 'Reseñas', profile: 'Mi Perfil', signOut: 'Cerrar sesión' },
+  nav: { dashboard: 'Panel', chats: 'Chats', clients: 'Clientes', calendar: 'Calendario', consultations: 'Citas', offers: 'Servicios', earnings: 'Ingresos', reviews: 'Reseñas', profile: 'Mi Perfil', hotline: 'Línea directa', signOut: 'Cerrar sesión' },
+  hotline: { title: 'Línea directa', subtitle: 'Responde a quienes necesitan un especialista ahora.', onTheLine: 'En la línea', offTheLine: 'Fuera de la línea', goOnline: 'Ponerme en la línea', goOffline: 'Salir de la línea', onlineUntil: 'Hasta las {{time}}', queue: 'En espera', queueEmpty: 'Ahora mismo no espera nadie.', accept: 'Tomar', accepting: 'Tomando...', taken: 'Ya lo tomó otro especialista', openChat: 'Abrir chat', complete: 'Finalizar', waitingSince: 'Esperando desde {{time}}', reason: 'Motivo', noReason: 'Sin descripción', bodyMapAttached: 'Registro del mapa corporal adjunto', shifts: 'Turnos de guardia', shiftsHint: 'Horas recurrentes en las que apareces disponible.', notOnDuty: 'Ponte en la línea para ver la cola.' },
   common: {
     save: 'Guardar cambios', saving: 'Guardando...', saved: '¡Guardado!', cancel: 'Cancelar', delete: 'Eliminar', deleting: 'Eliminando...',
     edit: 'Editar', create: 'Crear', creating: 'Creando...', loading: 'Cargando...', upload: 'Subir', uploading: 'Subiendo...',

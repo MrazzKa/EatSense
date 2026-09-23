@@ -4,7 +4,7 @@ export default {
     name: "EatSense",
     slug: "eatsense",
     owner: "eatsense",
-    version: "2.0.73",
+    version: "2.0.74",
     orientation: "default",
     // EAS Update configuration
     updates: {
@@ -37,7 +37,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "91",
+      buildNumber: "92",
       developmentTeam: "73T7PB4F99",
       supportsTablet: false,
       infoPlist: {
@@ -85,7 +85,7 @@ export default {
 
     android: {
       package: "ch.eatsense.app",
-      versionCode: 127,
+      versionCode: 128,
       // Adaptive icon uses the purpose-built foreground (no wordmark, content
       // inside the safe zone) so Android's circular/squircle launcher masks
       // don't clip the "EatSense" text that lives in Logo.jpg. Background matches
@@ -150,7 +150,17 @@ export default {
             ]
           },
           android: {
-            minSdkVersion: 24,
+            // 26, not Expo's default 24: react-native-health-connect pulls
+            // androidx.health.connect:connect-client, which declares minSdk 26,
+            // and the manifest merger refuses to build below it. The documented
+            // alternative (tools:overrideLibrary) is explicitly flagged as
+            // "may lead to runtime failures" — i.e. it would ship an app that
+            // crashes when it touches Health Connect, which is worse than not
+            // supporting Android 7.
+            //
+            // Android 8.0 is from 2017; the devices this drops are a fraction of
+            // a percent and could not run this app well anyway.
+            minSdkVersion: 26,
             targetSdkVersion: 35,
             // androidx 1.11/1.17 (pulled by RN 0.83 deps) require compiling against
             // API 36; build-tools 36 is already on the EAS image.

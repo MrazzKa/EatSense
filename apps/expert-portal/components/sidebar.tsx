@@ -2,15 +2,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Calendar, Globe, Leaf, LogOut, MessageSquare, User, Users, type LucideIcon } from 'lucide-react';
+import { BarChart3, Calendar, Globe, Leaf, LogOut, MessageSquare, PhoneCall, User, Users, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n/context';
 import { LOCALES, LOCALE_LABELS, type Locale } from '@/lib/i18n/messages';
 
-type NavKey = 'dashboard' | 'chats' | 'clients' | 'calendar' | 'profile';
+type NavKey = 'dashboard' | 'hotline' | 'chats' | 'clients' | 'calendar' | 'profile';
 
 const NAV_ITEMS: { href: string; key: NavKey; icon: LucideIcon }[] = [
   { href: '/dashboard', key: 'dashboard', icon: BarChart3 },
+  { href: '/hotline', key: 'hotline', icon: PhoneCall },
   { href: '/chats', key: 'chats', icon: MessageSquare },
   { href: '/clients', key: 'clients', icon: Users },
   { href: '/calendar', key: 'calendar', icon: Calendar },
@@ -18,7 +19,7 @@ const NAV_ITEMS: { href: string; key: NavKey; icon: LucideIcon }[] = [
 ];
 
 const MOBILE_PRIMARY_ITEMS = NAV_ITEMS.filter((item) =>
-  ['dashboard', 'chats', 'clients', 'calendar', 'profile'].includes(item.key),
+  ['dashboard', 'hotline', 'chats', 'clients', 'profile'].includes(item.key),
 );
 
 export function Sidebar() {
@@ -33,6 +34,7 @@ export function Sidebar() {
   const mobileLabel = (key: NavKey) => {
     if (key === 'dashboard') return t('sidebarMobile', 'home');
     if (key === 'calendar') return t('sidebarMobile', 'schedule');
+    if (key === 'hotline') return t('nav', 'hotline');
     return t('nav', key);
   };
 

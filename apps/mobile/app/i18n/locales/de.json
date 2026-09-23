@@ -1647,7 +1647,8 @@
     "paymentSubmittedBody": "Dein Chat wird freigeschaltet, sobald die Zahlung bestätigt wurde.",
     "consultations": "Beratungen",
     "education": "Ausbildung",
-    "minutesShort": "Min."
+    "minutesShort": "Min.",
+    "startVideo": "Videoanruf starten"
   },
   "feedbackScreen": {
     "alerts": {
@@ -5134,11 +5135,11 @@
     "title": "Was Sie belastet",
     "dashboardTitle": "Was Sie belastet",
     "dashboardSubtitle": "Am Körper markieren und festhalten, wie es sich anfühlt",
-    "hintPick": "Tippen Sie die Bereiche an, die Sie belasten — bis zu drei.",
+    "hintPick": "Tippen Sie dort auf den Körper, wo es Sie belastet — bis zu drei Punkte.",
     "viewFront": "Vorne",
     "viewBack": "Hinten",
     "maxZonesTitle": "Für einen Eintrag reicht das",
-    "maxZonesBody": "Sie können bis zu drei Bereiche gleichzeitig markieren. Entfernen Sie einen, um einen anderen hinzuzufügen.",
+    "maxZonesBody": "Sie können bis zu drei Stellen gleichzeitig markieren. Entfernen Sie eine, um eine andere zu setzen.",
     "stepOf": "Bereich {{current}} von {{total}}",
     "severityLabel": "Wie stark ist es?",
     "severityBands": {
@@ -5284,11 +5285,38 @@
       "high_fever_abdominal_pain": "Fieber über 39 °C zusammen mit starken Bauchschmerzen",
       "persistent_vomiting": "Erbrechen, das seit über einem Tag anhält"
     },
-    "historyHint": "Tippen Sie darauf, um dieselben Bereiche erneut einzutragen.",
+    "historyHint": "Tippen Sie darauf, um dieselben Stellen erneut einzutragen.",
     "deleteTitle": "Diesen Eintrag löschen?",
     "deleteBody": "Er verschwindet aus Ihrem Tagebuch. Das lässt sich nicht rückgängig machen.",
     "deleteFailed": "Konnte nicht gelöscht werden. Prüfen Sie die Verbindung und versuchen Sie es erneut.",
     "severityAria": "{{value}} von {{max}}",
-    "diaryA11y": "Symptome: {{zones}}"
+    "diaryA11y": "Symptome: {{zones}}",
+    "hintTapAgain": "Tippen Sie erneut auf einen Punkt, um ihn zu entfernen.",
+    "genderMale": "Männlicher Körper",
+    "genderFemale": "Weiblicher Körper",
+    "chooseFromList": "Aus einer Liste wählen",
+    "bodyA11y": "Körperschema. Nutzen Sie unten „Aus einer Liste wählen“, um eine Stelle zu markieren.",
+    "showSpecialist": "Einer Fachkraft zeigen"
+  },
+  "hotline": {
+    "answeredSoon": "Antwort meist innerhalb weniger Minuten.",
+    "attachedReport": "Ihr Eintrag aus der Körperkarte wird angehängt.",
+    "bookInstead": "Stattdessen einen Termin buchen",
+    "closed": "Die Linie ist geschlossen",
+    "connect": "Verbinden",
+    "dashboardSubtitle": "Jetzt mit einer Ernährungsfachkraft sprechen",
+    "dashboardTitle": "Hotline",
+    "disclaimer": "Unsere Fachkräfte beraten zur Ernährung. Das ist keine Notfallversorgung — rufen Sie bei Dringlichkeit den Notruf.",
+    "noSchedule": "Im Moment ist niemand auf der Linie.",
+    "offline": "Keine Verbindung",
+    "open": "Jetzt auf der Linie: {{count}}",
+    "opensAt": "Öffnet {{when}}",
+    "reasonLabel": "Worum geht es?",
+    "reasonPlaceholder": "Ein Satz genügt",
+    "requestFailed": "Die Linie war nicht erreichbar. Bitte erneut versuchen.",
+    "title": "Hotline",
+    "waitEstimate": "Antwort meist innerhalb von {{minutes}} Min.",
+    "waitHint": "Sie können die App schliessen — wir benachrichtigen Sie.",
+    "waiting": "Wir suchen eine Fachkraft"
   }
 }

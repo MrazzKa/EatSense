@@ -258,6 +258,24 @@ export function useNotificationActions() {
 
         const type = data.type as string | undefined;
 
+        if (type === 'hotline_accepted') {
+            const conversationId = data.conversationId as string | undefined;
+            if (conversationId && navigationCallback) {
+                navigationCallback('Chat', { conversationId });
+            } else if (navigationCallback) {
+                // No id means an older payload; the hotline screen still knows
+                // where the request went.
+                navigationCallback('Hotline');
+            }
+            return;
+        }
+
+        if (type === 'hotline_request') {
+            // Experts read the queue in the portal, not in the app; opening the
+            // hotline screen here would show them the client side of it.
+            return;
+        }
+
         if (type === 'new_message') {
             const conversationId = data.conversationId as string | undefined;
             if (!conversationId) {

@@ -3,7 +3,9 @@ import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
+  IsIn,
   IsInt,
+  IsNumber,
   IsObject,
   IsOptional,
   IsString,
@@ -14,6 +16,8 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  BODY_VIEWBOX,
+  BODY_VIEWS,
   MAX_NOTE_LENGTH,
   MAX_ZONES_PER_REPORT,
   SEVERITY_MAX,
@@ -36,6 +40,31 @@ export class SymptomEntryDto {
   @Min(SEVERITY_MIN)
   @Max(SEVERITY_MAX)
   severity!: number;
+
+  @ApiPropertyOptional({
+    example: 104.5,
+    description: `Where the user tapped, 0..${BODY_VIEWBOX.width} in the silhouette's own space.`,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(BODY_VIEWBOX.width)
+  x?: number;
+
+  @ApiPropertyOptional({
+    example: 152.5,
+    description: `Where the user tapped, 0..${BODY_VIEWBOX.height} in the silhouette's own space.`,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(BODY_VIEWBOX.height)
+  y?: number;
+
+  @ApiPropertyOptional({ enum: BODY_VIEWS, description: 'Which silhouette the point was placed on.' })
+  @IsOptional()
+  @IsIn(BODY_VIEWS as unknown as string[])
+  view?: string;
 
   @ApiPropertyOptional({
     example: { onset: 'days', frequency: 'daily', character: 'burning', related_food: 'yes' },

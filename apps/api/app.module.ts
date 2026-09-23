@@ -50,6 +50,7 @@ import { SafetyModule } from './src/safety/safety.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { HealthMetricsModule } from './health-metrics/health-metrics.module';
 import { SymptomsModule } from './symptoms/symptoms.module';
+import { HotlineModule } from './hotline/hotline.module';
 import { SubscriptionsModule } from './src/subscriptions/subscriptions.module';
 import { PharmacyModule } from './src/pharmacy/pharmacy.module';
 import { CommunityModule } from './src/community/community.module';
@@ -137,6 +138,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
     DashboardModule,
     HealthMetricsModule,
     SymptomsModule,
+    HotlineModule,
     SubscriptionsModule,
     PharmacyModule,
     CommunityModule,

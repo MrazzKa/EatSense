@@ -1543,6 +1543,34 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </Animated.View>
 
+        {/* 2c. Hotline — the same card shape again: one tap from the day. */}
+        <Animated.View
+          style={[
+            styles.aiAssistantContainer,
+            {
+              opacity: cardAnimations.suggested,
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.aiAssistantButton}
+            onPress={() => navigation.navigate('Hotline')}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+          >
+            <View style={[styles.aiAssistantIcon, styles.hotlineIcon]}>
+              <Ionicons name="call" size={22} color={colors.onPrimary || colors.inverseText} />
+            </View>
+            <View style={styles.aiAssistantContent}>
+              <Text style={styles.aiAssistantTitle}>{t('hotline.dashboardTitle')}</Text>
+              <Text style={styles.aiAssistantSubtitle}>
+                {t('hotline.dashboardSubtitle')}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+          </TouchableOpacity>
+        </Animated.View>
+
         {/* PART A: Section 5 - Nutrition section */}
         {/* TODO: replaced by Monthly PDF report */}
 
@@ -2156,6 +2184,9 @@ const createStyles = (tokens) =>
     },
     bodyMapIcon: {
       backgroundColor: tokens.colors.secondary,
+    },
+    hotlineIcon: {
+      backgroundColor: tokens.colors.success,
     },
     suggestedFoodSummaryCard: {
       borderRadius: tokens.radii.lg,

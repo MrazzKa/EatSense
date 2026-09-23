@@ -93,6 +93,9 @@ model User {
   // Body map ("what is bothering you") — self-reported symptoms by body zone
   symptomReports SymptomReport[]
 
+  // Hotline
+  hotlineRequests HotlineRequest[] @relation("HotlineClient")
+
   // GDPR data-access requests (we send the copy, the app no longer generates it)
   dataExportRequests DataExportRequest[]
 
@@ -677,6 +680,18 @@ model SymptomEntry {
   zoneId   String @map("zone_id")
   /// 1..10, as the user set the slider.
   severity Int
+  /// Exactly where the user tapped, in the silhouette's own 200x440 coordinate
+  /// space. The zone above is derived from this; the point is what the person
+  /// actually meant, and it is what lets a specialist see "here" rather than
+  /// "somewhere in the upper-right abdomen". Nullable: reports written before
+  /// points existed have a zone and nothing else.
+  x        Float?
+  y        Float?
+  /// Which silhouette the point was placed on. Not redundant with the zone:
+  /// arms, shoulders and the head can be marked from either side, and the same
+  /// x on the back is the opposite side of the body from the same x on the
+  /// front. Without it a mark made on the back would be redrawn mirrored.
+  view     String?
   /// Answers keyed by question id, e.g. { "onset": "days", "character": "burning" }.
   /// Values are catalogue ids, never free text — free text lives on the report.
   answers  Json   @default("{}")
@@ -968,6 +983,13 @@ model ExpertProfile {
   rejectionReason String?   @map("rejection_reason")
   adminNotes      String?   @map("admin_notes")
 
+  /// Opted in to taking hotline requests at all. Separate from having a shift:
+  /// an expert can be scheduled and still have the switch off.
+  hotlineEnabled Boolean   @default(false) @map("hotline_enabled")
+  /// Heartbeat from the portal. Presence expires on its own so a closed laptop
+  /// does not leave someone "on the line" forever.
+  hotlineOnlineUntil DateTime? @map("hotline_online_until")
+
   // Settings
   isActive      Boolean @default(true) @map("is_active")
   isPublished   Boolean @default(false) @map("is_published")
@@ -997,6 +1019,8 @@ model ExpertProfile {
   availability           ExpertAvailability[]
   availabilityExceptions AvailabilityException[]
   scheduledConsultations ScheduledConsultation[]
+  hotlineShifts          HotlineShift[]
+  hotlineRequests        HotlineRequest[]        @relation("HotlineExpert")
 
   @@index([type, isActive, isPublished])
   @@index([isVerified, isActive])
@@ -2024,6 +2048,72 @@ model ScheduledConsultation {
   @@index([clientId, startAt])
   @@index([status, startAt])
   @@map("scheduled_consultations")
+}
+
+enum HotlineRequestStatus {
+  WAITING
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+/// A recurring window during which an expert is on the hotline.
+///
+/// Mirrors ExpertAvailability rather than reusing it: consultation slots are
+/// booked in advance and a shift is "I will answer whoever shows up", and
+/// conflating the two would make it impossible to be bookable but off the line.
+model HotlineShift {
+  id          String   @id @default(cuid())
+  expertId    String   @map("expert_id")
+  weekday     Int
+  startMinute Int      @map("start_minute")
+  endMinute   Int      @map("end_minute")
+  timezone    String
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  expert ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+
+  @@index([expertId, weekday])
+  @@index([weekday, isActive])
+  @@map("hotline_shifts")
+}
+
+/// One person asking to talk to somebody now.
+///
+/// The queue is first in, first out and deliberately shallow: a request that
+/// nobody takes expires rather than sitting there implying someone is coming.
+model HotlineRequest {
+  id       String                @id @default(cuid())
+  clientId String                @map("client_id")
+  status   HotlineRequestStatus  @default(WAITING)
+  /// What the person typed when asking. Free text, never interpreted.
+  reason   String?
+  /// The body-map report this came from, when it came from one. That report is
+  /// what the expert reads before saying hello.
+  symptomReportId String?        @map("symptom_report_id")
+  locale   String?
+
+  expertId       String? @map("expert_id")
+  /// Where the conversation continues once someone takes it.
+  conversationId String? @map("conversation_id")
+
+  acceptedAt DateTime? @map("accepted_at")
+  closedAt   DateTime? @map("closed_at")
+  /// After this, nobody is coming. Set when the request is created.
+  expiresAt  DateTime  @map("expires_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  client User           @relation("HotlineClient", fields: [clientId], references: [id], onDelete: Cascade)
+  expert ExpertProfile? @relation("HotlineExpert", fields: [expertId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([clientId, status])
+  @@index([expertId, status])
+  @@map("hotline_requests")
 }
 
 /// A user asking for a copy of their personal data (GDPR Art. 15 / 20).

@@ -6,6 +6,25 @@
  * pinned here.
  */
 
+/**
+ * Waits for a condition across microtasks instead of guessing how many ticks a
+ * promise chain needs. Counting `await Promise.resolve()` calls passes on a
+ * quiet machine and fails under parallel workers, which is the worst kind of
+ * test: one that reports a problem that is not there.
+ */
+async function until(predicate: () => boolean, ticks = 100): Promise<void> {
+  for (let i = 0; i < ticks; i++) {
+    if (predicate()) return;
+    await Promise.resolve();
+  }
+  throw new Error('Condition was never met');
+}
+
+/** For asserting that something did NOT happen, which cannot be waited for. */
+async function settle(ticks = 20): Promise<void> {
+  for (let i = 0; i < ticks; i++) await Promise.resolve();
+}
+
 describe('clientLog', () => {
   let fetchMock: jest.Mock;
 
@@ -43,9 +62,8 @@ describe('clientLog', () => {
     clientLog('Nav:two', { route: 'BodyMap' });
 
     jest.advanceTimersByTime(2000);
-    await Promise.resolve();
+    await until(() => fetchMock.mock.calls.length === 1);
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
     const body = bodyOf(fetchMock.mock.calls[0]);
     expect(body.entries).toHaveLength(2);
     expect(body.entries.map((e: any) => e.stage)).toEqual(['Nav:one', 'Nav:two']);
@@ -56,7 +74,7 @@ describe('clientLog', () => {
     const { clientLog } = load();
     clientLog('App:start');
     jest.advanceTimersByTime(2000);
-    await Promise.resolve();
+    await until(() => fetchMock.mock.calls.length === 1);
 
     const entry = bodyOf(fetchMock.mock.calls[0]).entries[0];
     expect(entry.platform).toBeTruthy();
@@ -67,9 +85,8 @@ describe('clientLog', () => {
   it('sends a burst immediately instead of waiting out the timer', async () => {
     const { clientLog } = load();
     for (let i = 0; i < 20; i++) clientLog(`Burst:${i}`);
-    await Promise.resolve();
+    await until(() => fetchMock.mock.calls.length === 1);
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(bodyOf(fetchMock.mock.calls[0]).entries).toHaveLength(20);
   });
 
@@ -82,22 +99,18 @@ describe('clientLog', () => {
     const { clientLog } = load();
     clientLog('First');
     jest.advanceTimersByTime(2000);
-    await Promise.resolve();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    await until(() => fetchMock.mock.calls.length === 1);
 
     // Arrives while the first request is still open.
     clientLog('Second');
     jest.advanceTimersByTime(2000);
-    await Promise.resolve();
+    await settle();
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     release({ ok: true });
-    await Promise.resolve();
-    await Promise.resolve();
+    await settle();
     jest.advanceTimersByTime(2000);
-    await Promise.resolve();
-
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await until(() => fetchMock.mock.calls.length === 2);
     expect(bodyOf(fetchMock.mock.calls[1]).entries[0].stage).toBe('Second');
   });
 
@@ -107,8 +120,7 @@ describe('clientLog', () => {
 
     await expect(clientLog('Whatever')).resolves.toBeUndefined();
     jest.advanceTimersByTime(2000);
-    await Promise.resolve();
-    await Promise.resolve();
+    await until(() => fetchMock.mock.calls.length === 1);
     // Still alive and still queueing after a failed send.
     await expect(clientLog('After failure')).resolves.toBeUndefined();
   });
@@ -120,7 +132,7 @@ describe('clientLog', () => {
     const { clientLog } = load();
 
     for (let i = 0; i < 300; i++) clientLog(`Spam:${i}`);
-    await Promise.resolve();
+    await until(() => fetchMock.mock.calls.length === 1);
 
     // One batch left with the socket; whatever is still queued is capped.
     const sent = bodyOf(fetchMock.mock.calls[0]).entries.length;
@@ -138,9 +150,8 @@ describe('clientLog', () => {
     expect(typeof handler).toBe('function');
 
     handler('background');
-    await Promise.resolve();
+    await until(() => fetchMock.mock.calls.length === 1);
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(bodyOf(fetchMock.mock.calls[0]).entries[0].stage).toBe('Before background');
     spy.mockRestore();
   });

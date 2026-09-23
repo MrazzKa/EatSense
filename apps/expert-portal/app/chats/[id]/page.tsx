@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, CheckCheck, Languages, Lock, LockOpen, ShieldAlert, Utensils } from 'lucide-react';
+import { ArrowLeft, CheckCheck, Languages, Lock, LockOpen, ShieldAlert, Utensils, Video } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
@@ -399,6 +399,15 @@ export default function ChatPage() {
           </div>
 
           <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+            {conversation?.status === 'active' && convId && (
+              <Link
+                href={`/call/${convId}`}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--primary)] px-3 py-1.5 text-xs font-medium text-white transition"
+              >
+                <Video size={14} />
+                {t('chats', 'startVideo')}
+              </Link>
+            )}
             {conversation?.reportsShared && (
               <Link
                 href={`/clients/${convId}`}
