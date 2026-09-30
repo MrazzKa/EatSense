@@ -1,6 +1,7 @@
 export type NutritionProviderId =
   | 'usda'
-  | 'local_food';
+  | 'local_food'
+  | 'openfoodfacts';
 
 export type NutritionCategory = 'drink' | 'solid' | 'unknown';
 

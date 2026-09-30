@@ -18,7 +18,14 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import ApiService from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useI18n } from '../../app/i18n/hooks';
+import { BodyMarkField } from '../features/bodymap/BodyMarkField';
+import {
+  marksFromEntries,
+  marksToEntries,
+  useBodyMarks,
+} from '../features/bodymap/useBodyMarks';
 
 const POLL_MS = 5000;
 const MAX_REASON = 1000;
@@ -54,15 +61,21 @@ interface HotlineStatus {
  * says so and offers to book instead, rather than accepting a request that would
  * sit unanswered — an unanswered queue is worse than a closed line, because it
  * tells someone that help is coming when it is not.
+ *
+ * The body is part of asking, not a separate errand: pointing at a place is
+ * faster than describing it and survives a language the specialist does not
+ * share. Arriving from the body map, the saved record is shown as it is rather
+ * than asked for again.
  */
 export default function HotlineScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { colors } = useTheme();
+  const { user } = useAuth();
   const { t, language } = useI18n();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const symptomReportId: string | undefined = route.params?.symptomReportId;
+  const attachedReportId: string | undefined = route.params?.symptomReportId;
   const presetReason: string | undefined = route.params?.reason;
 
   const [status, setStatus] = useState<HotlineStatus | null>(null);
@@ -70,6 +83,39 @@ export default function HotlineScreen() {
   const [reason, setReason] = useState(presetReason ?? '');
   const [busy, setBusy] = useState(false);
   const handedOff = useRef(false);
+
+  const warnFull = useCallback(() => {
+    Alert.alert(
+      t('bodyMap.maxZonesTitle', 'Enough for one report'),
+      t('bodyMap.maxZonesBody', 'You can mark up to three places at a time.'),
+    );
+  }, [t]);
+
+  const body = useBodyMarks({
+    profileGender: (user as any)?.gender,
+    onLimitReached: warnFull,
+  });
+
+  // Arriving from the body map, the record is already saved; show what it says
+  // instead of asking the same question twice. A failure here is not worth an
+  // alert — the request still carries the report id.
+  useEffect(() => {
+    if (!attachedReportId) return undefined;
+    let cancelled = false;
+    ApiService.getSymptomReport(attachedReportId)
+      .then((report: any) => {
+        if (cancelled) return;
+        const marks = marksFromEntries(report?.entries, body.gender);
+        if (marks.length > 0) body.replaceMarks(marks);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // Deliberately keyed on the id alone: re-running this when the gender switch
+    // moves would overwrite whatever the user has since done on the screen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attachedReportId]);
 
   const applyStatus = useCallback((next: HotlineStatus) => {
     setStatus(next);
@@ -133,13 +179,36 @@ export default function HotlineScreen() {
     navigation.replace('Chat', { conversationId });
   }, [phase, status, navigation]);
 
+  /**
+   * Stores the marked points as a symptom report so the specialist has something
+   * to look at and the user keeps it on their timeline.
+   *
+   * Swallows its own failure on purpose. The user pressed "connect me"; refusing
+   * to put them through because a diary write failed would trade the thing they
+   * asked for against a detail they can simply say out loud.
+   */
+  const saveBody = useCallback(async () => {
+    try {
+      const report = (await ApiService.createSymptomReport({
+        entries: marksToEntries(body.marks),
+        locale: language,
+      })) as { id?: string } | null;
+      return report?.id;
+    } catch {
+      return undefined;
+    }
+  }, [body.marks, language]);
+
   const submit = useCallback(async () => {
     if (busy) return;
     setBusy(true);
     try {
+      const reportId =
+        attachedReportId || (body.marks.length > 0 ? await saveBody() : undefined);
+
       await ApiService.createHotlineRequest({
         reason: reason.trim() || undefined,
-        symptomReportId,
+        symptomReportId: reportId,
         locale: language,
       });
       Haptics.selectionAsync().catch(() => {});
@@ -152,7 +221,7 @@ export default function HotlineScreen() {
     } finally {
       setBusy(false);
     }
-  }, [busy, reason, symptomReportId, language, refresh, t]);
+  }, [busy, reason, attachedReportId, body.marks.length, saveBody, language, refresh, t]);
 
   const cancel = useCallback(async () => {
     const id = status?.request?.id;
@@ -224,14 +293,21 @@ export default function HotlineScreen() {
           : t('hotline.answeredSoon', 'Usually answered within a few minutes.')}
       </Text>
 
-      {symptomReportId ? (
-        <View style={styles.attached}>
-          <Ionicons name="body-outline" size={16} color={colors.primary} />
-          <Text style={styles.attachedText}>
-            {t('hotline.attachedReport', 'Your body map record will be attached.')}
-          </Text>
-        </View>
-      ) : null}
+      <View style={styles.card}>
+        <BodyMarkField
+          controller={body}
+          readOnly={Boolean(attachedReportId)}
+          label={t('hotline.bodyLabel', 'Where does it bother you?')}
+          hint={
+            attachedReportId
+              ? t('hotline.attachedReport', 'Your body map record will be attached.')
+              : t(
+                  'hotline.bodyHint',
+                  'Optional. Tap the body — the specialist sees this before answering.',
+                )
+          }
+        />
+      </View>
 
       <View style={styles.card}>
         <Text style={styles.cardLabel}>{t('hotline.reasonLabel', 'What is going on?')}</Text>

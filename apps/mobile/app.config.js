@@ -4,7 +4,7 @@ export default {
     name: "EatSense",
     slug: "eatsense",
     owner: "eatsense",
-    version: "2.0.74",
+    version: "2.0.75",
     orientation: "default",
     // EAS Update configuration
     updates: {
@@ -37,7 +37,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "92",
+      buildNumber: "93",
       developmentTeam: "73T7PB4F99",
       supportsTablet: false,
       infoPlist: {
@@ -85,7 +85,7 @@ export default {
 
     android: {
       package: "ch.eatsense.app",
-      versionCode: 128,
+      versionCode: 129,
       // Adaptive icon uses the purpose-built foreground (no wordmark, content
       // inside the safe zone) so Android's circular/squircle launcher masks
       // don't clip the "EatSense" text that lives in Logo.jpg. Background matches

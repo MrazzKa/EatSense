@@ -35,7 +35,7 @@ This Privacy Policy explains how the EatSense mobile application (“App”, “
 1. Who controls your data
 
 The data controller is:
-TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva
+EatSense Sàrl (en cours de fondation), Rue Vignier 8, 1205 Geneva
 Contact email: info@eatsense.ch
 
 2. What data we collect
@@ -184,7 +184,7 @@ We may update this Privacy Policy from time to time. The latest version will alw
 1. Оператор персональных данных
 
 Оператором персональных данных является:
-TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva  
+EatSense Sàrl (en cours de fondation), Rue Vignier 8, 1205 Geneva  
 Email для связи: info@eatsense.ch
 
 2. Какие данные мы собираем
@@ -331,7 +331,7 @@ Email для связи: info@eatsense.ch
 1. Деректер үшін жауапты тұлға
 
 Деректер операторы:  
-TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva  
+EatSense Sàrl (en cours de fondation), Rue Vignier 8, 1205 Geneva  
 Байланыс email: info@eatsense.ch
 
 2. Қандай деректерді жинаймыз
@@ -478,7 +478,7 @@ La présente Politique de confidentialité explique comment l’application mobi
 1. Responsable du traitement
 
 Le responsable du traitement est :
-TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Genève
+EatSense Sàrl (en cours de fondation), Rue Vignier 8, 1205 Genève
 E-mail de contact : info@eatsense.ch
 
 2. Données que nous collectons
@@ -625,7 +625,7 @@ Diese Datenschutzerklärung erläutert, wie die mobile App EatSense („App“, 
 1. Wer Ihre Daten verantwortet
 
 Verantwortlicher ist:
-TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Genf
+EatSense Sàrl (en cours de fondation), Rue Vignier 8, 1205 Genf
 Kontakt-E-Mail: info@eatsense.ch
 
 2. Welche Daten wir erheben
@@ -772,7 +772,7 @@ Esta Política de Privacidad explica cómo la aplicación móvil EatSense («la 
 1. Quién controla sus datos
 
 El responsable del tratamiento es:
-TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Ginebra
+EatSense Sàrl (en cours de fondation), Rue Vignier 8, 1205 Ginebra
 Correo de contacto: info@eatsense.ch
 
 2. Qué datos recopilamos
@@ -1000,7 +1000,7 @@ After account deletion:
 
 8. Intellectual property
 
-All rights to the App (design, texts, logos, code, databases and other elements), except user content, belong to TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva and/or its partners.
+All rights to the App (design, texts, logos, code, databases and other elements), except user content, belong to EatSense Sàrl (en cours de fondation), Rue Vignier 8, 1205 Geneva and/or its partners.
 
 You receive a limited licence to use the App under these Terms. You do not receive ownership of the App or its components.
 
@@ -1106,7 +1106,7 @@ EatSense помогает отслеживать питание, анализи�
 
 8. Интеллектуальная собственность
 
-Все права на Приложение (дизайн, логотипы, тексты, программный код, базы данных и др.), за исключением пользовательского контента, принадлежат TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva и/или нашим партнёрам.
+Все права на Приложение (дизайн, логотипы, тексты, программный код, базы данных и др.), за исключением пользовательского контента, принадлежат EatSense Sàrl (en cours de fondation), Rue Vignier 8, 1205 Geneva и/или нашим партнёрам.
 
 Вы получаете ограниченную лицензию на использование Приложения в рамках этих Условий. Права собственности на Приложение к вам не переходят.
 
@@ -1211,7 +1211,7 @@ EatSense – тамақтануды бақылауға, тағамдарды т�
 
 8. Зияткерлік меншік
 
-Пайдаланушы контентінен басқа, Қосымшаға (дизайн, логотиптер, мәтіндер, код, дерекқорлар және т.б.) барлық құқықтар TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva және/немесе біздің серіктестерімізге тиесілі.
+Пайдаланушы контентінен басқа, Қосымшаға (дизайн, логотиптер, мәтіндер, код, дерекқорлар және т.б.) барлық құқықтар EatSense Sàrl (en cours de fondation), Rue Vignier 8, 1205 Geneva және/немесе біздің серіктестерімізге тиесілі.
 
 Сізге осы Шарттарға сәйкес Қосымшаны пайдалануға шектеулі лицензия беріледі. Қосымшаның немесе оның элементтерінің меншік құқығы сізге өтпейді.
 
@@ -1315,7 +1315,7 @@ Après la suppression du compte :
 
 8. Propriété intellectuelle
 
-Tous les droits sur l’App (design, textes, logos, code, bases de données et autres éléments), à l’exception du contenu de l’utilisateur, appartiennent à TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Genève et/ou à ses partenaires.
+Tous les droits sur l’App (design, textes, logos, code, bases de données et autres éléments), à l’exception du contenu de l’utilisateur, appartiennent à EatSense Sàrl (en cours de fondation), Rue Vignier 8, 1205 Genève et/ou à ses partenaires.
 
 Vous recevez une licence limitée d’utilisation de l’App selon ces Conditions. Vous n’acquérez pas la propriété de l’App ni de ses composants.
 
@@ -1419,7 +1419,7 @@ Nach der Kontolöschung:
 
 8. Geistiges Eigentum
 
-Alle Rechte an der App (Design, Texte, Logos, Code, Datenbanken und andere Elemente), mit Ausnahme der Nutzerinhalte, gehören TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Genf und/oder ihren Partnern.
+Alle Rechte an der App (Design, Texte, Logos, Code, Datenbanken und andere Elemente), mit Ausnahme der Nutzerinhalte, gehören EatSense Sàrl (en cours de fondation), Rue Vignier 8, 1205 Genf und/oder ihren Partnern.
 
 Sie erhalten eine begrenzte Lizenz zur Nutzung der App gemäß diesen Bedingungen. Sie erwerben kein Eigentum an der App oder ihren Komponenten.
 
@@ -1523,7 +1523,7 @@ Tras la eliminación de la cuenta:
 
 8. Propiedad intelectual
 
-Todos los derechos sobre la App (diseño, textos, logotipos, código, bases de datos y otros elementos), excepto el contenido del usuario, pertenecen a TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Ginebra y/o sus socios.
+Todos los derechos sobre la App (diseño, textos, logotipos, código, bases de datos y otros elementos), excepto el contenido del usuario, pertenecen a EatSense Sàrl (en cours de fondation), Rue Vignier 8, 1205 Ginebra y/o sus socios.
 
 Usted recibe una licencia limitada para usar la App conforme a estos Términos. No adquiere la propiedad de la App ni de sus componentes.
 

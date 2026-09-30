@@ -1105,6 +1105,12 @@ export default function DashboardScreen() {
 
   const [showDescribeFoodModal, setShowDescribeFoodModal] = useState(false);
 
+  /** A barcode is another way of naming the food, so it belongs with the others. */
+  const handleBarcodePress = () => {
+    setShowModal(false);
+    navigation.navigate('BarcodeScan');
+  };
+
   const handleDescribeFood = () => {
     console.log('[Dashboard] Opening Describe Food modal');
     setShowModal(false);
@@ -1657,6 +1663,20 @@ export default function DashboardScreen() {
               <Text style={styles.addFoodModalButtonTitle}>{t('dashboard.addFood.gallery.title')}</Text>
               <Text style={styles.addFoodModalButtonSubtitle}>
                 {t('dashboard.addFood.gallery.description')}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.addFoodModalButton}
+              onPress={handleBarcodePress}
+              accessibilityRole="button"
+            >
+              <View style={styles.addFoodModalButtonIcon}>
+                <Ionicons name="barcode-outline" size={32} color={colors.primary} />
+              </View>
+              <Text style={styles.addFoodModalButtonTitle}>{t('dashboard.addFood.barcode.title')}</Text>
+              <Text style={styles.addFoodModalButtonSubtitle}>
+                {t('dashboard.addFood.barcode.description')}
               </Text>
             </TouchableOpacity>
 

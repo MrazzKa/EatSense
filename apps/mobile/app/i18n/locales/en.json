@@ -642,6 +642,10 @@
       "manual": {
         "title": "Enter manually",
         "description": "Add a meal without a photo or upload lab results"
+      },
+      "barcode": {
+        "title": "Scan a barcode",
+        "description": "Packaged food straight from its label"
       }
     },
     "manualAnalysis": {
@@ -5318,6 +5322,36 @@
     "title": "Hotline",
     "waitEstimate": "Usually answered within {{minutes}} min",
     "waitHint": "You can close the app — we will notify you.",
-    "waiting": "Looking for a specialist"
+    "waiting": "Looking for a specialist",
+    "bodyLabel": "Where does it bother you?",
+    "bodyHint": "Optional. Tap the body — the specialist sees this before answering."
+  },
+  "barcode": {
+    "title": "Scan a product",
+    "hint": "Point the camera at the barcode on the package.",
+    "permission": "Allow camera access to scan a barcode.",
+    "looking": "Looking up the product…",
+    "lookupFailed": "Could not read that code. Try again.",
+    "notFoundTitle": "Not in the database",
+    "notFoundBody": "Nobody has added this product yet. You can photograph the food instead — that works for anything.",
+    "photoInstead": "Photograph it instead",
+    "scanAgain": "Scan another",
+    "noNutritionBody": "This product is known, but its label has not been filled in. Type what it says and it will be saved with your entry.",
+    "per100": "Per 100 g",
+    "portionTitle": "How much?",
+    "portionInvalid": "Enter a weight in grams.",
+    "oneServing": "1 serving ({{grams}} g)",
+    "factsTitle": "Nutrition facts",
+    "factsMissing": "Fill in at least the calories before saving.",
+    "fatShort": "F",
+    "nutriScore": "Nutri-Score {{grade}}",
+    "nova": "NOVA {{group}}",
+    "allergens": "Allergens on the label",
+    "additives": "Additives",
+    "addToDiary": "Add to diary",
+    "saveFailed": "Could not save. Check your connection and try again.",
+    "source": "Label data from Open Food Facts, contributed by volunteers.",
+    "dashboardTitle": "Scan a barcode",
+    "dashboardSubtitle": "Packaged food straight from the label"
   }
 }

@@ -37,7 +37,6 @@ function setup(overrides: Partial<React.ComponentProps<typeof BodySilhouette>> =
   const onTapBody = jest.fn();
   const utils = render(
     <BodySilhouette
-      view="front"
       gender="male"
       marks={[]}
       onTapBody={onTapBody}
@@ -97,6 +96,13 @@ describe('BodySilhouette', () => {
     const circles = UNSAFE_getAllByType(require('react-native-svg').Circle);
     const fills = circles.map((c: any) => c.props.fill);
     expect(fills).toContain(palette.extreme);
+  });
+
+  it('draws the body and nothing else, so a mark reads as a point', () => {
+    // The specialist asked for points only: a shaded zone under the pin is the
+    // thing being ruled out here, and it would show up as a second <Path>.
+    const { UNSAFE_getAllByType } = setup({ marks: [mark(), mark({ id: 'm2', x: 80, y: 300 })] });
+    expect(UNSAFE_getAllByType(require('react-native-svg').Path)).toHaveLength(1);
   });
 
   it('switches silhouette when the gender changes', () => {

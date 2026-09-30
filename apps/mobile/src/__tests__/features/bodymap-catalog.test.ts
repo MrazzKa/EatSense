@@ -14,7 +14,6 @@ import {
   genderFromProfile,
   isOnBody,
   markableZones,
-  zoneShape,
   questionsForZone,
   severityBand,
   viewForZone,
@@ -239,49 +238,6 @@ describe('silhouette geometry', () => {
       expect(polygon[0][0]).toBe(100);
       expect(polygon[polygon.length - 1][0]).toBe(100);
     }
-  });
-
-  it('traces every zone as a shape that stays on the body', () => {
-    for (const gender of GENDERS) {
-      for (const view of VIEWS) {
-        for (const zoneId of markableZones(view)) {
-          const polygons = zoneShape(view, gender, zoneId);
-          expect(polygons.length).toBeGreaterThan(0);
-          for (const polygon of polygons) {
-            expect(polygon.length).toBeGreaterThanOrEqual(4);
-            for (const [x, y] of polygon) {
-              // Every vertex came from a point the lookup assigned to this zone,
-              // so a vertex off the body would mean the trace and the tap
-              // disagree — which is the bug the old rectangle highlight was.
-              expect(isOnBody(gender, x, y)).toBe(true);
-            }
-          }
-        }
-      }
-    }
-  });
-
-  it('keeps a traced zone inside its own hit regions', () => {
-    for (const view of VIEWS) {
-      for (const zoneId of markableZones(view)) {
-        const regions = HIT_REGIONS[view].filter((r) => r.zoneId === zoneId);
-        for (const polygon of zoneShape(view, 'male', zoneId)) {
-          for (const [x, y] of polygon) {
-            const inSome = regions.some((r) => x >= r.x0 && x <= r.x1 && y >= r.y0 && y <= r.y1);
-            expect(inSome).toBe(true);
-          }
-        }
-      }
-    }
-  });
-
-  it('separates the two legs instead of spanning the gap between them', () => {
-    const right = zoneShape('front', 'male', 'leg_right');
-    const left = zoneShape('front', 'male', 'leg_left');
-    const maxX = Math.max(...right.flat().map(([x]) => x));
-    const minX = Math.min(...left.flat().map(([x]) => x));
-    expect(maxX).toBeLessThanOrEqual(100);
-    expect(minX).toBeGreaterThanOrEqual(100);
   });
 
   it('knows which view to flip to for a zone', () => {

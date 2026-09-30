@@ -74,6 +74,7 @@ const SubscriptionScreen = withSuspense(React.lazy(() => import('./src/screens/S
 const MealHistoryScreen = withSuspense(React.lazy(() => import('./src/screens/MealHistoryScreen')));
 const DiaryJournalScreen = withSuspense(React.lazy(() => import('./src/screens/DiaryJournalScreen')));
 const FridgeScanScreen = withSuspense(React.lazy(() => import('./src/screens/FridgeScanScreen')));
+const BarcodeScanScreen = withSuspense(React.lazy(() => import('./src/screens/BarcodeScanScreen')));
 const FridgeHistoryScreen = withSuspense(React.lazy(() => import('./src/screens/FridgeHistoryScreen')));
 const HealthSyncScreen = withSuspense(React.lazy(() => import('./src/screens/HealthSyncScreen')));
 const BodyMapScreen = withSuspense(React.lazy(() => import('./src/screens/BodyMapScreen')));
@@ -346,6 +347,14 @@ function AppContent() {
               <Stack.Screen
                 name="FridgeScan"
                 component={FridgeScanScreen}
+                options={{
+                  presentation: 'card',
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="BarcodeScan"
+                component={BarcodeScanScreen}
                 options={{
                   presentation: 'card',
                   headerShown: false,

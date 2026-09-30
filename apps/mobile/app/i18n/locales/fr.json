@@ -735,7 +735,11 @@
         "title": "Saisie manuelle"
       },
       "subtitle": "Choisissez comment ajouter votre repas",
-      "title": "Ajouter un repas"
+      "title": "Ajouter un repas",
+      "barcode": {
+        "title": "Scanner un code-barres",
+        "description": "Les produits emballés directement depuis l’étiquette"
+      }
     },
     "aiAssistant": "Assistant IA",
     "aiAssistantSubtitle": "Obtenez des conseils nutritionnels personnalisés",
@@ -5283,6 +5287,36 @@
     "title": "Ligne directe",
     "waitEstimate": "Réponse généralement sous {{minutes}} min",
     "waitHint": "Vous pouvez fermer l’application — nous vous préviendrons.",
-    "waiting": "Recherche d’un spécialiste"
+    "waiting": "Recherche d’un spécialiste",
+    "bodyLabel": "Où avez-vous mal ?",
+    "bodyHint": "Facultatif. Touchez le corps — le spécialiste le voit avant de répondre."
+  },
+  "barcode": {
+    "title": "Scanner un produit",
+    "hint": "Dirigez la caméra vers le code-barres sur l’emballage.",
+    "permission": "Autorisez l’accès à la caméra pour scanner un code-barres.",
+    "looking": "Recherche du produit…",
+    "lookupFailed": "Impossible de lire ce code. Réessayez.",
+    "notFoundTitle": "Absent de la base",
+    "notFoundBody": "Personne n’a encore ajouté ce produit. Vous pouvez photographier l’aliment à la place — cela fonctionne avec tout.",
+    "photoInstead": "Photographier plutôt",
+    "scanAgain": "Scanner un autre",
+    "noNutritionBody": "Le produit est connu, mais son étiquette n’a pas été remplie. Saisissez ce qui y figure : ce sera enregistré avec votre entrée.",
+    "per100": "Pour 100 g",
+    "portionTitle": "Quelle quantité ?",
+    "portionInvalid": "Indiquez un poids en grammes.",
+    "oneServing": "1 portion ({{grams}} g)",
+    "factsTitle": "Valeurs nutritionnelles",
+    "factsMissing": "Renseignez au moins les calories avant d’enregistrer.",
+    "fatShort": "L",
+    "nutriScore": "Nutri-Score {{grade}}",
+    "nova": "NOVA {{group}}",
+    "allergens": "Allergènes sur l’étiquette",
+    "additives": "Additifs",
+    "addToDiary": "Ajouter au journal",
+    "saveFailed": "Enregistrement impossible. Vérifiez votre connexion et réessayez.",
+    "source": "Données d’étiquettes d’Open Food Facts, renseignées par des bénévoles.",
+    "dashboardTitle": "Scanner un code-barres",
+    "dashboardSubtitle": "Les produits emballés directement depuis l’étiquette"
   }
 }

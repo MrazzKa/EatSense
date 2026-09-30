@@ -68,7 +68,9 @@ describe('NutritionOrchestrator', () => {
       const result = validateResult(oilResult, context);
 
       expect(result.isValid).toBe(false);
-      expect(result.reason).toContain('category_mismatch');
+      // The rejection is named after the rule that caught it, and 884 kcal is
+      // over the ceiling for a vegetable long before anything looks at the name.
+      expect(result.reason).toContain('vegetable_kcal_too_high');
     });
 
     it('should accept oil match when query contains oil', () => {
@@ -131,7 +133,9 @@ describe('NutritionOrchestrator', () => {
       const result = validateResult(mealResult, context);
 
       expect(result.isValid).toBe(false);
-      expect(result.reason).toContain('category_mismatch');
+      // A single ingredient must not resolve to a composed branded dish that
+      // merely contains it.
+      expect(result.reason).toContain('branded_compound_mismatch');
     });
   });
 

@@ -1002,7 +1002,11 @@
         "title": "Manuell eingeben"
       },
       "subtitle": "Wählen Sie, wie Sie Ihre Mahlzeit hinzufügen möchten",
-      "title": "Essen hinzufügen"
+      "title": "Essen hinzufügen",
+      "barcode": {
+        "title": "Barcode scannen",
+        "description": "Verpacktes Essen direkt vom Etikett"
+      }
     },
     "aiAssistant": "KI-Assistent",
     "aiAssistantSubtitle": "Erhalten Sie personalisierte Ernährungsberatung",
@@ -5317,6 +5321,36 @@
     "title": "Hotline",
     "waitEstimate": "Antwort meist innerhalb von {{minutes}} Min.",
     "waitHint": "Sie können die App schliessen — wir benachrichtigen Sie.",
-    "waiting": "Wir suchen eine Fachkraft"
+    "waiting": "Wir suchen eine Fachkraft",
+    "bodyLabel": "Wo tut es weh?",
+    "bodyHint": "Optional. Tippen Sie auf den Körper — die Fachkraft sieht das vor der Antwort."
+  },
+  "barcode": {
+    "title": "Produkt scannen",
+    "hint": "Richten Sie die Kamera auf den Barcode auf der Packung.",
+    "permission": "Erlauben Sie den Kamerazugriff, um einen Barcode zu scannen.",
+    "looking": "Produkt wird gesucht…",
+    "lookupFailed": "Der Code liess sich nicht lesen. Versuchen Sie es erneut.",
+    "notFoundTitle": "Nicht in der Datenbank",
+    "notFoundBody": "Dieses Produkt hat noch niemand eingetragen. Sie können das Essen stattdessen fotografieren — das funktioniert mit allem.",
+    "photoInstead": "Stattdessen fotografieren",
+    "scanAgain": "Weiteres scannen",
+    "noNutritionBody": "Das Produkt ist bekannt, aber seine Etikettendaten fehlen. Tippen Sie ein, was darauf steht — es wird mit Ihrem Eintrag gespeichert.",
+    "per100": "Pro 100 g",
+    "portionTitle": "Wie viel?",
+    "portionInvalid": "Geben Sie ein Gewicht in Gramm an.",
+    "oneServing": "1 Portion ({{grams}} g)",
+    "factsTitle": "Nährwerte",
+    "factsMissing": "Füllen Sie vor dem Speichern mindestens die Kalorien aus.",
+    "fatShort": "F",
+    "nutriScore": "Nutri-Score {{grade}}",
+    "nova": "NOVA {{group}}",
+    "allergens": "Allergene auf dem Etikett",
+    "additives": "Zusatzstoffe",
+    "addToDiary": "Zum Tagebuch hinzufügen",
+    "saveFailed": "Speichern nicht möglich. Prüfen Sie die Verbindung und versuchen Sie es erneut.",
+    "source": "Etikettendaten von Open Food Facts, beigetragen von Freiwilligen.",
+    "dashboardTitle": "Barcode scannen",
+    "dashboardSubtitle": "Verpacktes Essen direkt vom Etikett"
   }
 }

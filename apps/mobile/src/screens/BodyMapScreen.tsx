@@ -24,7 +24,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { BodySilhouette } from '../features/bodymap/BodySilhouette';
-import type { BodyMark, SilhouettePalette } from '../features/bodymap/BodySilhouette';
+import type { SilhouettePalette } from '../features/bodymap/BodySilhouette';
 import { SEVERITY_COLORS, severityColor } from '../features/bodymap/severity';
 import type { BodyView, Gender, Question } from '../features/bodymap/catalog';
 import {
@@ -34,15 +34,17 @@ import {
   RED_FLAGS,
   SEVERITY_MAX,
   SEVERITY_MIN,
-  defaultPointForZone,
-  genderFromProfile,
   markableZones,
   questionsForZone,
   severityBand,
-  viewForZone,
-  zoneAt,
   zoneNameKey,
 } from '../features/bodymap/catalog';
+import {
+  marksFromEntries,
+  marksToEntries,
+  useBodyMarks,
+} from '../features/bodymap/useBodyMarks';
+import type { SymptomEntry } from '../features/bodymap/useBodyMarks';
 
 /**
  * "What is bothering you" — the body map.
@@ -60,24 +62,11 @@ import {
 
 type Step = 'pick' | 'detail' | 'check' | 'saved';
 
-interface Mark extends BodyMark {
-  /** Which silhouette the point was placed on. */
-  view: BodyView;
-  answers: Record<string, string>;
-}
-
 interface HistoryReport {
   id: string;
   reportedAt: string;
   maxSeverity: number;
-  entries: {
-    zoneId: string;
-    severity: number;
-    answers?: Record<string, string> | null;
-    x?: number | null;
-    y?: number | null;
-    view?: string | null;
-  }[];
+  entries: SymptomEntry[];
 }
 
 /**
@@ -86,12 +75,6 @@ interface HistoryReport {
  * scrolling — hunting for a leg by scrolling makes the map feel broken.
  */
 const PICK_STEP_CHROME = 360;
-
-/** Tapping within this many viewBox units of a pin removes it. */
-const PIN_TOUCH_RADIUS = 14;
-
-let markCounter = 0;
-const nextMarkId = () => `mark-${++markCounter}`;
 
 /**
  * Whatever `useI18n` hands back, rather than a hand-written signature — i18next's
@@ -199,12 +182,6 @@ export default function BodyMapScreen() {
   const scrollRef = useRef<ScrollView>(null);
 
   const [step, setStep] = useState<Step>('pick');
-  const [view, setView] = useState<BodyView>('front');
-  // Seeded from the profile so most people never touch the switch, but still a
-  // switch: the profile can be wrong, empty, or simply not how someone wants to
-  // be drawn.
-  const [gender, setGender] = useState<Gender>(() => genderFromProfile((user as any)?.gender));
-  const [marks, setMarks] = useState<Mark[]>([]);
   const [detailIndex, setDetailIndex] = useState(0);
   const [redFlags, setRedFlags] = useState<string[]>([]);
   const [note, setNote] = useState('');
@@ -213,8 +190,35 @@ export default function BodyMapScreen() {
   const [zonePickerOpen, setZonePickerOpen] = useState(false);
   const [savedReportId, setSavedReportId] = useState<string | null>(null);
 
+  const warnFull = useCallback(() => {
+    Alert.alert(
+      t('bodyMap.maxZonesTitle', 'Enough for one report'),
+      t('bodyMap.maxZonesBody', 'You can mark up to three places at a time.'),
+    );
+  }, [t]);
+
+  // The gender switch is seeded from the profile so most people never touch it,
+  // but stays a switch: the profile can be wrong, empty, or simply not how
+  // someone wants to be drawn.
+  const {
+    view,
+    setView,
+    gender,
+    setGender,
+    marks,
+    visibleMarks,
+    tapBody,
+    addZone,
+    removeMark,
+    setSeverity,
+    setAnswer,
+    replaceMarks,
+  } = useBodyMarks({
+    profileGender: (user as any)?.gender,
+    onLimitReached: warnFull,
+  });
+
   const emergency = redFlags.length > 0;
-  const visibleMarks = useMemo(() => marks.filter((m) => m.view === view), [marks, view]);
 
   /** Fit the whole body on screen, but never smaller than a thumb can aim at. */
   const silhouetteWidth = useMemo(() => {
@@ -256,98 +260,6 @@ export default function BodyMapScreen() {
 
   const zoneLabel = useCallback((zoneId: string) => t(zoneNameKey(zoneId), zoneId), [t]);
 
-  const warnFull = useCallback(() => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
-    Alert.alert(
-      t('bodyMap.maxZonesTitle', 'Enough for one report'),
-      t('bodyMap.maxZonesBody', 'You can mark up to three places at a time.'),
-    );
-  }, [t]);
-
-  const removeMark = useCallback((markId: string) => {
-    Haptics.selectionAsync().catch(() => {});
-    setMarks((prev) => prev.filter((m) => m.id !== markId));
-  }, []);
-
-  /**
-   * A tap on the silhouette.
-   *
-   * Near an existing pin it removes that pin — same gesture, nothing extra to
-   * learn. Off the body it does nothing at all: a mark floating beside the
-   * figure would be meaningless, and an error message for missing a leg would
-   * just be nagging.
-   *
-   * Note the side effects sit out here and the state updater stays pure. Alerts
-   * and haptics inside a setState updater fire twice the moment React
-   * double-invokes it, which it is entitled to do.
-   */
-  const handleTapBody = useCallback(
-    (x: number, y: number) => {
-      const hit = marks.find(
-        (m) => m.view === view && Math.hypot(m.x - x, m.y - y) <= PIN_TOUCH_RADIUS,
-      );
-      if (hit) {
-        removeMark(hit.id);
-        return;
-      }
-
-      const zoneId = zoneAt(view, gender, x, y);
-      if (!zoneId) return;
-
-      if (marks.length >= MAX_POINTS_PER_REPORT) {
-        warnFull();
-        return;
-      }
-
-      Haptics.selectionAsync().catch(() => {});
-      // Middle of the scale: a default of 1 or 10 would bias what people report.
-      setMarks((prev) => [
-        ...prev,
-        { id: nextMarkId(), zoneId, view, x, y, severity: 5, answers: {} },
-      ]);
-    },
-    [marks, view, gender, removeMark, warnFull],
-  );
-
-  /**
-   * The list route into the same thing — for screen readers, which cannot aim at
-   * a drawing, and for anyone who would simply rather pick a name.
-   */
-  const addMarkForZone = useCallback(
-    (zoneId: string) => {
-      setZonePickerOpen(false);
-      if (marks.length >= MAX_POINTS_PER_REPORT) {
-        warnFull();
-        return;
-      }
-      const point = defaultPointForZone(view, gender, zoneId);
-      if (!point) return;
-      Haptics.selectionAsync().catch(() => {});
-      setMarks((prev) => [
-        ...prev,
-        { id: nextMarkId(), zoneId, view, x: point.x, y: point.y, severity: 5, answers: {} },
-      ]);
-    },
-    [marks.length, view, gender, warnFull],
-  );
-
-  const setSeverity = useCallback((markId: string, severity: number) => {
-    setMarks((prev) => prev.map((m) => (m.id === markId ? { ...m, severity } : m)));
-  }, []);
-
-  const setAnswer = useCallback((markId: string, questionId: string, answerId: string) => {
-    setMarks((prev) =>
-      prev.map((m) => {
-        if (m.id !== markId) return m;
-        // Tapping the selected chip again clears it — every question is optional.
-        const answers = { ...m.answers };
-        if (answers[questionId] === answerId) delete answers[questionId];
-        else answers[questionId] = answerId;
-        return { ...m, answers };
-      }),
-    );
-  }, []);
-
   const toggleRedFlag = useCallback((flagId: string) => {
     setRedFlags((prev) =>
       prev.includes(flagId) ? prev.filter((f) => f !== flagId) : [...prev, flagId],
@@ -357,32 +269,12 @@ export default function BodyMapScreen() {
   /** Re-open a past report as a starting point — repeat complaints repeat. */
   const repeatReport = useCallback(
     (report: HistoryReport) => {
-      const next: Mark[] = [];
-      for (const entry of (report.entries || []).slice(0, MAX_POINTS_PER_REPORT)) {
-        const entryView: BodyView = entry.view === 'back' ? 'back' : viewForZone(entry.zoneId);
-        // Reports written before points existed carry only a zone, so the mark
-        // is placed at a sensible spot inside it rather than dropped.
-        const point =
-          typeof entry.x === 'number' && typeof entry.y === 'number'
-            ? { x: entry.x, y: entry.y }
-            : defaultPointForZone(entryView, gender, entry.zoneId);
-        if (!point) continue;
-        next.push({
-          id: nextMarkId(),
-          zoneId: entry.zoneId,
-          view: entryView,
-          x: point.x,
-          y: point.y,
-          severity: entry.severity,
-          answers: { ...(entry.answers || {}) },
-        });
-      }
+      const next = marksFromEntries(report.entries, gender);
       if (next.length === 0) return;
       Haptics.selectionAsync().catch(() => {});
-      setMarks(next);
-      setView(next[0].view);
+      replaceMarks(next);
     },
-    [gender],
+    [gender, replaceMarks],
   );
 
   const confirmDeleteReport = useCallback(
@@ -420,16 +312,7 @@ export default function BodyMapScreen() {
     setSaving(true);
     try {
       const report = (await ApiService.createSymptomReport({
-        entries: marks.map((mark) => ({
-          zoneId: mark.zoneId,
-          severity: mark.severity,
-          answers: mark.answers,
-          // Rounded: sub-unit precision on a 200-wide body is noise, and whole
-          // tenths stay readable in the admin panel.
-          x: Math.round(mark.x * 10) / 10,
-          y: Math.round(mark.y * 10) / 10,
-          view: mark.view,
-        })),
+        entries: marksToEntries(marks),
         redFlags,
         note: note.trim() || undefined,
         locale: language,
@@ -509,10 +392,9 @@ export default function BodyMapScreen() {
       </View>
 
       <BodySilhouette
-        view={view}
         gender={gender}
         marks={visibleMarks}
-        onTapBody={handleTapBody}
+        onTapBody={tapBody}
         palette={silhouettePalette}
         width={silhouetteWidth}
         accessibilityLabel={t(
@@ -886,7 +768,7 @@ export default function BodyMapScreen() {
               <TouchableOpacity
                 key={zoneId}
                 style={styles.zoneRow}
-                onPress={() => addMarkForZone(zoneId)}
+                onPress={() => { setZonePickerOpen(false); addZone(zoneId); }}
                 accessibilityRole="button"
                 activeOpacity={0.7}
               >

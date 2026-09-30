@@ -877,6 +877,11 @@ class ApiService {
     return this.request(`/symptoms/reports?${params.toString()}`);
   }
 
+  /** One report, with its entries — used to show a record that is already saved. */
+  async getSymptomReport(id: string) {
+    return this.request(`/symptoms/reports/${encodeURIComponent(id)}`);
+  }
+
   async deleteSymptomReport(id: string) {
     return this.request(`/symptoms/reports/${encodeURIComponent(id)}`, { method: 'DELETE' });
   }
@@ -1143,6 +1148,19 @@ class ApiService {
       console.error('[ApiService] getMeals error:', error);
       return [];
     }
+  }
+
+  /**
+   * A packaged product by its barcode.
+   *
+   * Three outcomes, and the caller has to tell them apart: `found` carries the
+   * label, `no_nutrition` means the product is known but nobody has filled its
+   * label in, and `not_found` means the database has never seen this code. A 400
+   * means the digits were not a barcode at all.
+   */
+  async lookupBarcode(code: string, locale?: string) {
+    const query = locale ? `?locale=${encodeURIComponent(locale)}` : '';
+    return this.request(`/food/barcode/${encodeURIComponent(code)}${query}`);
   }
 
   async createMeal(mealData: any) {

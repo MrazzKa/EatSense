@@ -4,10 +4,10 @@
  * so the geometry can be looked at without building and installing the app.
  *
  * This exists because the silhouette is the one part of the feature whose bugs
- * are invisible to tests and type checks: a zone can be inside the viewBox, have
- * a translation, fire its onPress and still look like a pile of rectangles or
- * sprout an ellipse where a shoulder should be. Those are only findable by
- * looking, and looking used to mean a 20-minute build.
+ * are invisible to tests and type checks: the outline can be inside the viewBox,
+ * be translated, report taps correctly and still look like a pile of rectangles
+ * or sprout a seam where the neck should be. Those are only findable by looking,
+ * and looking used to mean a 20-minute build.
  *
  * Run: node scripts/render-bodymap.js [outDir]
  * Then open the two SVGs, or rasterise them:
@@ -36,38 +36,16 @@ const PALETTE = {
   extreme: '#EF4444',
 };
 
-/** A plausible in-use state, so pins and area highlights are visible too. */
+/** A plausible in-use state, so the pins are visible too. */
 const SAMPLE = {
   front: [
     { zoneId: 'abdomen_epigastrium', x: 103, y: 152, severity: 7 },
-    { zoneId: 'shoulder_right', x: 48, y: 101, severity: 3 },
+    { zoneId: 'shoulder_right', x: 54, y: 101, severity: 3 },
   ],
   back: [{ zoneId: 'back_lower', x: 96, y: 210, severity: 9 }],
 };
 
 const band = (s) => (s <= 3 ? 'mild' : s <= 5 ? 'moderate' : s <= 8 ? 'severe' : 'extreme');
-
-/** Opacity of the area highlight in the app. */
-const HIGHLIGHT_ALPHA = 0.22;
-
-/**
- * Pre-blends a colour against the body fill and emits an opaque hex.
- *
- * The app uses fill-opacity, which is correct; ImageMagick's built-in SVG
- * renderer honours neither `opacity` nor `fill-opacity`, so a faithful preview
- * has to do the blending itself. Without this the highlight previews as a solid
- * slab and the preview lies about what ships — which is the whole reason this
- * script exists.
- */
-function blend(hex, alpha, ontoHex) {
-  const parse = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
-  const [r, g, b] = parse(hex);
-  const [br, bg, bb] = parse(ontoHex);
-  const mix = (c, bc) => Math.round(c * alpha + bc * (1 - alpha));
-  return `#${[mix(r, br), mix(g, bg), mix(b, bb)]
-    .map((v) => v.toString(16).padStart(2, '0'))
-    .join('')}`;
-}
 
 function readCatalog() {
   if (!fs.existsSync(CATALOG)) {
@@ -75,12 +53,6 @@ function readCatalog() {
     process.exit(1);
   }
   const src = fs.readFileSync(CATALOG, 'utf8');
-
-  // Head ellipses.
-  const heads = {};
-  for (const m of src.matchAll(/(male|female):\s*\{\s*cx:\s*(\d+),\s*cy:\s*(\d+),\s*rx:\s*(\d+),\s*ry:\s*(\d+)\s*\}/g)) {
-    heads[m[1]] = { cx: +m[2], cy: +m[3], rx: +m[4], ry: +m[5] };
-  }
 
   // Half outlines, one block per gender.
   const halfSrc = src.slice(src.indexOf('const HALF_OUTLINE'), src.indexOf('function closedOutline'));
@@ -107,7 +79,7 @@ function readCatalog() {
     }
   }
 
-  return { heads, halves, regions };
+  return { halves, regions };
 }
 
 const mirror = (pts) => pts.map(([x, y]) => [200 - x, y]).reverse();
@@ -145,56 +117,7 @@ function zoneAt(view, x, y, polygon) {
   return null;
 }
 
-function traceZone(view, zoneId, polygon) {
-  const rs = regions[view].filter((r) => r.zoneId === zoneId);
-  if (rs.length === 0) return [];
-  const minX = Math.min(...rs.map((r) => r.x0));
-  const maxX = Math.max(...rs.map((r) => r.x1));
-  const minY = Math.min(...rs.map((r) => r.y0));
-  const maxY = Math.max(...rs.map((r) => r.y1));
-
-  const lines = [];
-  for (let y = minY; y <= maxY; y += 2) {
-    const spans = [];
-    let start = null;
-    let last = minX;
-    for (let x = minX; x <= maxX; x += 1) {
-      const hit = zoneAt(view, x, y, polygon) === zoneId;
-      if (hit) {
-        if (start === null) start = x;
-        last = x;
-      } else if (start !== null) {
-        if (last - start >= 2) spans.push({ x0: start, x1: last });
-        start = null;
-      }
-    }
-    if (start !== null && last - start >= 2) spans.push({ x0: start, x1: last });
-    if (spans.length) lines.push({ y, spans });
-  }
-
-  const finished = [];
-  let open = [];
-  const close = (st) => { if (st.left.length >= 2) finished.push([...st.left, ...[...st.right].reverse()]); };
-  for (const line of lines) {
-    const carried = [];
-    for (const span of line.spans) {
-      const st = open.find((c) => span.x0 <= c.last.x1 && span.x1 >= c.last.x0);
-      if (st && !carried.includes(st)) {
-        st.left.push([span.x0, line.y]); st.right.push([span.x1, line.y]); st.last = span; carried.push(st);
-      } else {
-        carried.push({ left: [[span.x0, line.y]], right: [[span.x1, line.y]], last: span });
-      }
-    }
-    for (const st of open) if (!carried.includes(st)) close(st);
-    open = carried;
-  }
-  for (const st of open) close(st);
-  return finished;
-}
-
-const toPath = (poly) => `M ${poly.map(([x, y]) => `${x},${y}`).join(' L ')} Z`;
-
-const { heads, halves, regions } = readCatalog();
+const { halves, regions } = readCatalog();
 if (!halves.male || halves.male.length === 0 || regions.front.length === 0) {
   console.error('\u2717 Parsed nothing useful — the catalogue format changed, update this script.');
   process.exit(1);
@@ -208,13 +131,6 @@ for (const gender of ['male', 'female']) {
     const marks = SAMPLE[view];
 
     const polygon = [...halves[gender], ...mirror(halves[gender])];
-    const highlights = marks
-      .map((m) =>
-        traceZone(view, m.zoneId, polygon)
-          .map((poly) => `<path d="${toPath(poly)}" fill="${blend(PALETTE[band(m.severity)], HIGHLIGHT_ALPHA, PALETTE.body)}"/>`)
-          .join(''),
-      )
-      .join('');
     const pins = marks
       .map(
         (m) =>
@@ -226,12 +142,18 @@ for (const gender of ['male', 'female']) {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 440" width="300" height="660">
 <rect width="200" height="440" fill="${PALETTE.page}"/>
 <path d="${outline}" fill="${PALETTE.body}" stroke="${PALETTE.outline}" stroke-width="1.5"/>
-<g>${highlights}</g>
 ${pins}
 </svg>`;
 
     const file = path.join(outDir, `body-${gender}-${view}.svg`);
     fs.writeFileSync(file, svg);
-    console.log(`\u2713 ${gender.padEnd(6)} ${view.padEnd(5)} ${marks.length} mark(s) \u2192 ${file}`);
+
+    // A pin that resolves to a different zone than it was authored for means the
+    // outline and the hit regions have drifted apart.
+    const misplaced = marks.filter((m) => zoneAt(view, m.x, m.y, polygon) !== m.zoneId);
+    console.log(`\u2713 ${gender.padEnd(6)} ${view.padEnd(5)} ${marks.length} pin(s) \u2192 ${file}`);
+    for (const m of misplaced) {
+      console.log(`  \u2717 pin at ${m.x},${m.y} reads as ${zoneAt(view, m.x, m.y, polygon)}, not ${m.zoneId}`);
+    }
   }
 }

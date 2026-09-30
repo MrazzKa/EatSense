@@ -630,7 +630,11 @@
         "title": "Añadir manualmente"
       },
       "subtitle": "Elige cómo deseas añadir tu comida",
-      "title": "Agregar comida"
+      "title": "Agregar comida",
+      "barcode": {
+        "title": "Escanear un código de barras",
+        "description": "Comida envasada directamente de su etiqueta"
+      }
     },
     "aiAssistant": "Asistente IA",
     "aiAssistantSubtitle": "Obtén consejos nutricionales personalizados",
@@ -5283,6 +5287,36 @@
     "title": "Línea directa",
     "waitEstimate": "Suelen responder en {{minutes}} min",
     "waitHint": "Puedes cerrar la app — te avisaremos.",
-    "waiting": "Buscando un especialista"
+    "waiting": "Buscando un especialista",
+    "bodyLabel": "¿Dónde te molesta?",
+    "bodyHint": "Opcional. Toca el cuerpo: el especialista lo ve antes de responder."
+  },
+  "barcode": {
+    "title": "Escanear un producto",
+    "hint": "Apunta la cámara al código de barras del envase.",
+    "permission": "Permite el acceso a la cámara para escanear un código de barras.",
+    "looking": "Buscando el producto…",
+    "lookupFailed": "No se pudo leer ese código. Inténtalo de nuevo.",
+    "notFoundTitle": "No está en la base de datos",
+    "notFoundBody": "Nadie ha añadido este producto todavía. Puedes fotografiar la comida en su lugar: eso funciona con cualquiera.",
+    "photoInstead": "Fotografiar en su lugar",
+    "scanAgain": "Escanear otro",
+    "noNutritionBody": "El producto se conoce, pero su etiqueta no está rellenada. Escribe lo que dice y se guardará con tu entrada.",
+    "per100": "Por 100 g",
+    "portionTitle": "¿Cuánto?",
+    "portionInvalid": "Indica un peso en gramos.",
+    "oneServing": "1 porción ({{grams}} g)",
+    "factsTitle": "Información nutricional",
+    "factsMissing": "Rellena al menos las calorías antes de guardar.",
+    "fatShort": "G",
+    "nutriScore": "Nutri-Score {{grade}}",
+    "nova": "NOVA {{group}}",
+    "allergens": "Alérgenos en la etiqueta",
+    "additives": "Aditivos",
+    "addToDiary": "Añadir al diario",
+    "saveFailed": "No se pudo guardar. Comprueba tu conexión e inténtalo de nuevo.",
+    "source": "Datos de etiquetas de Open Food Facts, aportados por voluntarios.",
+    "dashboardTitle": "Escanear un código de barras",
+    "dashboardSubtitle": "Comida envasada directamente de la etiqueta"
   }
 }
