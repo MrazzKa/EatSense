@@ -270,6 +270,12 @@ export function useNotificationActions() {
             return;
         }
 
+        if (type === 'hotline_expired') {
+            // The screen explains that nobody was free and offers to try again.
+            navigationCallback?.('Hotline');
+            return;
+        }
+
         if (type === 'hotline_request') {
             // Experts read the queue in the portal, not in the app; opening the
             // hotline screen here would show them the client side of it.

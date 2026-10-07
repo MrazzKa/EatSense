@@ -5156,7 +5156,6 @@
     "checkSubtitle": "Markieren Sie, was zutrifft. Wenn nichts zutrifft, fahren Sie einfach fort.",
     "emergencyTitle": "Das gehört zu einem Menschen, nicht in eine App",
     "emergencyBody": "Was Sie markiert haben, kann dringend sein. Rufen Sie den Notruf oder fahren Sie in die Notaufnahme. Den Eintrag speichern wir trotzdem.",
-    "emergencyNumber": "112",
     "emergencyCall": "{{number}} anrufen",
     "noteLabel": "Möchten Sie noch etwas festhalten?",
     "notePlaceholder": "Optional — in Ihren eigenen Worten",
@@ -5323,7 +5322,9 @@
     "waitHint": "Sie können die App schliessen — wir benachrichtigen Sie.",
     "waiting": "Wir suchen eine Fachkraft",
     "bodyLabel": "Wo tut es weh?",
-    "bodyHint": "Optional. Tippen Sie auf den Körper — die Fachkraft sieht das vor der Antwort."
+    "bodyHint": "Optional. Tippen Sie auf den Körper — die Fachkraft sieht das vor der Antwort.",
+    "emergencyBody": "Was Sie angegeben haben, kann dringend sein, und unsere Fachpersonen beraten nur zur Ernährung. Rufen Sie jetzt den Notruf an.",
+    "expiredNotice": "Für Ihre letzte Anfrage war niemand rechtzeitig frei. Sie können es erneut versuchen oder eine Beratung buchen."
   },
   "barcode": {
     "title": "Produkt scannen",

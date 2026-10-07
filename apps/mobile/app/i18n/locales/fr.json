@@ -5122,7 +5122,6 @@
     "checkSubtitle": "Cochez ce qui s’applique. Si rien ne s’applique, continuez simplement.",
     "emergencyTitle": "Cela demande une personne, pas une application",
     "emergencyBody": "Ce que vous avez coché peut être urgent. Appelez les secours ou rendez-vous aux urgences maintenant. Nous enregistrerons quand même cette entrée.",
-    "emergencyNumber": "112",
     "emergencyCall": "Appeler le {{number}}",
     "noteLabel": "Souhaitez-vous ajouter autre chose ?",
     "notePlaceholder": "Facultatif — avec vos propres mots",
@@ -5289,7 +5288,9 @@
     "waitHint": "Vous pouvez fermer l’application — nous vous préviendrons.",
     "waiting": "Recherche d’un spécialiste",
     "bodyLabel": "Où avez-vous mal ?",
-    "bodyHint": "Facultatif. Touchez le corps — le spécialiste le voit avant de répondre."
+    "bodyHint": "Facultatif. Touchez le corps — le spécialiste le voit avant de répondre.",
+    "emergencyBody": "Ce que vous avez signalé peut être urgent, et nos spécialistes conseillent uniquement sur la nutrition. Appelez les urgences maintenant.",
+    "expiredNotice": "Personne n’a pu répondre à temps à votre dernière demande. Vous pouvez réessayer ou réserver une consultation."
   },
   "barcode": {
     "title": "Scanner un produit",

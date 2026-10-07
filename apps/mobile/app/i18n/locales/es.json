@@ -5122,7 +5122,6 @@
     "checkSubtitle": "Marca lo que corresponda. Si no corresponde nada, simplemente continúa.",
     "emergencyTitle": "Esto necesita a una persona, no una aplicación",
     "emergencyBody": "Lo que has marcado puede ser urgente. Llama a emergencias o acude a urgencias ahora. De todos modos guardaremos este registro.",
-    "emergencyNumber": "112",
     "emergencyCall": "Llamar al {{number}}",
     "noteLabel": "¿Quieres añadir algo más?",
     "notePlaceholder": "Opcional — con tus palabras",
@@ -5289,7 +5288,9 @@
     "waitHint": "Puedes cerrar la app — te avisaremos.",
     "waiting": "Buscando un especialista",
     "bodyLabel": "¿Dónde te molesta?",
-    "bodyHint": "Opcional. Toca el cuerpo: el especialista lo ve antes de responder."
+    "bodyHint": "Opcional. Toca el cuerpo: el especialista lo ve antes de responder.",
+    "emergencyBody": "Lo que has indicado puede ser urgente, y nuestros especialistas solo asesoran sobre nutrición. Llama ahora a emergencias.",
+    "expiredNotice": "Nadie pudo atender a tiempo tu última solicitud. Puedes intentarlo de nuevo o reservar una consulta."
   },
   "barcode": {
     "title": "Escanear un producto",

@@ -8,7 +8,6 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
-  Linking,
   Modal,
   KeyboardAvoidingView,
   Platform,
@@ -26,6 +25,11 @@ import { useI18n } from '../../app/i18n/hooks';
 import { BodySilhouette } from '../features/bodymap/BodySilhouette';
 import type { SilhouettePalette } from '../features/bodymap/BodySilhouette';
 import { SEVERITY_COLORS, severityColor } from '../features/bodymap/severity';
+import {
+  callEmergency,
+  deviceEmergencyNumber,
+  emergencyCallLabel,
+} from '../features/bodymap/emergency';
 import type { BodyView, Gender, Question } from '../features/bodymap/catalog';
 import {
   BODY_VIEWBOX,
@@ -331,10 +335,10 @@ export default function BodyMapScreen() {
     }
   }, [marks, redFlags, note, language, saving, t]);
 
-  const callEmergency = useCallback(() => {
-    const number = t('bodyMap.emergencyNumber', '112');
-    Linking.openURL(`tel:${number}`).catch(() => {});
-  }, [t]);
+  const emergencyNumber = useMemo(deviceEmergencyNumber, []);
+  const dialEmergency = useCallback(() => {
+    if (emergencyNumber) callEmergency(emergencyNumber);
+  }, [emergencyNumber]);
 
   // ---------------------------------------------------------------- steps ---
 
@@ -558,20 +562,17 @@ export default function BodyMapScreen() {
                 'What you ticked can be urgent. Call emergency services or go to A&E now. We will still save this report for you.',
               )}
             </Text>
-            <TouchableOpacity
-              style={styles.emergencyBtn}
-              onPress={callEmergency}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-            >
-              <Ionicons name="call" size={16} color={colors.onPrimary} />
-              <Text style={styles.emergencyBtnText}>
-                {t('bodyMap.emergencyCall', 'Call {{number}}').replace(
-                  '{{number}}',
-                  t('bodyMap.emergencyNumber', '112'),
-                )}
-              </Text>
-            </TouchableOpacity>
+            {emergencyNumber ? (
+              <TouchableOpacity
+                style={styles.emergencyBtn}
+                onPress={dialEmergency}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+              >
+                <Ionicons name="call" size={16} color={colors.onPrimary} />
+                <Text style={styles.emergencyBtnText}>{emergencyCallLabel(t, emergencyNumber)}</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
         </View>
       )}
@@ -614,22 +615,43 @@ export default function BodyMapScreen() {
           'It now sits on the same timeline as your meals, medication and lab results.',
         )}
       </Text>
-      <TouchableOpacity
-        style={[styles.primaryBtn, styles.savedPrimary]}
-        onPress={() =>
-          navigation.replace('Hotline', {
-            symptomReportId: savedReportId ?? undefined,
-            reason: note.trim() || undefined,
-          })
-        }
-        activeOpacity={0.85}
-        accessibilityRole="button"
-      >
-        <Ionicons name="chatbubbles-outline" size={18} color={colors.onPrimary} />
-        <Text style={styles.primaryBtnText}>
-          {t('bodyMap.showSpecialist', 'Show this to a specialist')}
-        </Text>
-      </TouchableOpacity>
+      {emergency ? (
+        // An emergency is never offered the hotline: the people on it advise on
+        // nutrition, and a chat queue is the wrong place to spend the next minutes.
+        <>
+          <Text style={styles.savedEmergencyText} accessibilityRole="alert">
+            {t('bodyMap.emergencyTitle', 'This needs a person, not an app')}
+          </Text>
+          {emergencyNumber ? (
+            <TouchableOpacity
+              style={[styles.primaryBtn, styles.savedPrimary, styles.savedEmergency]}
+              onPress={dialEmergency}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+            >
+              <Ionicons name="call" size={18} color={colors.onPrimary} />
+              <Text style={styles.primaryBtnText}>{emergencyCallLabel(t, emergencyNumber)}</Text>
+            </TouchableOpacity>
+          ) : null}
+        </>
+      ) : (
+        <TouchableOpacity
+          style={[styles.primaryBtn, styles.savedPrimary]}
+          onPress={() =>
+            navigation.replace('Hotline', {
+              symptomReportId: savedReportId ?? undefined,
+              reason: note.trim() || undefined,
+            })
+          }
+          activeOpacity={0.85}
+          accessibilityRole="button"
+        >
+          <Ionicons name="chatbubbles-outline" size={18} color={colors.onPrimary} />
+          <Text style={styles.primaryBtnText}>
+            {t('bodyMap.showSpecialist', 'Show this to a specialist')}
+          </Text>
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity
         style={styles.savedSecondary}
@@ -963,6 +985,14 @@ const createStyles = (colors: any) =>
     },
     savedTitle: { fontSize: 20, fontWeight: '800', color: colors.textPrimary, marginBottom: 8 },
     savedPrimary: { flexDirection: 'row', gap: 9, alignSelf: 'stretch' },
+    savedEmergency: { backgroundColor: colors.error },
+    savedEmergencyText: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.error,
+      textAlign: 'center',
+      marginBottom: 14,
+    },
     savedSecondary: { marginTop: 12, paddingVertical: 12, alignSelf: 'stretch', alignItems: 'center' },
     savedSecondaryText: { fontSize: 15, fontWeight: '600', color: colors.textSecondary },
     savedBody: {

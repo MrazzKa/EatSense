@@ -2,6 +2,14 @@ import type { ArgumentsHost} from '@nestjs/common';
 import { Catch, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
 
+/**
+ * Application error codes are SCREAMING_SNAKE with at least one underscore
+ * (OTP_EXPIRED, PROMO_NOT_FOUND). Requiring that shape keeps driver and runtime
+ * codes — Prisma's P2002, Node's ECONNREFUSED — from reaching a client if an
+ * internal error is ever wrapped in an HttpException.
+ */
+const APP_ERROR_CODE = /^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+$/;
+
 @Catch()
 export class AllExceptionsFilter extends BaseExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
@@ -21,9 +29,13 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
     let message: any = 'Internal server error';
+    let code: string | undefined;
     if (exception instanceof HttpException) {
       const response = exception.getResponse();
       message = typeof response === 'string' ? response : (response as any)?.message || response;
+      // Clients branch on a stable code, never on message text, which is free to change.
+      const rawCode = typeof response === 'object' ? (response as any)?.code : undefined;
+      if (typeof rawCode === 'string' && APP_ERROR_CODE.test(rawCode)) code = rawCode;
     } else if (exception?.type === 'entity.too.large' || status === 413) {
       message = 'Request payload is too large';
     } else if (exception?.message && status < 500) {
@@ -46,6 +58,7 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
       path: sanitizedPath,
       message: Array.isArray(message) ? message : [message],
     };
+    if (code) errorResponse.code = code;
 
     if (!isProduction && exception.stack) {
       errorResponse.error = exception.message;

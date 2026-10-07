@@ -5157,7 +5157,6 @@
     "checkSubtitle": "Tick anything that applies. If nothing does, just continue.",
     "emergencyTitle": "This needs a person, not an app",
     "emergencyBody": "What you ticked can be urgent. Call emergency services or go to A&E now. We will still save this report for you.",
-    "emergencyNumber": "112",
     "emergencyCall": "Call {{number}}",
     "noteLabel": "Anything else worth writing down?",
     "notePlaceholder": "Optional — in your own words",
@@ -5324,7 +5323,9 @@
     "waitHint": "You can close the app — we will notify you.",
     "waiting": "Looking for a specialist",
     "bodyLabel": "Where does it bother you?",
-    "bodyHint": "Optional. Tap the body — the specialist sees this before answering."
+    "bodyHint": "Optional. Tap the body — the specialist sees this before answering.",
+    "emergencyBody": "What you reported can be urgent, and our specialists advise on nutrition only. Call emergency services now.",
+    "expiredNotice": "Nobody was free in time for your last request. You can try again or book a consultation."
   },
   "barcode": {
     "title": "Scan a product",

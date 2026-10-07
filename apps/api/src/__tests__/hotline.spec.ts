@@ -1,6 +1,11 @@
 /// <reference types="jest" />
 
-import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { HotlineService } from '../../hotline/hotline.service';
 import { HotlineAvailabilityService } from '../../hotline/hotline-availability.service';
 import { coversNow, localMoment, minutesUntil, isValidTimezone } from '../../hotline/hotline-time';
@@ -77,13 +82,22 @@ function makePrisma(overrides: any = {}) {
       create: jest.fn(async (args: any) => ({ id: 'req_1', ...args.data })),
       update: jest.fn(async (args: any) => ({ id: args.where.id, ...args.data })),
       updateMany: jest.fn(async () => ({ count: 1 })),
-      findUniqueOrThrow: jest.fn(async () => ({ id: 'req_1', clientId: 'user_1' })),
+      findUnique: jest.fn(async () => null),
+      findUniqueOrThrow: jest.fn(async () => ({ id: 'req_1', clientId: 'user_1', locale: 'ru' })),
     },
-    symptomReport: { findFirst: jest.fn(async () => ({ id: 'rep_1' })) },
-    conversation: { upsert: jest.fn(async () => ({ id: 'conv_1' })) },
-    $transaction: jest.fn(async (ops: any[]) => Promise.all(ops)),
+    symptomReport: { findFirst: jest.fn(async () => ({ id: 'rep_1', redFlagged: false })) },
+    conversation: {
+      upsert: jest.fn(async () => ({ id: 'conv_1' })),
+      findMany: jest.fn(async () => []),
+    },
+    userBlock: { findFirst: jest.fn(async () => null) },
   };
-  return Object.assign(base, overrides);
+  // Both forms Prisma accepts: a batch of queries, or an interactive callback
+  // that receives the client itself.
+  const $transaction = jest.fn(async (arg: any) =>
+    typeof arg === 'function' ? arg(base) : Promise.all(arg),
+  );
+  return Object.assign(base, { $transaction }, overrides);
 }
 
 function makeService(prisma: any, onDuty: string[] = ['expert_1']) {
@@ -255,6 +269,9 @@ describe('HotlineService', () => {
 
   it('expires stale requests whenever the queue is read', async () => {
     const prisma = makePrisma();
+    prisma.hotlineRequest.findMany = jest.fn(async () => [
+      { id: 'req_old', clientId: 'user_2', locale: 'de' },
+    ]);
     const { service } = makeService(prisma);
 
     await service.statusFor('user_1');
@@ -262,7 +279,356 @@ describe('HotlineService', () => {
       (call: any[]) => call[0].data.status === 'EXPIRED',
     );
     expect(expiring).toBeTruthy();
-    expect(expiring[0].where.status).toBe('WAITING');
+    // Guarded per row, so an overlapping sweep cannot expire it twice.
+    expect(expiring[0].where).toEqual({ id: 'req_old', status: 'WAITING' });
+  });
+
+  it('tells the person, in their language, when nobody took their request', async () => {
+    const prisma = makePrisma();
+    prisma.hotlineRequest.findMany = jest.fn(async () => [
+      { id: 'req_old', clientId: 'user_2', locale: 'de' },
+    ]);
+    const { service, notifications } = makeService(prisma);
+
+    expect(await service.expireStale()).toBe(1);
+    await settle();
+
+    const [userId, , body, data] = notifications.sendPushNotification.mock.calls[0];
+    expect(userId).toBe('user_2');
+    expect(body).toMatch(/Niemand/);
+    expect(data).toMatchObject({ type: 'hotline_expired' });
+  });
+
+  it('notifies once when two sweeps race for the same expired request', async () => {
+    const prisma = makePrisma();
+    prisma.hotlineRequest.findMany = jest.fn(async () => [
+      { id: 'req_old', clientId: 'user_2', locale: null },
+    ]);
+    prisma.hotlineRequest.updateMany = jest.fn(async () => ({ count: 0 }));
+    const { service, notifications } = makeService(prisma);
+
+    expect(await service.expireStale()).toBe(0);
+    await settle();
+    expect(notifications.sendPushNotification).not.toHaveBeenCalled();
+  });
+
+  it('says so when the last request ran out unanswered', async () => {
+    const prisma = makePrisma();
+    prisma.hotlineRequest.findFirst = jest.fn(async (args: any) =>
+      args.where.status === 'EXPIRED' ? { id: 'req_old' } : null,
+    );
+    const { service } = makeService(prisma);
+
+    expect((await service.statusFor('user_1')).recentlyExpired).toBe(true);
+  });
+
+  it('closes a taken request only once its conversation has gone quiet', async () => {
+    const prisma = makePrisma();
+    prisma.hotlineRequest.findMany = jest.fn(async () => [
+      { id: 'req_quiet', conversationId: 'conv_quiet' },
+      { id: 'req_talking', conversationId: 'conv_talking' },
+      { id: 'req_no_chat', conversationId: null },
+    ]);
+    prisma.conversation.findMany = jest.fn(async () => [{ id: 'conv_talking' }]);
+    const { service } = makeService(prisma);
+
+    expect(await service.closeAbandoned()).toBe(2);
+
+    const conversationQuery = prisma.conversation.findMany.mock.calls[0][0];
+    expect(conversationQuery.where.lastMessageAt.gte.getTime()).toBeLessThan(Date.now());
+    const closedIds = prisma.hotlineRequest.updateMany.mock.calls.map((call: any[]) => call[0].where.id);
+    expect(closedIds).toEqual(['req_quiet', 'req_no_chat']);
+    for (const call of prisma.hotlineRequest.updateMany.mock.calls) {
+      // Conditional, so a request finished by the expert meanwhile is left alone.
+      expect(call[0].where.status).toBe('ACCEPTED');
+      expect(call[0].data.status).toBe('COMPLETED');
+    }
+  });
+
+  it('never touches the conversation itself when closing a request', async () => {
+    const prisma = makePrisma();
+    prisma.hotlineRequest.findMany = jest.fn(async () => [{ id: 'req_quiet', conversationId: 'conv_1' }]);
+    (prisma.conversation as any).update = jest.fn();
+    (prisma.conversation as any).updateMany = jest.fn();
+    const { service } = makeService(prisma);
+
+    await service.closeAbandoned();
+    expect((prisma.conversation as any).update).not.toHaveBeenCalled();
+    expect((prisma.conversation as any).updateMany).not.toHaveBeenCalled();
+  });
+
+  it('sends an emergency to emergency care, not into the queue', async () => {
+    const prisma = makePrisma();
+    prisma.symptomReport.findFirst = jest.fn(async () => ({ id: 'rep_1', redFlagged: true }));
+    const { service } = makeService(prisma);
+
+    const attempt = service.create('user_1', { symptomReportId: 'rep_1' } as any);
+    await expect(attempt).rejects.toBeInstanceOf(UnprocessableEntityException);
+    await expect(attempt).rejects.toMatchObject({
+      response: { code: 'HOTLINE_RED_FLAGGED' },
+    });
+    expect(prisma.hotlineRequest.create).not.toHaveBeenCalled();
+  });
+
+  it('keeps the requester anonymous in the queue', async () => {
+    const prisma = makePrisma();
+    const { service } = makeService(prisma);
+
+    await service.queueFor('expert_user');
+    const waitingQuery = prisma.hotlineRequest.findMany.mock.calls.find(
+      (call: any[]) => call[0].where.status === 'WAITING' && call[0].orderBy,
+    );
+    expect(waitingQuery[0].select.client).toBeUndefined();
+  });
+
+  it('does not leave a request taken when the conversation cannot be opened', async () => {
+    const prisma = makePrisma();
+    prisma.conversation.upsert = jest.fn(async () => {
+      throw new Error('db down');
+    });
+    const { service, notifications } = makeService(prisma);
+
+    await expect(service.accept('expert_user', 'req_1')).rejects.toThrow('db down');
+    // The flip happened inside the same transaction, so it rolls back with it.
+    expect(prisma.$transaction).toHaveBeenCalledWith(expect.any(Function));
+    await settle();
+    expect(notifications.sendPushNotification).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * A row store that behaves like Postgres for the one property the sweep relies
+ * on: a conditional UPDATE re-checks its WHERE against the committed row, so of
+ * two overlapping updates only one sees status = WAITING.
+ */
+function makeRowStore(rows: { id: string; clientId: string; locale: string | null; status: string }[]) {
+  const prisma = makePrisma();
+  prisma.hotlineRequest.findMany = jest.fn(async () =>
+    rows.filter((row) => row.status === 'WAITING').map(({ id, clientId, locale }) => ({ id, clientId, locale })),
+  );
+  prisma.hotlineRequest.updateMany = jest.fn(async (args: any) => {
+    // Yield first, so both sweeps have read the same rows before either writes.
+    await Promise.resolve();
+    const row = rows.find((r) => r.id === args.where.id && r.status === args.where.status);
+    if (!row) return { count: 0 };
+    row.status = args.data.status;
+    return { count: 1 };
+  });
+  return prisma;
+}
+
+describe('HotlineService under concurrent sweeps', () => {
+  it('expires and notifies each request exactly once when two instances sweep together', async () => {
+    const rows = [
+      { id: 'req_a', clientId: 'user_a', locale: 'en', status: 'WAITING' },
+      { id: 'req_b', clientId: 'user_b', locale: 'fr', status: 'WAITING' },
+    ];
+    const prisma = makeRowStore(rows);
+    const { service, notifications } = makeService(prisma);
+
+    const [first, second] = await Promise.all([service.expireStale(), service.expireStale()]);
+    await settle();
+
+    expect(first + second).toBe(2);
+    expect(rows.every((row) => row.status === 'EXPIRED')).toBe(true);
+    const notified = notifications.sendPushNotification.mock.calls.map((call) => call[0]).sort();
+    expect(notified).toEqual(['user_a', 'user_b']);
+  });
+
+  it('does nothing on a re-run after a restart', async () => {
+    const rows = [{ id: 'req_a', clientId: 'user_a', locale: null, status: 'EXPIRED' }];
+    const prisma = makeRowStore(rows);
+    const { service, notifications } = makeService(prisma);
+
+    expect(await service.expireStale()).toBe(0);
+    await settle();
+    expect(notifications.sendPushNotification).not.toHaveBeenCalled();
+  });
+});
+
+describe('HotlineService handover', () => {
+  it('leaves the request takeable again after a failed handover', async () => {
+    const prisma = makePrisma();
+    prisma.conversation.upsert = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('db down'))
+      .mockResolvedValueOnce({ id: 'conv_1' });
+    const { service } = makeService(prisma);
+
+    await expect(service.accept('expert_user', 'req_1')).rejects.toThrow('db down');
+    // Second attempt runs the same guarded flip; with the first rolled back it wins.
+    await expect(service.accept('expert_user', 'req_1')).resolves.toMatchObject({
+      conversationId: 'conv_1',
+    });
+  });
+
+  it('returns no client identity to the expert who took the request', async () => {
+    const prisma = makePrisma();
+    const { service } = makeService(prisma);
+
+    const result = await service.accept('expert_user', 'req_1');
+    expect(result).not.toHaveProperty('clientId');
+    expect(result).not.toHaveProperty('locale');
+  });
+
+  it('refuses a request from someone who blocked the expert, inside the transaction', async () => {
+    const prisma = makePrisma();
+    prisma.userBlock.findFirst = jest.fn(async () => ({ id: 'block_1' }));
+    const { service, notifications } = makeService(prisma);
+
+    await expect(service.accept('expert_user', 'req_1')).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.conversation.upsert).not.toHaveBeenCalled();
+    await settle();
+    expect(notifications.sendPushNotification).not.toHaveBeenCalled();
+  });
+
+  it('checks the block in both directions', async () => {
+    const prisma = makePrisma();
+    const { service } = makeService(prisma);
+
+    await service.accept('expert_user', 'req_1');
+    expect(prisma.userBlock.findFirst.mock.calls[0][0].where.OR).toEqual([
+      { blockerId: 'user_1', blockedId: 'expert_user' },
+      { blockerId: 'expert_user', blockedId: 'user_1' },
+    ]);
+  });
+
+  it('hides requests across a block from the queue', async () => {
+    const prisma = makePrisma();
+    const { service } = makeService(prisma);
+
+    await service.queueFor('expert_user');
+    const waitingQuery = prisma.hotlineRequest.findMany.mock.calls.find(
+      (call: any[]) => call[0].where.status === 'WAITING' && call[0].orderBy,
+    );
+    expect(waitingQuery[0].where.client).toEqual({
+      blocksMade: { none: { blockedId: 'expert_user' } },
+      blocksReceived: { none: { blockerId: 'expert_user' } },
+    });
+  });
+});
+
+describe('HotlineService case card', () => {
+  const waiting = {
+    id: 'req_1',
+    status: 'WAITING',
+    expertId: null,
+    clientId: 'user_1',
+    symptomReportId: 'rep_1',
+    reason: null,
+    locale: 'ru',
+    createdAt: new Date(),
+    expiresAt: new Date(),
+  };
+
+  it('shows an on-duty expert the body map before they take the request', async () => {
+    const prisma = makePrisma();
+    prisma.hotlineRequest.findUnique = jest.fn(async () => waiting);
+    prisma.symptomReport.findFirst = jest.fn(async () => ({ id: 'rep_1', entries: [] }));
+    const { service } = makeService(prisma);
+
+    const card = await service.caseFor('expert_user', 'req_1');
+    expect(card.report).toEqual({ id: 'rep_1', entries: [] });
+    expect(card).not.toHaveProperty('clientId');
+    // The report is looked up under the requester, never by id alone.
+    expect(prisma.symptomReport.findFirst.mock.calls[0][0].where).toEqual({
+      id: 'rep_1',
+      userId: 'user_1',
+    });
+  });
+
+  it('hides a waiting request from an expert who is off the line', async () => {
+    const prisma = makePrisma();
+    prisma.hotlineRequest.findUnique = jest.fn(async () => waiting);
+    const { service } = makeService(prisma, []);
+
+    await expect(service.caseFor('expert_user', 'req_1')).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('shows the expert who took it the record, even off the line', async () => {
+    const prisma = makePrisma();
+    prisma.hotlineRequest.findUnique = jest.fn(async () => ({
+      ...waiting,
+      status: 'ACCEPTED',
+      expertId: 'expert_1',
+    }));
+    prisma.symptomReport.findFirst = jest.fn(async () => ({ entries: [] }));
+    const { service } = makeService(prisma, []);
+
+    await expect(service.caseFor('expert_user', 'req_1')).resolves.toMatchObject({ report: { entries: [] } });
+  });
+
+  it('closes the record once the request is finished, expired or cancelled', async () => {
+    for (const status of ['COMPLETED', 'EXPIRED', 'CANCELLED']) {
+      const prisma = makePrisma();
+      prisma.hotlineRequest.findUnique = jest.fn(async () => ({ ...waiting, status, expertId: 'expert_1' }));
+      const { service } = makeService(prisma);
+      await expect(service.caseFor('expert_user', 'req_1')).rejects.toBeInstanceOf(NotFoundException);
+    }
+  });
+
+  it('refuses an unverified expert before reading anything', async () => {
+    const prisma = makePrisma();
+    prisma.expertProfile.findUnique = jest.fn(async () => ({
+      id: 'expert_1',
+      isActive: true,
+      isPublished: true,
+      isVerified: false,
+    }));
+    const { service } = makeService(prisma);
+
+    await expect(service.caseFor('expert_user', 'req_1')).rejects.toBeInstanceOf(ForbiddenException);
+    expect(prisma.hotlineRequest.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('refuses an ordinary account with no expert profile', async () => {
+    const prisma = makePrisma();
+    prisma.expertProfile.findUnique = jest.fn(async () => null) as any;
+    const { service } = makeService(prisma);
+
+    await expect(service.caseFor('plain_user', 'req_1')).rejects.toBeInstanceOf(ForbiddenException);
+    expect(prisma.hotlineRequest.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('answers an unknown request id with 404', async () => {
+    const prisma = makePrisma();
+    const { service } = makeService(prisma);
+
+    await expect(service.caseFor('expert_user', 'nope')).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('hides the record across a block, even from an on-duty expert', async () => {
+    const prisma = makePrisma();
+    prisma.hotlineRequest.findUnique = jest.fn(async () => waiting);
+    prisma.userBlock.findFirst = jest.fn(async () => ({ id: 'block_1' }));
+    const { service } = makeService(prisma);
+
+    await expect(service.caseFor('expert_user', 'req_1')).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.symptomReport.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('returns only what the card shows', async () => {
+    const prisma = makePrisma();
+    prisma.hotlineRequest.findUnique = jest.fn(async () => waiting);
+    const { service } = makeService(prisma);
+
+    await service.caseFor('expert_user', 'req_1');
+    const select = prisma.symptomReport.findFirst.mock.calls[0][0].select;
+    expect(Object.keys(select).sort()).toEqual(['entries', 'note', 'reportedAt']);
+    expect(Object.keys(select.entries.select).sort()).toEqual(['answers', 'severity', 'zoneId']);
+  });
+
+  it('hides a taken request from everyone but the expert who took it', async () => {
+    const prisma = makePrisma();
+    prisma.hotlineRequest.findUnique = jest.fn(async () => ({
+      ...waiting,
+      status: 'ACCEPTED',
+      expertId: 'expert_other',
+    }));
+    const { service } = makeService(prisma);
+
+    await expect(service.caseFor('expert_user', 'req_1')).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.symptomReport.findFirst).not.toHaveBeenCalled();
   });
 });
 
@@ -288,6 +654,15 @@ describe('HotlineAvailabilityService', () => {
     for (const shift of bad) {
       await expect(service.replaceShifts('expert_1', [shift])).rejects.toThrow();
     }
+  });
+
+  it('never counts an unverified expert as on duty, from either source', async () => {
+    const prisma = makePrisma();
+    const service = new HotlineAvailabilityService(prisma as any);
+
+    await service.expertIdsOnDuty();
+    expect(prisma.expertProfile.findMany.mock.calls[0][0].where.isVerified).toBe(true);
+    expect(prisma.hotlineShift.findMany.mock.calls[0][0].where.expert.isVerified).toBe(true);
   });
 
   it('counts an expert on duty from a live heartbeat with no rota at all', async () => {

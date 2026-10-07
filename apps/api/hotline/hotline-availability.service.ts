@@ -19,6 +19,18 @@ interface ShiftRow {
 }
 
 /**
+ * The same bar the queue applies before letting an expert take anything. Counting
+ * anyone below it as "on duty" would show the line as open to users while nobody
+ * on it is allowed to answer.
+ */
+const ELIGIBLE_EXPERT = {
+  hotlineEnabled: true,
+  isActive: true,
+  isPublished: true,
+  isVerified: true,
+} as const;
+
+/**
  * Who is on the hotline, and whether it is open at all.
  *
  * Two independent things put an expert on the line: a recurring shift, and a
@@ -43,9 +55,7 @@ export class HotlineAvailabilityService {
     const [online, shifts] = await Promise.all([
       this.prisma.expertProfile.findMany({
         where: {
-          hotlineEnabled: true,
-          isActive: true,
-          isPublished: true,
+          ...ELIGIBLE_EXPERT,
           hotlineOnlineUntil: { gt: now },
         },
         select: { id: true },
@@ -136,7 +146,7 @@ export class HotlineAvailabilityService {
     return this.prisma.hotlineShift.findMany({
       where: {
         isActive: true,
-        expert: { hotlineEnabled: true, isActive: true, isPublished: true },
+        expert: ELIGIBLE_EXPERT,
       },
       select: {
         expertId: true,

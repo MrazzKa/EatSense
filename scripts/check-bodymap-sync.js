@@ -9,6 +9,10 @@
  * the server rejects with a 400, and the user just sees "could not save" with no
  * way to know why. That is worth twenty lines of regex to prevent.
  *
+ * The expert portal holds a third, label-only copy so a specialist can read the
+ * record attached to a hotline request. A zone missing there shows up as a raw
+ * id in front of the person who has to make sense of it, so it is checked too.
+ *
  * Run: node scripts/check-bodymap-sync.js
  */
 const fs = require('fs');
@@ -17,6 +21,7 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const APP_CATALOG = path.join(ROOT, 'apps/mobile/src/features/bodymap/catalog.ts');
 const API_CATALOG = path.join(ROOT, 'apps/api/symptoms/symptom-catalog.ts');
+const PORTAL_LABELS = path.join(ROOT, 'apps/expert-portal/lib/bodymap-labels.json');
 
 function read(file) {
   if (!fs.existsSync(file)) {
@@ -80,6 +85,31 @@ const results = [
   compare('question options', questionOptions(appSource), questionOptions(apiSource)),
   compare('emergency checklist', redFlags(appSource), redFlags(apiSource)),
 ];
+
+/** Every zone and question option the app can send must have a label in every portal locale. */
+function checkPortalLabels() {
+  const labels = JSON.parse(read(PORTAL_LABELS));
+  const zones = zoneIds(appSource);
+  const options = questionOptions(appSource);
+  let ok = true;
+  for (const [locale, set] of Object.entries(labels)) {
+    const missing = [
+      ...zones.filter((zone) => !set.zones?.[zone]),
+      ...options.filter((pair) => {
+        const [question, option] = pair.split(':');
+        return !set.questions?.[question]?.label || !set.questions[question].options?.[option];
+      }),
+    ];
+    if (missing.length) {
+      console.error(`✗ portal labels (${locale}) missing: ${missing.join(', ')}`);
+      ok = false;
+    }
+  }
+  if (ok) console.log(`✓ portal labels: ${Object.keys(labels).length} locales complete`);
+  return ok;
+}
+
+results.push(checkPortalLabels());
 
 if (zoneIds(appSource).length === 0 || ids(apiSource).length === 0) {
   console.error('✗ Parsed nothing — the catalogue format changed, update this script.');

@@ -8,6 +8,8 @@ import { useI18n } from '@/lib/i18n/context';
 import { LOCALE_TAGS } from '@/lib/i18n/format';
 import type { Locale } from '@/lib/i18n/messages';
 import { useToast } from '@/components/toast';
+import { CaseCard } from '@/components/hotline/case-card';
+import { ShiftEditor } from '@/components/hotline/shift-editor';
 import { CheckCircle2, MessageSquare, PhoneCall, PhoneOff, Users } from 'lucide-react';
 
 const POLL_MS = 6000;
@@ -22,7 +24,6 @@ interface WaitingRequest {
   locale: string | null;
   createdAt: string;
   expiresAt: string;
-  client: { id: string; email: string };
 }
 
 interface AcceptedRequest {
@@ -84,8 +85,8 @@ export default function HotlinePage() {
       setOnline(true);
       setOnlineUntil(res.onlineUntil);
       loadQueue();
-    } catch (error: any) {
-      toast(error?.message || t('common', 'error'), 'error');
+    } catch {
+      toast(t('common', 'error'), 'error');
     }
   }, [loadQueue, toast, t]);
 
@@ -113,10 +114,7 @@ export default function HotlinePage() {
         // A 409 means somebody else was faster. That is normal on a shared queue,
         // so it is reported as information rather than as a failure.
         const conflict = error?.status === 409;
-        toast(
-          conflict ? t('hotline', 'taken') : error?.message || t('common', 'error'),
-          conflict ? 'info' : 'error',
-        );
+        toast(conflict ? t('hotline', 'taken') : t('common', 'error'), conflict ? 'info' : 'error');
         loadQueue();
       } finally {
         setBusyId(null);
@@ -131,8 +129,8 @@ export default function HotlinePage() {
       try {
         await apiFetch(`/hotline/expert/queue/${id}/complete`, { method: 'POST' });
         setAccepted((prev) => prev.filter((request) => request.id !== id));
-      } catch (error: any) {
-        toast(error?.message || t('common', 'error'), 'error');
+      } catch {
+        toast(t('common', 'error'), 'error');
       } finally {
         setBusyId(null);
       }
@@ -214,6 +212,8 @@ export default function HotlinePage() {
           </div>
         </section>
 
+        <ShiftEditor />
+
         {!online ? (
           <p className="rounded-2xl border border-dashed border-[var(--border)] p-8 text-center text-sm text-[var(--text2)]">
             {t('hotline', 'notOnDuty')}
@@ -251,11 +251,7 @@ export default function HotlinePage() {
                     )}
                   </p>
 
-                  {request.symptomReportId ? (
-                    <p className="mt-2 text-xs font-medium text-[var(--primary)]">
-                      {t('hotline', 'bodyMapAttached')}
-                    </p>
-                  ) : null}
+                  {request.symptomReportId ? <CaseCard requestId={request.id} /> : null}
 
                   <button
                     type="button"
@@ -286,6 +282,7 @@ export default function HotlinePage() {
                           <span className="text-[var(--text2)]">{t('hotline', 'noReason')}</span>
                         )}
                       </p>
+                      {request.symptomReportId ? <CaseCard requestId={request.id} /> : null}
                       <div className="mt-3 flex flex-wrap gap-2">
                         {request.conversationId ? (
                           <Link

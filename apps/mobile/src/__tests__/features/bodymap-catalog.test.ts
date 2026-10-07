@@ -313,7 +313,6 @@ describe('body map translations', () => {
       'bodyMap.checkSubtitle',
       'bodyMap.emergencyTitle',
       'bodyMap.emergencyBody',
-      'bodyMap.emergencyNumber',
       'bodyMap.emergencyCall',
       'bodyMap.noteLabel',
       'bodyMap.notePlaceholder',
@@ -370,9 +369,4 @@ describe('body map translations', () => {
     }
   });
 
-  it('gives every locale a dialable emergency number', () => {
-    for (const locale of localeNames) {
-      expect(String(lookup(locale, 'bodyMap.emergencyNumber'))).toMatch(/^[0-9+][0-9\s-]*$/);
-    }
-  });
 });

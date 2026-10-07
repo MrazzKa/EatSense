@@ -1,0 +1,728 @@
+{
+  "en": {
+    "zones": {
+      "head": "Head",
+      "neck": "Neck",
+      "chest": "Chest",
+      "shoulder_right": "Right shoulder",
+      "shoulder_left": "Left shoulder",
+      "arm_right": "Right arm",
+      "arm_left": "Left arm",
+      "abdomen_hypochondrium_right": "Upper right abdomen",
+      "abdomen_epigastrium": "Upper middle abdomen",
+      "abdomen_hypochondrium_left": "Upper left abdomen",
+      "abdomen_lower": "Lower abdomen",
+      "pelvis": "Pelvis",
+      "leg_right": "Right leg",
+      "leg_left": "Left leg",
+      "neck_back": "Back of the neck",
+      "back_upper": "Upper back",
+      "flank_left": "Left flank",
+      "flank_right": "Right flank",
+      "back_lower": "Lower back",
+      "glutes": "Buttocks",
+      "leg_back_left": "Left leg (back)",
+      "leg_back_right": "Right leg (back)"
+    },
+    "questions": {
+      "onset": {
+        "label": "When did it start?",
+        "options": {
+          "today": "Today",
+          "days": "A few days ago",
+          "weeks": "A few weeks ago",
+          "months": "Months ago",
+          "recurring": "It comes and goes"
+        }
+      },
+      "frequency": {
+        "label": "How often?",
+        "options": {
+          "constant": "Constantly",
+          "daily": "Several times a day",
+          "weekly": "Several times a week",
+          "rare": "Less often"
+        }
+      },
+      "character": {
+        "label": "What does it feel like?",
+        "options": {
+          "aching": "Aching",
+          "sharp": "Sharp",
+          "burning": "Burning",
+          "pressing": "Pressing",
+          "cramping": "Cramping",
+          "throbbing": "Throbbing"
+        }
+      },
+      "worse": {
+        "label": "What makes it worse?",
+        "options": {
+          "after_eating": "After eating",
+          "empty_stomach": "On an empty stomach",
+          "movement": "When I move",
+          "rest": "At rest",
+          "night": "At night",
+          "stress": "Stress",
+          "unknown": "Not sure"
+        }
+      },
+      "relief": {
+        "label": "What helps?",
+        "options": {
+          "food": "Eating",
+          "medication": "Medication",
+          "rest": "Rest",
+          "warmth": "Warmth",
+          "nothing": "Nothing"
+        }
+      },
+      "head_trigger": {
+        "label": "What usually comes before it?",
+        "options": {
+          "sleep": "Poor sleep",
+          "hunger": "Hunger",
+          "screen": "Screen time",
+          "stress": "Stress",
+          "weather": "Weather",
+          "unknown": "Not sure"
+        }
+      },
+      "related_food": {
+        "label": "Is it linked to a particular food?",
+        "options": {
+          "yes": "Yes",
+          "no": "No",
+          "unsure": "Not sure"
+        }
+      },
+      "stool_change": {
+        "label": "Has your stool changed?",
+        "options": {
+          "none": "No change",
+          "loose": "Loose",
+          "constipation": "Constipation",
+          "alternating": "Alternating"
+        }
+      },
+      "injury": {
+        "label": "Was there an injury?",
+        "options": {
+          "yes": "Yes",
+          "no": "No"
+        }
+      }
+    },
+    "severityBands": {
+      "mild": "Mild",
+      "moderate": "Moderate",
+      "severe": "Severe",
+      "extreme": "Unbearable"
+    }
+  },
+  "ru": {
+    "zones": {
+      "head": "Голова",
+      "neck": "Шея",
+      "chest": "Грудная клетка",
+      "shoulder_right": "Правое плечо",
+      "shoulder_left": "Левое плечо",
+      "arm_right": "Правая рука",
+      "arm_left": "Левая рука",
+      "abdomen_hypochondrium_right": "Правое подреберье",
+      "abdomen_epigastrium": "Под ложечкой",
+      "abdomen_hypochondrium_left": "Левое подреберье",
+      "abdomen_lower": "Низ живота",
+      "pelvis": "Таз",
+      "leg_right": "Правая нога",
+      "leg_left": "Левая нога",
+      "neck_back": "Задняя часть шеи",
+      "back_upper": "Верх спины",
+      "flank_left": "Левый бок сзади",
+      "flank_right": "Правый бок сзади",
+      "back_lower": "Поясница",
+      "glutes": "Ягодицы",
+      "leg_back_left": "Левая нога сзади",
+      "leg_back_right": "Правая нога сзади"
+    },
+    "questions": {
+      "onset": {
+        "label": "Когда началось?",
+        "options": {
+          "today": "Сегодня",
+          "days": "Несколько дней назад",
+          "weeks": "Несколько недель назад",
+          "months": "Месяцы назад",
+          "recurring": "Бывает время от времени"
+        }
+      },
+      "frequency": {
+        "label": "Как часто?",
+        "options": {
+          "constant": "Постоянно",
+          "daily": "Несколько раз в день",
+          "weekly": "Несколько раз в неделю",
+          "rare": "Реже"
+        }
+      },
+      "character": {
+        "label": "Какая это боль?",
+        "options": {
+          "aching": "Ноющая",
+          "sharp": "Острая",
+          "burning": "Жжение",
+          "pressing": "Давящая",
+          "cramping": "Спазмами",
+          "throbbing": "Пульсирующая"
+        }
+      },
+      "worse": {
+        "label": "Что усиливает?",
+        "options": {
+          "after_eating": "После еды",
+          "empty_stomach": "Натощак",
+          "movement": "При движении",
+          "rest": "В покое",
+          "night": "Ночью",
+          "stress": "Стресс",
+          "unknown": "Не знаю"
+        }
+      },
+      "relief": {
+        "label": "Что облегчает?",
+        "options": {
+          "food": "Еда",
+          "medication": "Лекарство",
+          "rest": "Отдых",
+          "warmth": "Тепло",
+          "nothing": "Ничего"
+        }
+      },
+      "head_trigger": {
+        "label": "Что обычно этому предшествует?",
+        "options": {
+          "sleep": "Недосып",
+          "hunger": "Голод",
+          "screen": "Долго за экраном",
+          "stress": "Стресс",
+          "weather": "Погода",
+          "unknown": "Не знаю"
+        }
+      },
+      "related_food": {
+        "label": "Связано с конкретной едой?",
+        "options": {
+          "yes": "Да",
+          "no": "Нет",
+          "unsure": "Не уверен"
+        }
+      },
+      "stool_change": {
+        "label": "Изменился ли стул?",
+        "options": {
+          "none": "Без изменений",
+          "loose": "Жидкий",
+          "constipation": "Запор",
+          "alternating": "То одно, то другое"
+        }
+      },
+      "injury": {
+        "label": "Была травма?",
+        "options": {
+          "yes": "Да",
+          "no": "Нет"
+        }
+      }
+    },
+    "severityBands": {
+      "mild": "Слабая",
+      "moderate": "Умеренная",
+      "severe": "Сильная",
+      "extreme": "Невыносимая"
+    }
+  },
+  "kk": {
+    "zones": {
+      "head": "Бас",
+      "neck": "Мойын",
+      "chest": "Кеуде",
+      "shoulder_right": "Оң иық",
+      "shoulder_left": "Сол иық",
+      "arm_right": "Оң қол",
+      "arm_left": "Сол қол",
+      "abdomen_hypochondrium_right": "Оң қабырға асты",
+      "abdomen_epigastrium": "Асқазан тұсы",
+      "abdomen_hypochondrium_left": "Сол қабырға асты",
+      "abdomen_lower": "Іштің төменгі бөлігі",
+      "pelvis": "Жамбас",
+      "leg_right": "Оң аяқ",
+      "leg_left": "Сол аяқ",
+      "neck_back": "Желке",
+      "back_upper": "Арқаның жоғарғы бөлігі",
+      "flank_left": "Сол бүйір",
+      "flank_right": "Оң бүйір",
+      "back_lower": "Бел",
+      "glutes": "Бөксе",
+      "leg_back_left": "Сол аяқ (артынан)",
+      "leg_back_right": "Оң аяқ (артынан)"
+    },
+    "questions": {
+      "onset": {
+        "label": "Қашан басталды?",
+        "options": {
+          "today": "Бүгін",
+          "days": "Бірнеше күн бұрын",
+          "weeks": "Бірнеше апта бұрын",
+          "months": "Бірнеше ай бұрын",
+          "recurring": "Анда-санда болып тұрады"
+        }
+      },
+      "frequency": {
+        "label": "Қаншалықты жиі?",
+        "options": {
+          "constant": "Үнемі",
+          "daily": "Күніне бірнеше рет",
+          "weekly": "Аптасына бірнеше рет",
+          "rare": "Сирегірек"
+        }
+      },
+      "character": {
+        "label": "Ауырсыну қандай?",
+        "options": {
+          "aching": "Сыздаған",
+          "sharp": "Өткір",
+          "burning": "Күйдіретін",
+          "pressing": "Қысатын",
+          "cramping": "Түйілетін",
+          "throbbing": "Соғып тұратын"
+        }
+      },
+      "worse": {
+        "label": "Не күшейтеді?",
+        "options": {
+          "after_eating": "Тамақтан кейін",
+          "empty_stomach": "Ашқарынға",
+          "movement": "Қозғалғанда",
+          "rest": "Тыныштықта",
+          "night": "Түнде",
+          "stress": "Күйзеліс",
+          "unknown": "Білмеймін"
+        }
+      },
+      "relief": {
+        "label": "Не жеңілдетеді?",
+        "options": {
+          "food": "Тамақ",
+          "medication": "Дәрі",
+          "rest": "Демалыс",
+          "warmth": "Жылу",
+          "nothing": "Ештеңе"
+        }
+      },
+      "head_trigger": {
+        "label": "Әдетте оның алдында не болады?",
+        "options": {
+          "sleep": "Ұйқының жетіспеуі",
+          "hunger": "Аштық",
+          "screen": "Экран алдында ұзақ отыру",
+          "stress": "Күйзеліс",
+          "weather": "Ауа райы",
+          "unknown": "Білмеймін"
+        }
+      },
+      "related_food": {
+        "label": "Нақты бір тамақпен байланысты ма?",
+        "options": {
+          "yes": "Иә",
+          "no": "Жоқ",
+          "unsure": "Сенімді емеспін"
+        }
+      },
+      "stool_change": {
+        "label": "Дәрет өзгерді ме?",
+        "options": {
+          "none": "Өзгерген жоқ",
+          "loose": "Сұйық",
+          "constipation": "Іш қату",
+          "alternating": "Кезектесіп"
+        }
+      },
+      "injury": {
+        "label": "Жарақат болды ма?",
+        "options": {
+          "yes": "Иә",
+          "no": "Жоқ"
+        }
+      }
+    },
+    "severityBands": {
+      "mild": "Әлсіз",
+      "moderate": "Орташа",
+      "severe": "Қатты",
+      "extreme": "Шыдатпайтын"
+    }
+  },
+  "de": {
+    "zones": {
+      "head": "Kopf",
+      "neck": "Hals",
+      "chest": "Brustkorb",
+      "shoulder_right": "Rechte Schulter",
+      "shoulder_left": "Linke Schulter",
+      "arm_right": "Rechter Arm",
+      "arm_left": "Linker Arm",
+      "abdomen_hypochondrium_right": "Rechter Oberbauch",
+      "abdomen_epigastrium": "Oberbauch (Magengrube)",
+      "abdomen_hypochondrium_left": "Linker Oberbauch",
+      "abdomen_lower": "Unterbauch",
+      "pelvis": "Becken",
+      "leg_right": "Rechtes Bein",
+      "leg_left": "Linkes Bein",
+      "neck_back": "Nacken",
+      "back_upper": "Oberer Rücken",
+      "flank_left": "Linke Flanke",
+      "flank_right": "Rechte Flanke",
+      "back_lower": "Unterer Rücken",
+      "glutes": "Gesäß",
+      "leg_back_left": "Linkes Bein (hinten)",
+      "leg_back_right": "Rechtes Bein (hinten)"
+    },
+    "questions": {
+      "onset": {
+        "label": "Wann hat es angefangen?",
+        "options": {
+          "today": "Heute",
+          "days": "Vor ein paar Tagen",
+          "weeks": "Vor einigen Wochen",
+          "months": "Vor Monaten",
+          "recurring": "Es kommt und geht"
+        }
+      },
+      "frequency": {
+        "label": "Wie oft?",
+        "options": {
+          "constant": "Ständig",
+          "daily": "Mehrmals täglich",
+          "weekly": "Mehrmals pro Woche",
+          "rare": "Seltener"
+        }
+      },
+      "character": {
+        "label": "Wie fühlt es sich an?",
+        "options": {
+          "aching": "Dumpf",
+          "sharp": "Stechend",
+          "burning": "Brennend",
+          "pressing": "Drückend",
+          "cramping": "Krampfartig",
+          "throbbing": "Pochend"
+        }
+      },
+      "worse": {
+        "label": "Was macht es schlimmer?",
+        "options": {
+          "after_eating": "Nach dem Essen",
+          "empty_stomach": "Auf nüchternen Magen",
+          "movement": "Bei Bewegung",
+          "rest": "In Ruhe",
+          "night": "Nachts",
+          "stress": "Stress",
+          "unknown": "Weiß ich nicht"
+        }
+      },
+      "relief": {
+        "label": "Was hilft?",
+        "options": {
+          "food": "Essen",
+          "medication": "Medikament",
+          "rest": "Ruhe",
+          "warmth": "Wärme",
+          "nothing": "Nichts"
+        }
+      },
+      "head_trigger": {
+        "label": "Was geht dem meist voraus?",
+        "options": {
+          "sleep": "Zu wenig Schlaf",
+          "hunger": "Hunger",
+          "screen": "Lange am Bildschirm",
+          "stress": "Stress",
+          "weather": "Wetter",
+          "unknown": "Weiß ich nicht"
+        }
+      },
+      "related_food": {
+        "label": "Hängt es mit einem bestimmten Essen zusammen?",
+        "options": {
+          "yes": "Ja",
+          "no": "Nein",
+          "unsure": "Nicht sicher"
+        }
+      },
+      "stool_change": {
+        "label": "Hat sich der Stuhlgang verändert?",
+        "options": {
+          "none": "Unverändert",
+          "loose": "Weich",
+          "constipation": "Verstopfung",
+          "alternating": "Wechselnd"
+        }
+      },
+      "injury": {
+        "label": "Gab es eine Verletzung?",
+        "options": {
+          "yes": "Ja",
+          "no": "Nein"
+        }
+      }
+    },
+    "severityBands": {
+      "mild": "Leicht",
+      "moderate": "Mäßig",
+      "severe": "Stark",
+      "extreme": "Unerträglich"
+    }
+  },
+  "fr": {
+    "zones": {
+      "head": "Tête",
+      "neck": "Cou",
+      "chest": "Poitrine",
+      "shoulder_right": "Épaule droite",
+      "shoulder_left": "Épaule gauche",
+      "arm_right": "Bras droit",
+      "arm_left": "Bras gauche",
+      "abdomen_hypochondrium_right": "Hypochondre droit",
+      "abdomen_epigastrium": "Creux de l’estomac",
+      "abdomen_hypochondrium_left": "Hypochondre gauche",
+      "abdomen_lower": "Bas-ventre",
+      "pelvis": "Bassin",
+      "leg_right": "Jambe droite",
+      "leg_left": "Jambe gauche",
+      "neck_back": "Nuque",
+      "back_upper": "Haut du dos",
+      "flank_left": "Flanc gauche",
+      "flank_right": "Flanc droit",
+      "back_lower": "Bas du dos",
+      "glutes": "Fessiers",
+      "leg_back_left": "Jambe gauche (arrière)",
+      "leg_back_right": "Jambe droite (arrière)"
+    },
+    "questions": {
+      "onset": {
+        "label": "Quand cela a-t-il commencé ?",
+        "options": {
+          "today": "Aujourd’hui",
+          "days": "Il y a quelques jours",
+          "weeks": "Il y a quelques semaines",
+          "months": "Il y a des mois",
+          "recurring": "Ça va et ça vient"
+        }
+      },
+      "frequency": {
+        "label": "À quelle fréquence ?",
+        "options": {
+          "constant": "En permanence",
+          "daily": "Plusieurs fois par jour",
+          "weekly": "Plusieurs fois par semaine",
+          "rare": "Moins souvent"
+        }
+      },
+      "character": {
+        "label": "À quoi cela ressemble-t-il ?",
+        "options": {
+          "aching": "Sourde",
+          "sharp": "Aiguë",
+          "burning": "Brûlure",
+          "pressing": "Oppressante",
+          "cramping": "Crampes",
+          "throbbing": "Pulsatile"
+        }
+      },
+      "worse": {
+        "label": "Qu’est-ce qui l’aggrave ?",
+        "options": {
+          "after_eating": "Après avoir mangé",
+          "empty_stomach": "À jeun",
+          "movement": "En bougeant",
+          "rest": "Au repos",
+          "night": "La nuit",
+          "stress": "Le stress",
+          "unknown": "Je ne sais pas"
+        }
+      },
+      "relief": {
+        "label": "Qu’est-ce qui soulage ?",
+        "options": {
+          "food": "Manger",
+          "medication": "Un médicament",
+          "rest": "Le repos",
+          "warmth": "La chaleur",
+          "nothing": "Rien"
+        }
+      },
+      "head_trigger": {
+        "label": "Qu’est-ce qui précède habituellement ?",
+        "options": {
+          "sleep": "Manque de sommeil",
+          "hunger": "La faim",
+          "screen": "Du temps d’écran",
+          "stress": "Le stress",
+          "weather": "La météo",
+          "unknown": "Je ne sais pas"
+        }
+      },
+      "related_food": {
+        "label": "Est-ce lié à un aliment en particulier ?",
+        "options": {
+          "yes": "Oui",
+          "no": "Non",
+          "unsure": "Pas sûr"
+        }
+      },
+      "stool_change": {
+        "label": "Vos selles ont-elles changé ?",
+        "options": {
+          "none": "Aucun changement",
+          "loose": "Molles",
+          "constipation": "Constipation",
+          "alternating": "En alternance"
+        }
+      },
+      "injury": {
+        "label": "Y a-t-il eu une blessure ?",
+        "options": {
+          "yes": "Oui",
+          "no": "Non"
+        }
+      }
+    },
+    "severityBands": {
+      "mild": "Légère",
+      "moderate": "Modérée",
+      "severe": "Forte",
+      "extreme": "Insupportable"
+    }
+  },
+  "es": {
+    "zones": {
+      "head": "Cabeza",
+      "neck": "Cuello",
+      "chest": "Pecho",
+      "shoulder_right": "Hombro derecho",
+      "shoulder_left": "Hombro izquierdo",
+      "arm_right": "Brazo derecho",
+      "arm_left": "Brazo izquierdo",
+      "abdomen_hypochondrium_right": "Hipocondrio derecho",
+      "abdomen_epigastrium": "Boca del estómago",
+      "abdomen_hypochondrium_left": "Hipocondrio izquierdo",
+      "abdomen_lower": "Bajo vientre",
+      "pelvis": "Pelvis",
+      "leg_right": "Pierna derecha",
+      "leg_left": "Pierna izquierda",
+      "neck_back": "Nuca",
+      "back_upper": "Parte alta de la espalda",
+      "flank_left": "Costado izquierdo",
+      "flank_right": "Costado derecho",
+      "back_lower": "Zona lumbar",
+      "glutes": "Glúteos",
+      "leg_back_left": "Pierna izquierda (atrás)",
+      "leg_back_right": "Pierna derecha (atrás)"
+    },
+    "questions": {
+      "onset": {
+        "label": "¿Cuándo empezó?",
+        "options": {
+          "today": "Hoy",
+          "days": "Hace unos días",
+          "weeks": "Hace unas semanas",
+          "months": "Hace meses",
+          "recurring": "Va y viene"
+        }
+      },
+      "frequency": {
+        "label": "¿Con qué frecuencia?",
+        "options": {
+          "constant": "Constantemente",
+          "daily": "Varias veces al día",
+          "weekly": "Varias veces a la semana",
+          "rare": "Menos a menudo"
+        }
+      },
+      "character": {
+        "label": "¿Cómo se siente?",
+        "options": {
+          "aching": "Sorda",
+          "sharp": "Aguda",
+          "burning": "Ardor",
+          "pressing": "Opresiva",
+          "cramping": "Calambres",
+          "throbbing": "Pulsátil"
+        }
+      },
+      "worse": {
+        "label": "¿Qué lo empeora?",
+        "options": {
+          "after_eating": "Después de comer",
+          "empty_stomach": "En ayunas",
+          "movement": "Al moverme",
+          "rest": "En reposo",
+          "night": "Por la noche",
+          "stress": "El estrés",
+          "unknown": "No lo sé"
+        }
+      },
+      "relief": {
+        "label": "¿Qué ayuda?",
+        "options": {
+          "food": "Comer",
+          "medication": "Un medicamento",
+          "rest": "Descansar",
+          "warmth": "El calor",
+          "nothing": "Nada"
+        }
+      },
+      "head_trigger": {
+        "label": "¿Qué suele precederlo?",
+        "options": {
+          "sleep": "Dormir poco",
+          "hunger": "El hambre",
+          "screen": "Mucho tiempo de pantalla",
+          "stress": "El estrés",
+          "weather": "El clima",
+          "unknown": "No lo sé"
+        }
+      },
+      "related_food": {
+        "label": "¿Está relacionado con algún alimento?",
+        "options": {
+          "yes": "Sí",
+          "no": "No",
+          "unsure": "No estoy seguro"
+        }
+      },
+      "stool_change": {
+        "label": "¿Han cambiado tus deposiciones?",
+        "options": {
+          "none": "Sin cambios",
+          "loose": "Blandas",
+          "constipation": "Estreñimiento",
+          "alternating": "Alternando"
+        }
+      },
+      "injury": {
+        "label": "¿Hubo alguna lesión?",
+        "options": {
+          "yes": "Sí",
+          "no": "No"
+        }
+      }
+    },
+    "severityBands": {
+      "mild": "Leve",
+      "moderate": "Moderada",
+      "severe": "Fuerte",
+      "extreme": "Insoportable"
+    }
+  }
+}

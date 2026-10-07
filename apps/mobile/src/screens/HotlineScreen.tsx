@@ -26,9 +26,16 @@ import {
   marksToEntries,
   useBodyMarks,
 } from '../features/bodymap/useBodyMarks';
+import {
+  callEmergency,
+  deviceEmergencyNumber,
+  emergencyCallLabel,
+} from '../features/bodymap/emergency';
 
 const POLL_MS = 5000;
 const MAX_REASON = 1000;
+/** Must match RED_FLAGGED_CODE in apps/api/hotline/hotline.constants.ts. */
+const RED_FLAGGED_CODE = 'HOTLINE_RED_FLAGGED';
 
 type Phase = 'loading' | 'closed' | 'idle' | 'waiting' | 'accepted' | 'error';
 
@@ -52,6 +59,8 @@ interface HotlineStatus {
   waiting: number;
   estimatedWaitMinutes: number | null;
   request: HotlineRequest | null;
+  /** The user's last request ran out with nobody taking it. */
+  recentlyExpired?: boolean;
 }
 
 /**
@@ -83,6 +92,7 @@ export default function HotlineScreen() {
   const [reason, setReason] = useState(presetReason ?? '');
   const [busy, setBusy] = useState(false);
   const handedOff = useRef(false);
+  const emergencyNumber = useMemo(deviceEmergencyNumber, []);
 
   const warnFull = useCallback(() => {
     Alert.alert(
@@ -214,14 +224,47 @@ export default function HotlineScreen() {
       Haptics.selectionAsync().catch(() => {});
       await refresh();
     } catch (error: any) {
-      Alert.alert(
-        t('common.error', 'Error'),
-        error?.message || t('hotline.requestFailed', 'Could not reach the line. Try again.'),
-      );
+      if (error?.payload?.code === RED_FLAGGED_CODE) {
+        Alert.alert(
+          t('bodyMap.emergencyTitle', 'This needs a person, not an app'),
+          t(
+            'hotline.emergencyBody',
+            'What you reported can be urgent, and our specialists advise on nutrition only. Call emergency services now.',
+          ),
+          emergencyNumber
+            ? [
+                { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+                {
+                  text: emergencyCallLabel(t, emergencyNumber),
+                  onPress: () => callEmergency(emergencyNumber),
+                },
+              ]
+            : [{ text: t('common.ok', 'OK') }],
+        );
+      } else if (error?.status === 409) {
+        // The last specialist went off the line between loading and pressing.
+        // The closed state explains that better than an error would.
+        await refresh();
+      } else {
+        Alert.alert(
+          t('common.error', 'Error'),
+          t('hotline.requestFailed', 'Could not reach the line. Try again.'),
+        );
+      }
     } finally {
       setBusy(false);
     }
-  }, [busy, reason, attachedReportId, body.marks.length, saveBody, language, refresh, t]);
+  }, [
+    busy,
+    reason,
+    attachedReportId,
+    body.marks.length,
+    saveBody,
+    language,
+    refresh,
+    t,
+    emergencyNumber,
+  ]);
 
   const cancel = useCallback(async () => {
     const id = status?.request?.id;
@@ -248,8 +291,22 @@ export default function HotlineScreen() {
     });
   }, [status, language]);
 
+  const renderExpiredNotice = () =>
+    status?.recentlyExpired ? (
+      <View style={styles.notice} accessibilityRole="alert">
+        <Ionicons name="time-outline" size={18} color={colors.textSecondary} />
+        <Text style={styles.noticeText}>
+          {t(
+            'hotline.expiredNotice',
+            'Nobody was free in time for your last request. You can try again or book a consultation.',
+          )}
+        </Text>
+      </View>
+    ) : null;
+
   const renderClosed = () => (
     <>
+      {renderExpiredNotice()}
       <View style={[styles.badge, styles.badgeClosed]}>
         <View style={[styles.dot, { backgroundColor: colors.textTertiary }]} />
         <Text style={styles.badgeText}>{t('hotline.closed', 'The line is closed')}</Text>
@@ -274,6 +331,7 @@ export default function HotlineScreen() {
 
   const renderIdle = () => (
     <>
+      {renderExpiredNotice()}
       <View style={[styles.badge, styles.badgeOpen]}>
         <View style={[styles.dot, { backgroundColor: colors.success }]} />
         <Text style={styles.badgeText}>
@@ -455,17 +513,17 @@ const createStyles = (colors: any) =>
 
     lead: { fontSize: 15, color: colors.textSecondary, lineHeight: 21, marginBottom: 18 },
 
-    attached: {
+    notice: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
-      backgroundColor: colors.primaryTint,
+      gap: 10,
+      backgroundColor: colors.surfaceMuted,
       borderRadius: 12,
-      paddingVertical: 10,
-      paddingHorizontal: 12,
-      marginBottom: 14,
+      paddingVertical: 11,
+      paddingHorizontal: 13,
+      marginBottom: 16,
     },
-    attachedText: { flex: 1, fontSize: 13, color: colors.primary, fontWeight: '600' },
+    noticeText: { flex: 1, fontSize: 13.5, color: colors.textSecondary, lineHeight: 19 },
 
     card: {
       backgroundColor: colors.card,
