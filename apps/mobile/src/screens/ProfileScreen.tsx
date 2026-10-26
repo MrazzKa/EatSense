@@ -454,7 +454,7 @@ const ProfileScreen = () => {
       // Remove photo
       try {
         setAvatarUploading(true);
-        await ApiService.updateUserProfile({ avatarUrl: null });
+        await ApiService.updateAvatar(null);
         setAvatarUrl(null);
         if (user) setUser({ ...user, avatarUrl: null });
       } catch (err) {
@@ -473,7 +473,7 @@ const ProfileScreen = () => {
         const uploadResult = await ApiService.uploadImage(result.assets[0].uri);
         const url = uploadResult?.url || uploadResult?.imageUrl;
         if (url) {
-          await ApiService.updateUserProfile({ avatarUrl: url });
+          await ApiService.updateAvatar(url);
           setAvatarUrl(url);
           if (user) setUser({ ...user, avatarUrl: url });
         }
@@ -519,7 +519,7 @@ const ProfileScreen = () => {
     const presetUrl = `preset://${preset.icon}|${preset.bg}`;
     try {
       setAvatarUploading(true);
-      await ApiService.updateUserProfile({ avatarUrl: presetUrl });
+      await ApiService.updateAvatar(presetUrl);
       setAvatarUrl(presetUrl);
       if (user) setUser({ ...user, avatarUrl: presetUrl });
     } catch (err) {

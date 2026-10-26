@@ -2,10 +2,11 @@ import { IsString, IsNotEmpty, IsOptional, MinLength, IsIn } from 'class-validat
 import { ApiProperty } from '@nestjs/swagger';
 
 export class GeneralQuestionDto {
-  @ApiProperty({ example: 'user-id-123' })
+  /** Deprecated: ignored, the user comes from the JWT. Kept so old clients pass validation. */
+  @ApiProperty({ example: 'user-id-123', required: false, deprecated: true })
   @IsString()
-  @IsNotEmpty()
-  userId!: string;
+  @IsOptional()
+  userId?: string;
 
   @ApiProperty({ example: 'What should I eat for breakfast?' })
   @IsString()
@@ -20,10 +21,11 @@ export class GeneralQuestionDto {
 }
 
 export class LabResultsDto {
-  @ApiProperty({ example: 'user-id-123' })
+  /** Deprecated: ignored, the user comes from the JWT. Kept so old clients pass validation. */
+  @ApiProperty({ example: 'user-id-123', required: false, deprecated: true })
   @IsString()
-  @IsNotEmpty()
-  userId!: string;
+  @IsOptional()
+  userId?: string;
 
   @ApiProperty({ example: 'WBC: 7.5, RBC: 4.5, Glucose: 95' })
   @IsString()
@@ -47,10 +49,11 @@ export class LabResultsDto {
 }
 
 export class NutritionAdviceDto {
-  @ApiProperty({ example: 'user-id-123' })
+  /** Deprecated: ignored, the user comes from the JWT. Kept so old clients pass validation. */
+  @ApiProperty({ example: 'user-id-123', required: false, deprecated: true })
   @IsString()
-  @IsNotEmpty()
-  userId!: string;
+  @IsOptional()
+  userId?: string;
 
   @ApiProperty({ example: 'How can I improve my protein intake?' })
   @IsString()

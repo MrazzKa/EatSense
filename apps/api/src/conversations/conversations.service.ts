@@ -246,9 +246,18 @@ export class ConversationsService {
             });
         }
 
+        // Role flags mirror findById so list items can be used the same way.
         return {
-            asClient,
-            asExpert,
+            asClient: asClient.map((c) => ({
+                ...c,
+                isClient: true,
+                isExpert: c.expert?.userId === userId,
+            })),
+            asExpert: asExpert.map((c) => ({
+                ...c,
+                isClient: c.clientId === userId,
+                isExpert: true,
+            })),
         };
     }
 

@@ -1321,9 +1321,32 @@ const OnboardingScreen = () => {
       // since UserProfile has no top-level columns for them and the backend whitelist
       // drops unknown root fields. The analysis pipeline reads preferences.healthConditions
       // and preferences.dietaryPreferences.
+      //
+      // The upsert REPLACES preferences when they are sent, so an account that goes
+      // through onboarding again must start from what the server already holds
+      // (consents, language, smart-tip settings, ...) — otherwise they are wiped.
+      let serverPreferences = {};
+      try {
+        const existingProfile = await ApiService.getUserProfile();
+        const prefs = existingProfile?.preferences;
+        if (prefs && typeof prefs === 'object' && !Array.isArray(prefs)) {
+          serverPreferences = prefs;
+        }
+      } catch (e) {
+        // New accounts have no profile yet; a failed read must not block onboarding.
+        console.warn('[OnboardingScreen] Could not read existing preferences, saving onboarding answers only:', e?.message);
+      }
+
+      const deviceTimezone = Localization.getCalendars()[0]?.timeZone || Localization.timezone || 'UTC';
+
       const mergedPreferences = {
+        ...serverPreferences,
         ...(profilePreferences ?? {}),
+        // Always written (not only when push is granted): reminders, day
+        // boundaries and smart tips are scheduled in the user's local time.
+        timezone: deviceTimezone,
         subscription: {
+          ...(serverPreferences?.subscription ?? {}),
           ...(profilePreferences?.subscription ?? {}),
           ...subscriptionPreference,
         },

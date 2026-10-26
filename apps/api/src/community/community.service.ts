@@ -12,6 +12,10 @@ import { normalizeSupportedCountryCode } from '../common/country-codes';
 // required. Viewing and attending remain free for everyone.
 const FREE_COMMUNITY_CREATE_LIMIT = 3;
 
+// Post types a user can "attend" / "join" (EventAttendee rows). CHALLENGE uses
+// the same table for "Join challenge".
+const ATTENDABLE_POST_TYPES = new Set<string>(['EVENT', 'ROUTE', 'CHALLENGE']);
+
 const authorInclude = {
   select: {
     id: true,
@@ -120,6 +124,28 @@ export class CommunityService {
     if (!post || !countryGroup || post.groupId !== countryGroup.id) {
       throw new NotFoundException('Post not found');
     }
+  }
+
+  /**
+   * Ids of users hidden from `userId` because of a block in either direction
+   * (users they blocked + users who blocked them). One query per request.
+   */
+  private async getBlockedUserIds(userId: string): Promise<string[]> {
+    const blocks = await this.prisma.userBlock.findMany({
+      where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+      select: { blockerId: true, blockedId: true },
+    });
+    const ids = new Set<string>();
+    for (const b of blocks) {
+      ids.add(b.blockerId === userId ? b.blockedId : b.blockerId);
+    }
+    ids.delete(userId);
+    return [...ids];
+  }
+
+  /** Prisma `where` fragment excluding content authored by blocked users. */
+  private blockedAuthorsWhere(blockedIds: string[]) {
+    return blockedIds.length > 0 ? { authorId: { notIn: blockedIds } } : {};
   }
 
   async listGroups(userId: string, query: { type?: string; search?: string }) {
@@ -346,12 +372,16 @@ export class CommunityService {
   }
 
   async getGroupPosts(userId: string, groupId: string, page: number, limit: number) {
-    await this.ensureRequestedGroupIsCurrentCountry(userId, groupId);
+    const [, blockedIds] = await Promise.all([
+      this.ensureRequestedGroupIsCurrentCountry(userId, groupId),
+      this.getBlockedUserIds(userId),
+    ]);
     const skip = (page - 1) * limit;
 
     const where: any = {
       groupId,
       ...this.moderationVisibilityWhere(userId),
+      ...this.blockedAuthorsWhere(blockedIds),
     };
 
     const [posts, total] = await Promise.all([
@@ -383,7 +413,10 @@ export class CommunityService {
 
   async getFeed(userId: string, page: number, limit: number) {
     const skip = (page - 1) * limit;
-    const countryGroup = await this.ensureUserCountryCommunity(userId);
+    const [countryGroup, blockedIds] = await Promise.all([
+      this.ensureUserCountryCommunity(userId),
+      this.getBlockedUserIds(userId),
+    ]);
 
     if (!countryGroup) {
       return { data: [], total: 0, page, limit, totalPages: 0 };
@@ -392,6 +425,7 @@ export class CommunityService {
     const where: any = {
       groupId: countryGroup.id,
       ...this.moderationVisibilityWhere(userId),
+      ...this.blockedAuthorsWhere(blockedIds),
     };
 
     const [posts, total] = await Promise.all([
@@ -425,7 +459,10 @@ export class CommunityService {
   }
 
   async getPost(userId: string, postId: string) {
-    const countryGroup = await this.ensureUserCountryCommunity(userId);
+    const [countryGroup, blockedIds] = await Promise.all([
+      this.ensureUserCountryCommunity(userId),
+      this.getBlockedUserIds(userId),
+    ]);
     const post = await this.prisma.communityPost.findUnique({
       where: { id: postId },
       include: {
@@ -441,6 +478,9 @@ export class CommunityService {
     if (!countryGroup || post.groupId !== countryGroup.id) {
       throw new NotFoundException('Post not found');
     }
+    if (blockedIds.includes(post.authorId)) {
+      throw new NotFoundException('Post not found');
+    }
 
     // Hide pending/rejected posts from non-authors. 404 (not 403) so admins'
     // workflow doesn't leak the post's existence.
@@ -453,7 +493,7 @@ export class CommunityService {
       where: { userId_postId: { userId, postId } },
     });
 
-    const attendee = (post.type === 'EVENT' || post.type === 'ROUTE')
+    const attendee = ATTENDABLE_POST_TYPES.has(post.type)
       ? await this.prisma.eventAttendee.findUnique({
           where: { userId_postId: { userId, postId } },
         })
@@ -612,12 +652,16 @@ export class CommunityService {
   }
 
   async getComments(userId: string, postId: string, page: number, limit: number) {
-    await this.ensurePostIsInCurrentCountry(userId, postId);
+    const [, blockedIds] = await Promise.all([
+      this.ensurePostIsInCurrentCountry(userId, postId),
+      this.getBlockedUserIds(userId),
+    ]);
     const skip = (page - 1) * limit;
+    const where = { postId, ...this.blockedAuthorsWhere(blockedIds) };
 
     const [comments, total] = await Promise.all([
       this.prisma.communityComment.findMany({
-        where: { postId },
+        where,
         include: {
           author: authorInclude,
         },
@@ -625,7 +669,7 @@ export class CommunityService {
         skip,
         take: limit,
       }),
-      this.prisma.communityComment.count({ where: { postId } }),
+      this.prisma.communityComment.count({ where }),
     ]);
 
     return {
@@ -700,8 +744,8 @@ export class CommunityService {
       throw new NotFoundException('Post not found');
     }
 
-    if (post.type !== 'EVENT' && post.type !== 'ROUTE') {
-      throw new BadRequestException('Can only attend event or route posts');
+    if (!ATTENDABLE_POST_TYPES.has(post.type)) {
+      throw new BadRequestException('Can only attend event, route or challenge posts');
     }
 
     const existing = await this.prisma.eventAttendee.findUnique({
@@ -867,10 +911,13 @@ export class CommunityService {
       this.prisma.communityPost.count({
         where: { authorId: targetUserId },
       }),
-      this.prisma.communityMembership.findFirst({
-        where: { userId: targetUserId, group: { type: 'CITY' } },
-        include: { group: { select: { name: true } } },
-      }),
+      // Users are auto-assigned a COUNTRY group (legacy users may still have a
+      // CITY one). Prefer CITY when present, otherwise show the country group.
+      this.prisma.communityMembership.findMany({
+        where: { userId: targetUserId, group: { type: { in: ['CITY', 'COUNTRY'] as any } } },
+        include: { group: { select: { name: true, type: true } } },
+        take: 5,
+      }).then((rows) => rows.find((m) => m.group?.type === 'CITY') ?? rows[0] ?? null),
     ]);
 
     return {
@@ -1122,9 +1169,12 @@ export class CommunityService {
 
   async getBestPlaces(userId: string, page: number, limit: number, groupId?: string, city?: string) {
     const skip = (page - 1) * limit;
-    const countryGroup = await this.ensureUserCountryCommunity(userId);
+    const [countryGroup, blockedIds] = await Promise.all([
+      this.ensureUserCountryCommunity(userId),
+      this.getBlockedUserIds(userId),
+    ]);
 
-    const where: any = { type: 'BEST_PLACES' as any };
+    const where: any = { type: 'BEST_PLACES' as any, ...this.blockedAuthorsWhere(blockedIds) };
 
     if (countryGroup) {
       where.groupId = countryGroup.id;

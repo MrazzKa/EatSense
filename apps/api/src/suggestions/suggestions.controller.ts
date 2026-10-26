@@ -5,6 +5,19 @@ import { SuggestedFoodV2Response, SupportedLocale } from './suggestions.types';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PrismaService } from '../../prisma.service';
 
+const CONTENT_LOCALES: readonly SupportedLocale[] = ['en', 'ru', 'kk'];
+
+/**
+ * Map any app locale (en/ru/kk/fr/de/es, possibly region-tagged like "fr-CH")
+ * to a locale that has suggestion content. Content exists for en/ru/kk only,
+ * so everything else falls back to English. Returns null for empty input.
+ */
+export function resolveSuggestionLocale(raw: unknown): SupportedLocale | null {
+  if (typeof raw !== 'string' || !raw.trim()) return null;
+  const base = raw.trim().toLowerCase().split(/[-_]/)[0];
+  return (CONTENT_LOCALES as readonly string[]).includes(base) ? (base as SupportedLocale) : 'en';
+}
+
 @Controller('suggestions')
 @UseGuards(JwtAuthGuard)
 export class SuggestionsController {
@@ -24,16 +37,7 @@ export class SuggestionsController {
   ): Promise<SuggestedFoodItem[]> {
     const userId = req.user.id;
     // P2.4: Get locale from query param, user profile, or default to 'en'
-    let locale: 'en' | 'ru' | 'kk' = 'en';
-    if (localeParam && ['en', 'ru', 'kk'].includes(localeParam)) {
-      locale = localeParam as 'en' | 'ru' | 'kk';
-    } else {
-      const userProfile = await this.prisma.userProfile.findUnique({
-        where: { userId },
-      });
-      const preferences = (userProfile?.preferences as any) || {};
-      locale = (preferences.language || 'en') as 'en' | 'ru' | 'kk';
-    }
+    const locale = await this.resolveLocale(userId, localeParam);
     return this.suggestionsService.getSuggestedFoodsForUser(userId, locale);
   }
 
@@ -48,16 +52,7 @@ export class SuggestionsController {
     @Query('locale') localeParam?: string,
   ): Promise<SuggestedFoodV2Response> {
     const userId = req.user.id;
-    let locale: SupportedLocale = 'en';
-    if (localeParam && ['en', 'ru', 'kk'].includes(localeParam)) {
-      locale = localeParam as SupportedLocale;
-    } else {
-      const userProfile = await this.prisma.userProfile.findUnique({
-        where: { userId },
-      });
-      const preferences = (userProfile?.preferences as any) || {};
-      locale = (preferences.language || 'en') as SupportedLocale;
-    }
+    const locale = await this.resolveLocale(userId, localeParam);
 
     const SUGGESTIONS_V2_TIMEOUT_MS = 20000; // Increased from 8s to 20s to reduce timeout warnings
     const errorPayload: SuggestedFoodV2Response = {
@@ -80,5 +75,17 @@ export class SuggestionsController {
     } catch (e) {
       return errorPayload;
     }
+  }
+
+  /** Query param first, then the profile language, then English. */
+  private async resolveLocale(userId: string, localeParam?: string): Promise<SupportedLocale> {
+    const fromParam = resolveSuggestionLocale(localeParam);
+    if (fromParam) return fromParam;
+    const userProfile = await this.prisma.userProfile.findUnique({
+      where: { userId },
+      select: { preferences: true },
+    });
+    const preferences = (userProfile?.preferences as any) || {};
+    return resolveSuggestionLocale(preferences.language) ?? 'en';
   }
 }

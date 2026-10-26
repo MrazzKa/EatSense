@@ -292,6 +292,18 @@ export class CalendarService {
     });
   }
 
+  /** Single consultation, visible only to its client or its expert. */
+  async getConsultation(userId: string, id: string) {
+    await this.requireParticipant(userId, id);
+    return this.prisma.scheduledConsultation.findUnique({
+      where: { id },
+      include: {
+        expert: { select: { id: true, displayName: true, avatarUrl: true } },
+        client: { select: { id: true, email: true, userProfile: { select: { firstName: true, lastName: true, avatarUrl: true } } } },
+      },
+    });
+  }
+
   async cancelConsultation(userId: string, id: string, reason?: string) {
     const c = await this.requireParticipant(userId, id);
     if (['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(c.status)) throw new BadRequestException('Already finalized');

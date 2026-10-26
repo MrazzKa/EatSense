@@ -121,4 +121,11 @@ export class CalendarController {
   async icalToken(@Request() req: any) {
     return { token: this.calendar.signICalToken(req.user.id) };
   }
+
+  // Declared last so the static `consultations/me*` routes above win.
+  @Get('consultations/:id')
+  @UseGuards(JwtAuthGuard)
+  async getOne(@Request() req: any, @Param('id') id: string) {
+    return this.calendar.getConsultation(req.user.id, id);
+  }
 }

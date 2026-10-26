@@ -323,7 +323,9 @@ export function useNotificationActions() {
                     {
                         text: strings.ok,
                         onPress: () => {
-                            if (navigationCallback) navigationCallback('MainTabs', { screen: 'Profile' });
+                            // Profile is a root stack screen, not a tab (smart-tip
+                            // settings live there).
+                            if (navigationCallback) navigationCallback('Profile');
                         },
                     },
                 ],

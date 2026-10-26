@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
-import { SafetyService } from './safety.service';
+import { SafetyService, type CreateAbuseReportDto } from './safety.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
 @Controller()
@@ -24,14 +24,7 @@ export class SafetyController {
     @Post('reports')
     async createReport(
         @Request() req: any,
-        @Body() body: {
-            reportedUserId?: string;
-            reportedExpertId?: string;
-            conversationId?: string;
-            category: string;
-            description?: string;
-            attachmentUrls?: string[];
-        },
+        @Body() body: CreateAbuseReportDto,
     ) {
         return this.safetyService.createAbuseReport(req.user.id, body);
     }

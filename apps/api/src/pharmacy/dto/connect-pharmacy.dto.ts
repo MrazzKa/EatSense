@@ -1,5 +1,5 @@
 import { IsOptional, IsString, IsIn } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 
 export class ConnectPharmacyDto {
   @ApiProperty({ example: 'Amavita Apotheke Bern', description: 'Pharmacy name' })
@@ -36,6 +36,13 @@ export class ConnectPharmacyDto {
   @IsIn(['en', 'fr', 'de', 'it'])
   language?: string;
 }
+
+/**
+ * `PUT /pharmacy/connections/:id`. A real class (not `Partial<...>`) so the
+ * global ValidationPipe validates the fields; a TS utility type erases to
+ * `Object` at runtime and skipped validation entirely.
+ */
+export class UpdatePharmacyConnectionDto extends PartialType(ConnectPharmacyDto) {}
 
 export class ConnectPharmacyByCodeDto {
   @ApiProperty({ example: 'AMAVITA-GENEVE', description: 'Pharmacy access code' })

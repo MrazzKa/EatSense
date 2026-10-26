@@ -5,13 +5,24 @@ interface AcceptDisclaimerDto {
     type: string;
 }
 
-interface CreateAbuseReportDto {
+export interface CreateAbuseReportDto {
     reportedUserId?: string;
     reportedExpertId?: string;
     conversationId?: string;
-    category: string;
+    category?: string;
     description?: string;
     attachmentUrls?: string[];
+    // Legacy RN payload aliases: `reason` → category, `reportedId` → reportedUserId.
+    reason?: string;
+    reportedId?: string;
+}
+
+const DEFAULT_REPORT_CATEGORY = 'other';
+
+function optionalString(value: unknown, maxLength: number): string | undefined {
+    if (typeof value !== 'string') return undefined;
+    const trimmed = value.trim();
+    return trimmed ? trimmed.slice(0, maxLength) : undefined;
 }
 
 @Injectable()
@@ -66,19 +77,29 @@ export class SafetyService {
     // ==================== ABUSE REPORTS ====================
 
     async createAbuseReport(reporterId: string, dto: CreateAbuseReportDto) {
+        const body = dto || {};
+        // `category` is optional for backward compatibility: shipped RN clients
+        // send `reason` (or nothing) instead.
+        const category = optionalString(body.category, 64)
+            ?? optionalString(body.reason, 64)
+            ?? DEFAULT_REPORT_CATEGORY;
+        const attachmentUrls = Array.isArray(body.attachmentUrls)
+            ? body.attachmentUrls.filter((u): u is string => typeof u === 'string').slice(0, 10)
+            : [];
+
         const report = await this.prisma.abuseReport.create({
             data: {
                 reporterId,
-                reportedUserId: dto.reportedUserId,
-                reportedExpertId: dto.reportedExpertId,
-                conversationId: dto.conversationId,
-                category: dto.category,
-                description: dto.description,
-                attachmentUrls: dto.attachmentUrls || [],
+                reportedUserId: optionalString(body.reportedUserId, 64) ?? optionalString(body.reportedId, 64),
+                reportedExpertId: optionalString(body.reportedExpertId, 64),
+                conversationId: optionalString(body.conversationId, 64),
+                category,
+                description: optionalString(body.description, 4000),
+                attachmentUrls,
             },
         });
 
-        this.logger.warn(`Abuse report created: ${report.id}, category=${dto.category}, reporter=${reporterId}`);
+        this.logger.warn(`Abuse report created: ${report.id}, category=${category}, reporter=${reporterId}`);
 
         return report;
     }

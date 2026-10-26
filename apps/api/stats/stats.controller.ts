@@ -56,12 +56,12 @@ export class StatsController {
       month = parseInt(monthParam, 10);
       
       // Validate month range
-      if (month < 1 || month > 12) {
+      if (!Number.isInteger(month) || month < 1 || month > 12) {
         throw new BadRequestException('Invalid month: must be between 1 and 12');
       }
       
       // Validate year (reasonable range: 2020-2100)
-      if (year < 2020 || year > 2100) {
+      if (!Number.isInteger(year) || year < 2020 || year > 2100) {
         throw new BadRequestException('Invalid year: must be between 2020 and 2100');
       }
     } else {
@@ -70,12 +70,11 @@ export class StatsController {
       month = now.getMonth() + 1;
     }
 
-    const locale = localeParam || 'en';
-    
-    // Validate locale
-    if (!['en', 'ru', 'kk'].includes(locale)) {
-      throw new BadRequestException('Invalid locale: must be en, ru, or kk');
-    }
+    // The PDF has full strings for en/ru/kk only. Any other app locale
+    // (fr/de/es, or region-tagged values like "fr-CH") falls back to English
+    // instead of failing the request.
+    const requestedLocale = (localeParam || 'en').trim().toLowerCase().split(/[-_]/)[0];
+    const locale = ['en', 'ru', 'kk'].includes(requestedLocale) ? requestedLocale : 'en';
 
     const pdfStream = await this.statsService.generateMonthlyReportPDF(userId, year, month, locale);
 

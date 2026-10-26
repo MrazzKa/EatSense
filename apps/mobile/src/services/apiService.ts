@@ -6,6 +6,9 @@ import * as SecureStore from 'expo-secure-store';
 import i18n from '../../app/i18n/config';
 // Article types are used in JSDoc comments only
 
+/** Mirrors `@ArrayMaxSize(20)` on `excludeTitles` in apps/api/food/dto/fridge-recipes.dto.ts. */
+const FRIDGE_MAX_EXCLUDE_TITLES = 20;
+
 class ApiService {
   baseURL: string;
   token: string | null;
@@ -759,13 +762,23 @@ class ApiService {
     locale?: string,
     opts?: { scanId?: string; excludeTitles?: string[] },
   ) {
+    // The server accepts at most FRIDGE_MAX_EXCLUDE_TITLES titles; keep the most
+    // recent ones (de-duplicated) so "more recipes" keeps working past 20.
+    const excludeTitles = Array.from(
+      new Set(
+        (opts?.excludeTitles || [])
+          .filter((title): title is string => typeof title === 'string')
+          .map((title) => title.trim())
+          .filter(Boolean),
+      ),
+    ).slice(-FRIDGE_MAX_EXCLUDE_TITLES);
     return this.request('/food/fridge/recipes', {
       method: 'POST',
       body: JSON.stringify({
         ingredients,
         locale: locale || 'en',
         ...(opts?.scanId ? { scanId: opts.scanId } : {}),
-        ...(opts?.excludeTitles?.length ? { excludeTitles: opts.excludeTitles } : {}),
+        ...(excludeTitles.length ? { excludeTitles } : {}),
       }),
     });
   }
@@ -1480,6 +1493,15 @@ class ApiService {
       method: 'PUT',
       body: JSON.stringify(profileData),
     });
+  }
+
+  /**
+   * Save the profile avatar. Goes through the upsert endpoint (POST), which
+   * merges: `avatarUrl` is not part of the PUT DTO, and PUT replaces the whole
+   * `preferences` object, so it must not be used for single-field writes.
+   */
+  async updateAvatar(avatarUrl: string | null) {
+    return this.createUserProfile({ avatarUrl });
   }
 
   async completeOnboarding() {

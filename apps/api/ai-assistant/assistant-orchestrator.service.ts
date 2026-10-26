@@ -59,9 +59,14 @@ export class AssistantOrchestratorService {
     return this.buildResponse(flow, state, firstStep);
   }
 
-  async resumeSession(sessionId: string): Promise<FlowResponse | null> {
+  async resumeSession(sessionId: string, userId?: string): Promise<FlowResponse | null> {
     const state = await this.getState(sessionId);
     if (!state) {
+      return null;
+    }
+    // Another user's session is reported as missing, not as forbidden, so
+    // session ids cannot be probed.
+    if (userId !== undefined && state.userId !== userId) {
       return null;
     }
     const flow = this.ensureFlow(state.flowId);

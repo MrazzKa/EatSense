@@ -13,6 +13,11 @@ export interface UploadResult {
   storageProvider: 'database' | 's3';
 }
 
+/** Media types the unauthenticated GET /media/:id route may serve (images only). */
+export function isPublicMediaMimetype(mimetype: string | null | undefined): boolean {
+  return typeof mimetype === 'string' && mimetype.toLowerCase().startsWith('image/');
+}
+
 @Injectable()
 export class MediaService {
   private readonly logger = new Logger(MediaService.name);
@@ -321,6 +326,14 @@ export class MediaService {
       throw new NotFoundException('Media not found');
     }
 
+    // PDFs only ever come from /media/upload-document (credentials, lab
+    // reports); /media/upload accepts images only. Those documents are served
+    // with an owner/admin check by /media/credential/:id, so they must not be
+    // reachable through this unauthenticated route.
+    if (!isPublicMediaMimetype(media.mimetype)) {
+      throw new NotFoundException('Media not found');
+    }
+
     if (media.storageProvider === 's3' && media.storageKey) {
       // Redirect to S3 URL
       const url = this.buildPublicUrl(media.storageKey);
@@ -399,12 +412,22 @@ export class MediaService {
   /**
    * Get media as base64 data URL for use with OpenAI Vision API
    */
-  async getMediaAsBase64(id: string): Promise<{ dataUrl: string; mimeType: string } | null> {
+  async getMediaAsBase64(
+    id: string,
+    opts: { ownerUserId?: string } = {},
+  ): Promise<{ dataUrl: string; mimeType: string } | null> {
     const media = await this.prisma.media.findUnique({
       where: { id },
     });
 
     if (!media) {
+      return null;
+    }
+
+    // When the id comes from a client, only the uploader's own file may be read;
+    // otherwise any known id would let one user have another user's document
+    // analysed and read back.
+    if (opts.ownerUserId !== undefined && media.userId !== opts.ownerUserId) {
       return null;
     }
 

@@ -89,14 +89,20 @@ export class SubscriptionsController {
         const productId = dto.productId || dto.planId;
         this.logger.log(`Verify purchase for user ${user.id}, product: ${productId}`);
 
-        if (!productId || !dto.receipt) {
+        // Android RN clients send the Play purchase token in `receipt`; newer
+        // clients may send it explicitly as `purchaseToken`. Accept both.
+        const androidToken = dto.platform === 'android'
+            ? (dto.purchaseToken || dto.receipt)
+            : undefined;
+
+        if (!productId || (dto.platform === 'android' ? !androidToken : !dto.receipt)) {
             throw new BadRequestException('productId and receipt are required');
         }
 
         if (dto.platform === 'ios') {
             // Validate with Apple — pass the purchased productId so the service
             // selects THAT product's transaction from a multi-product receipt.
-            const validation = await this.appleReceiptService.verifyReceipt(dto.receipt, productId);
+            const validation = await this.appleReceiptService.verifyReceipt(dto.receipt as string, productId);
 
             if (!validation.isValid) {
                 this.logger.warn(`Invalid receipt for user ${user.id}: ${validation.status}`);
@@ -143,9 +149,7 @@ export class SubscriptionsController {
         }
 
         if (dto.platform === 'android') {
-            if (!dto.purchaseToken) {
-                throw new BadRequestException('purchaseToken is required for Android purchases');
-            }
+            const purchaseToken = androidToken as string;
 
             // Validate with Google Play Developer API
             const { google } = await import('googleapis');
@@ -159,20 +163,40 @@ export class SubscriptionsController {
 
                 const androidpublisher = google.androidpublisher({ version: 'v3', auth });
 
-                const subscriptionResult = await androidpublisher.purchases.subscriptions.get({
-                    packageName,
-                    subscriptionId: productId,
-                    token: dto.purchaseToken,
-                });
+                let expiresDate: Date | undefined;
+                let isTrial = false;
 
-                const subscriptionData = subscriptionResult.data;
+                if (productId === 'eatsense.founder.pass') {
+                    // One-time (non-consumable) product: subscriptions.get would 404.
+                    const productResult = await androidpublisher.purchases.products.get({
+                        packageName,
+                        productId,
+                        token: purchaseToken,
+                    });
+                    // purchaseState: 0 = purchased, 1 = canceled, 2 = pending
+                    if (productResult.data.purchaseState !== 0) {
+                        throw new BadRequestException('Invalid purchase: not completed');
+                    }
+                } else {
+                    const subscriptionResult = await androidpublisher.purchases.subscriptions.get({
+                        packageName,
+                        subscriptionId: productId,
+                        token: purchaseToken,
+                    });
 
-                if (!subscriptionData.expiryTimeMillis) {
-                    throw new BadRequestException('Invalid subscription: no expiry time');
+                    const subscriptionData = subscriptionResult.data;
+
+                    if (!subscriptionData.expiryTimeMillis) {
+                        throw new BadRequestException('Invalid subscription: no expiry time');
+                    }
+
+                    expiresDate = new Date(parseInt(subscriptionData.expiryTimeMillis, 10));
+                    if (expiresDate.getTime() <= Date.now()) {
+                        throw new BadRequestException('Subscription has expired');
+                    }
+                    isTrial = subscriptionData.paymentState === 2;
                 }
 
-                const expiresDate = new Date(parseInt(subscriptionData.expiryTimeMillis));
-                const isCanceled = subscriptionData.cancelReason !== undefined;
                 const durationDays = this.getDurationByProductId(productId);
 
                 const subscription = await this.subscriptionsService.createSubscription(
@@ -180,7 +204,7 @@ export class SubscriptionsController {
                     productId,
                     'USD',
                     0,
-                    { googlePurchaseToken: dto.purchaseToken },
+                    { googlePurchaseToken: purchaseToken },
                     expiresDate,
                     durationDays,
                 );
@@ -193,10 +217,11 @@ export class SubscriptionsController {
                         id: subscription.id,
                         productId,
                         expiresDate: subscription.endDate,
-                        isTrial: subscriptionData.paymentState === 2,
+                        isTrial,
                     },
                 };
             } catch (err) {
+                if (err instanceof BadRequestException) throw err;
                 this.logger.error(`Google Play validation failed for user ${user.id}:`, err);
                 throw new BadRequestException('Failed to validate Android purchase');
             }

@@ -48,6 +48,94 @@ function expertPortalUrl(): string {
   return (process.env.EXPERT_PORTAL_URL || 'https://experts.eatsense.ch').replace(/\/+$/, '');
 }
 
+const APPLE_ISSUER = 'https://appleid.apple.com';
+
+function splitEnvList(value: string | undefined): string[] {
+  return (value || '')
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Audiences an Apple identity token may be issued for: the iOS bundle id (RN app
+ * and the native app share `ch.eatsense.app`) plus optional extra ids, e.g. a
+ * Services ID if a web flow is ever added (APPLE_ADDITIONAL_AUDIENCES, comma list).
+ */
+export function appleAllowedAudiences(): string[] {
+  const bundleId = (process.env.APPLE_BUNDLE_ID || 'ch.eatsense.app').trim();
+  return Array.from(new Set([bundleId, ...splitEnvList(process.env.APPLE_ADDITIONAL_AUDIENCES)]));
+}
+
+/** OAuth client ids a Google token may be issued to (iOS, Android, web). */
+export function googleAllowedClientIds(): string[] {
+  return Array.from(
+    new Set(
+      [
+        process.env.GOOGLE_IOS_CLIENT_ID,
+        process.env.GOOGLE_ANDROID_CLIENT_ID,
+        process.env.GOOGLE_WEB_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_ID,
+      ]
+        .map((v) => (v || '').trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+/** True when a Google tokeninfo response names one of our client ids as `aud` or `azp`. */
+export function isGoogleTokenForClients(
+  info: { aud?: string; azp?: string } | null | undefined,
+  allowedClientIds: string[],
+): boolean {
+  if (!info) return false;
+  return [info.aud, info.azp].some((id) => typeof id === 'string' && allowedClientIds.includes(id));
+}
+
+/** Apple sends `email_verified` as either a boolean or the string "true". */
+export function isAppleEmailVerified(claim: unknown): boolean {
+  return claim === true || claim === 'true';
+}
+
+/**
+ * Origins a magic link may point to. The token is appended to the URL, so an
+ * arbitrary client-supplied redirect would mail the user a link that hands
+ * their session to a third party.
+ */
+export function magicLinkAllowedOrigins(): string[] {
+  const origins = new Set<string>();
+  const add = (raw: string | undefined) => {
+    if (!raw) return;
+    try {
+      origins.add(new URL(raw).origin);
+    } catch {
+      // ignore malformed entries
+    }
+  };
+  add(expertPortalUrl());
+  add(process.env.API_BASE_URL);
+  splitEnvList(process.env.MAGIC_LINK_ALLOWED_ORIGINS).forEach(add);
+  if (process.env.NODE_ENV !== 'production') {
+    // Local expert-portal dev server (NEXT_PUBLIC_PORTAL_URL default).
+    add('http://localhost:3001');
+  }
+  return Array.from(origins);
+}
+
+/** Returns the redirect URL when its origin is allowlisted, otherwise null. */
+export function sanitizeMagicLinkRedirect(redirectUrl: string | undefined | null): string | null {
+  if (!redirectUrl || typeof redirectUrl !== 'string') return null;
+  let parsed: URL;
+  try {
+    parsed = new URL(redirectUrl);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
+  if (parsed.username || parsed.password) return null;
+  return magicLinkAllowedOrigins().includes(parsed.origin) ? parsed.toString() : null;
+}
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -453,7 +541,7 @@ export class AuthService {
       return response;
     }
 
-    await this.sendMagicLinkForUser(user, requestMagicLinkDto.redirectUrl);
+    await this.sendMagicLinkForUser(user, requestMagicLinkDto.redirectUrl, `${expertPortalUrl()}/auth/callback`);
 
     this.logger.log(`[AuthService] Expert portal magic link requested for ${this.maskEmail(user.email)}`);
 
@@ -483,7 +571,11 @@ export class AuthService {
     }
   }
 
-  private async sendMagicLinkForUser(user: { id: string; email: string }, redirectUrl?: string) {
+  private async sendMagicLinkForUser(
+    user: { id: string; email: string },
+    redirectUrl?: string,
+    fallbackRedirectUrl?: string,
+  ) {
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + MAGIC_LINK_TTL_MINUTES * 60 * 1000);
 
@@ -496,10 +588,19 @@ export class AuthService {
       },
     });
 
+    let target = sanitizeMagicLinkRedirect(redirectUrl);
+    if (redirectUrl && !target) {
+      this.logger.warn(`[AuthService] Ignoring non-allowlisted magic link redirect for ${this.maskEmail(user.email)}`);
+    }
+    if (!target && fallbackRedirectUrl) {
+      target = sanitizeMagicLinkRedirect(fallbackRedirectUrl);
+    }
+
     let magicLinkUrl: string;
-    if (redirectUrl) {
-      const sep = redirectUrl.includes('?') ? '&' : '?';
-      magicLinkUrl = `${redirectUrl}${sep}token=${token}`;
+    if (target) {
+      const url = new URL(target);
+      url.searchParams.set('token', token);
+      magicLinkUrl = url.toString();
     } else {
       const baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
       magicLinkUrl = `${baseUrl}/auth/magic-link?token=${token}`;
@@ -531,10 +632,15 @@ export class AuthService {
       throw new BadRequestException('Magic link expired');
     }
 
-    await this.prisma.magicLink.update({
-      where: { id: magicLink.id },
+    // Conditional update so two concurrent requests with the same link cannot
+    // both mint a session.
+    const claimed = await this.prisma.magicLink.updateMany({
+      where: { id: magicLink.id, used: false },
       data: { used: true },
     });
+    if (claimed.count !== 1) {
+      throw new BadRequestException('Magic link already used');
+    }
 
     const tokens = await this.generateTokens(magicLink.user.id, magicLink.user.email);
 
@@ -855,80 +961,32 @@ export class AuthService {
         throw new BadRequestException('Identity token is required');
       }
 
-      const bundleId = process.env.APPLE_BUNDLE_ID || 'ch.eatsense.app';
-
-      console.log('[AuthService] Apple Sign In attempt:', {
-        hasIdentityToken: !!identityToken,
-        tokenLength: identityToken?.length,
-        bundleId: bundleId,
-        envBundleId: process.env.APPLE_BUNDLE_ID,
-      });
-
+      const allowedAudiences = appleAllowedAudiences();
       const JWKS = await this.getApplePublicKeys();
 
       let payload: jose.JWTPayload;
       try {
-        // First, decode the token without verification to see what audience it has
-        const decoded = jose.decodeJwt(identityToken);
-        const tokenAudience = decoded.aud as string | string[] | undefined;
-
-        console.log('[AuthService] Decoded token (before verification):', {
-          aud: tokenAudience,
-          iss: decoded.iss,
-          sub: decoded.sub,
+        // Audience is checked against our own allowlist, never against the
+        // token's own (unverified) `aud` claim.
+        const { payload: verifiedPayload } = await jose.jwtVerify(identityToken, JWKS, {
+          issuer: APPLE_ISSUER,
+          audience: allowedAudiences,
         });
-
-        // Apple Sign In tokens can have different audience formats
-        // Try to verify with the actual audience from the token, or fallback to bundleId
-        const verifyOptions: jose.JWTVerifyOptions = {
-          issuer: 'https://appleid.apple.com',
-        };
-
-        // If token has a specific audience, use it; otherwise use bundleId
-        if (tokenAudience) {
-          if (typeof tokenAudience === 'string') {
-            verifyOptions.audience = tokenAudience;
-          } else if (Array.isArray(tokenAudience) && tokenAudience.length > 0) {
-            verifyOptions.audience = tokenAudience[0];
-          } else {
-            verifyOptions.audience = bundleId;
-          }
-        } else {
-          verifyOptions.audience = bundleId;
-        }
-
-        console.log('[AuthService] Verifying with audience:', verifyOptions.audience);
-
-        const { payload: verifiedPayload } = await jose.jwtVerify(identityToken, JWKS, verifyOptions);
         payload = verifiedPayload;
-
-        console.log('[AuthService] Apple token verified successfully:', {
-          sub: payload.sub,
-          email: payload.email,
-          aud: payload.aud,
-        });
       } catch (jwtError: any) {
-        console.error('[AuthService] Apple token verification failed:', {
-          error: jwtError.message,
-          bundleId: bundleId,
-          expectedAudience: bundleId,
-          tokenAudience: jwtError.audience || 'unknown',
-          errorCode: jwtError.code,
-        });
-
-        // Provide more helpful error message
-        if (jwtError.message?.includes('aud')) {
-          throw new UnauthorizedException(
-            `Apple Sign In failed: Audience mismatch. Expected: ${bundleId}, Got: ${jwtError.audience || 'unknown'}. ` +
-            'Please check APPLE_BUNDLE_ID in .env matches your Apple Developer configuration.'
-          );
-        }
-
+        this.logger.warn(
+          `[AuthService] Apple token verification failed: ${jwtError?.code || 'unknown'} ${jwtError?.claim ? `(claim ${jwtError.claim})` : ''}`.trim(),
+        );
         throw new UnauthorizedException('Invalid Apple identity token');
       }
 
-      const tokenEmail = payload.email as string | undefined;
-      const tokenSub = payload.sub as string;
+      if (!payload.sub || typeof payload.sub !== 'string') {
+        throw new UnauthorizedException('Invalid Apple identity token');
+      }
+
+      const tokenEmail = typeof payload.email === 'string' ? payload.email : undefined;
+      const tokenSub = payload.sub;
+      const emailVerified = isAppleEmailVerified(payload.email_verified);
 
       let email = tokenEmail;
 
@@ -953,6 +1011,20 @@ export class AuthService {
       });
 
       if (!user_) {
+        // Linking to an existing account by email is only safe when Apple
+        // vouches for the address; otherwise anyone could claim it.
+        if (!emailVerified) {
+          const existing = await this.prisma.user.findFirst({
+            where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+            select: { id: true },
+          });
+          if (existing) {
+            this.logger.warn(
+              `[AuthService] Apple Sign In: unverified email ${this.maskEmail(normalizedEmail)} matches an existing account; refusing to link`,
+            );
+            throw new UnauthorizedException('Apple Sign In failed: email not verified');
+          }
+        }
         // Case-insensitive findMany+orderBy to survive duplicate-email rows
         // and mixed-case legacy data in prod (see findOrCreateUser comment).
         const byEmail = await this.prisma.user.findMany({
@@ -988,7 +1060,7 @@ export class AuthService {
           // a user typed in OTP/magic-link flow with a relay alias.
           const isRelay = normalizedEmail.endsWith('@privaterelay.appleid.com');
           const wasRelay = (user_.email || '').endsWith('@privaterelay.appleid.com');
-          if (isRelay && wasRelay) {
+          if (isRelay && wasRelay && emailVerified) {
             patch.email = normalizedEmail;
           }
         }
@@ -1050,16 +1122,19 @@ export class AuthService {
       let verifiedName: string | undefined = name;
       let verifiedPicture: string | undefined = picture;
 
+      const allowedClientIds = googleAllowedClientIds();
+      if (allowedClientIds.length === 0) {
+        this.logger.error('[AuthService] Google Sign In: no GOOGLE_*_CLIENT_ID configured');
+        throw new UnauthorizedException('Google Sign In is not configured');
+      }
+
       if (idToken) {
         try {
           const client = this.getGoogleClient();
+          // verifyIdToken checks signature, expiry, issuer and that `aud` is one of ours.
           const ticket = await client.verifyIdToken({
             idToken,
-            audience: [
-              process.env.GOOGLE_IOS_CLIENT_ID,
-              process.env.GOOGLE_ANDROID_CLIENT_ID,
-              process.env.GOOGLE_WEB_CLIENT_ID,
-            ].filter(Boolean) as string[],
+            audience: allowedClientIds,
           });
 
           const payload = ticket.getPayload();
@@ -1080,9 +1155,23 @@ export class AuthService {
         }
       } else if (accessToken) {
         try {
-          const response = await fetch(
-            `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`
+          // Shipped clients send idToken; this branch is legacy. An access token
+          // issued to some other app would still answer userinfo, so first make
+          // sure it was issued to one of our OAuth clients.
+          const tokenInfoResponse = await fetch(
+            `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(accessToken)}`,
           );
+          if (!tokenInfoResponse.ok) {
+            throw new UnauthorizedException('Invalid Google access token');
+          }
+          const tokenInfo = (await tokenInfoResponse.json()) as { aud?: string; azp?: string };
+          if (!isGoogleTokenForClients(tokenInfo, allowedClientIds)) {
+            throw new UnauthorizedException('Google access token was not issued to this app');
+          }
+
+          const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
 
           if (!response.ok) {
             throw new UnauthorizedException('Invalid Google access token');

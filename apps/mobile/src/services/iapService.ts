@@ -133,6 +133,9 @@ class IAPService {
                 productId: purchase.productId,
                 platform: Platform.OS as 'ios' | 'android',
                 receipt: receipt,
+                // Server validates Android purchases by `purchaseToken`; `receipt`
+                // is kept for older API versions.
+                ...(Platform.OS === 'android' ? { purchaseToken: receipt } : {}),
                 transactionId: purchase.transactionId,
             });
 
@@ -374,6 +377,7 @@ class IAPService {
                             productId: purchase.productId,
                             platform: Platform.OS as 'ios' | 'android',
                             receipt: receipt,
+                            ...(Platform.OS === 'android' ? { purchaseToken: receipt } : {}),
                             transactionId: purchase.transactionId,
                         });
 

@@ -471,11 +471,20 @@ export class NotificationsService {
         }
 
         const token = tokens[index];
-        const error = ticket.details?.error;
+        const error: string | undefined = ticket.details?.error;
 
-        this.logger.warn(`Push ticket error for token ${token}: ${ticket.message}`, ticket.details);
+        if (error === 'InvalidCredentials' || error === 'MismatchSenderId') {
+          this.logger.error(`Push credentials misconfigured (${error}): ${ticket.message}`);
+        } else {
+          this.logger.warn(`Push ticket error for token ${token}: ${ticket.message}`, ticket.details);
+        }
 
-        if (error === 'DeviceNotRegistered' || error === 'InvalidCredentials') {
+        // Per Expo docs only DeviceNotRegistered means "stop sending to this
+        // token". InvalidCredentials / MismatchSenderId are server-side push
+        // credential problems (APNs key / FCM), MessageTooBig is a payload bug and
+        // MessageRateExceeded is transient — none of them are the device's fault,
+        // so the token must stay enabled.
+        if (error === 'DeviceNotRegistered') {
           await this.prisma.pushToken.updateMany({
             where: { token },
             data: { enabled: false },

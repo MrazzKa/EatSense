@@ -613,7 +613,7 @@ CRITICAL RULES:
     );
 
     // Get media file as base64 for Vision API
-    const mediaData = await this.mediaService.getMediaAsBase64(fileId);
+    const mediaData = await this.mediaService.getMediaAsBase64(fileId, { ownerUserId: userId });
     if (!mediaData) {
       throw new BadRequestException('File not found or could not be retrieved');
     }

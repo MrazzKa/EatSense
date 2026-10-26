@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { Response } from 'express';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PharmacyService } from './pharmacy.service';
-import { ConnectPharmacyDto, ConnectPharmacyByCodeDto } from './dto/connect-pharmacy.dto';
+import { ConnectPharmacyDto, ConnectPharmacyByCodeDto, UpdatePharmacyConnectionDto } from './dto/connect-pharmacy.dto';
 import { CreatePharmacyOrderDto } from './dto/create-pharmacy-order.dto';
 
 @ApiTags('Pharmacy')
@@ -117,7 +117,7 @@ export class PharmacyController {
   async updateConnection(
     @Request() req: any,
     @Param('id') id: string,
-    @Body() dto: Partial<ConnectPharmacyDto>,
+    @Body() dto: UpdatePharmacyConnectionDto,
   ) {
     return this.pharmacyService.updateConnection(req.user.id, id, dto);
   }

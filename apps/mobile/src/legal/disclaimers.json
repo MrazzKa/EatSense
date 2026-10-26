@@ -207,6 +207,53 @@
             "button_cancel": "Annuler"
         }
     },
+    "experts_chat": {
+        "_description": "Show BEFORE the client's first message in an expert chat (ChatScreen). Requires checkbox confirmation. Server records acceptance under type 'experts_chat'.",
+        "requires_checkbox": true,
+        "show_once": true,
+        "en": {
+            "title": "Important Notice",
+            "content": "Before starting a consultation with an expert, please read and accept the following terms:\n\n• Information provided by experts is for general guidance only and should not replace professional medical advice.\n• Always consult with your doctor before making significant changes to your diet or health regimen.\n• Your conversations are private. Do not share sensitive personal information beyond what is necessary.\n• If you experience a medical emergency, contact emergency services immediately.",
+            "checkbox": "I have read and accept these terms",
+            "button_accept": "Continue",
+            "button_cancel": "Cancel"
+        },
+        "ru": {
+            "title": "Важное уведомление",
+            "content": "Перед началом консультации, пожалуйста, примите условия:\n\n• Информация носит рекомендательный характер и не заменяет прием врача.\n• Всегда консультируйтесь с врачом перед серьезными изменениями диеты.\n• Ваши беседы приватны. Не передавайте лишнюю личную информацию.\n• В экстренных случаях обращайтесь в скорую помощь.",
+            "checkbox": "Я принимаю условия",
+            "button_accept": "Продолжить",
+            "button_cancel": "Отмена"
+        },
+        "kk": {
+            "title": "Маңызды ескерту",
+            "content": "Маманмен кеңес бастамас бұрын, келесі шарттарды оқып, қабылдаңыз:\n\n• Мамандардан алған ақпарат жалпы ұсыныстар болып табылады және кәсіби медициналық кеңестің орнын баспайды.\n• Тамақтану немесе денсаулық режиміне маңызды өзгерістер енгізбес бұрын әрқашан дәрігерге кеңесіңіз.\n• Сіздің хаттарыңыз құпия. Қажетсіз жеке ақпаратты бөліспеңіз.\n• Медициналық шұғыл жағдайда бірден жедел жәрдем қызметіне хабарласыңыз.",
+            "checkbox": "Мен бұл шарттарды оқып, қабылдаймын",
+            "button_accept": "Жалғастыру",
+            "button_cancel": "Бас тарту"
+        },
+        "fr": {
+            "title": "Note Importante",
+            "content": "Avant de commencer une consultation avec un expert, veuillez lire et accepter les conditions suivantes :\n\n• Les informations fournies par les experts sont à titre indicatif et ne remplacent pas un avis médical professionnel.\n• Consultez toujours votre médecin avant d'apporter des changements importants à votre régime ou votre santé.\n• Vos conversations sont privées. Ne partagez pas d'informations personnelles sensibles au-delà de ce qui est nécessaire.\n• En cas d'urgence médicale, contactez immédiatement les services d'urgence.",
+            "checkbox": "J'ai lu et j'accepte ces conditions",
+            "button_accept": "Continuer",
+            "button_cancel": "Annuler"
+        },
+        "de": {
+            "title": "Wichtiger Hinweis",
+            "content": "Bevor du eine Beratung mit einem Experten startest, lies und akzeptiere bitte die folgenden Bedingungen:\n\n• Die von Experten bereitgestellten Informationen dienen nur als allgemeine Orientierung und ersetzen keine professionelle medizinische Beratung.\n• Konsultiere immer deinen Arzt, bevor du wesentliche Änderungen an deiner Ernährung oder deinem Gesundheitsplan vornimmst.\n• Deine Unterhaltungen sind privat. Teile keine sensiblen persönlichen Informationen über das Notwendige hinaus.\n• Bei einem medizinischen Notfall kontaktiere sofort den Rettungsdienst.",
+            "checkbox": "Ich habe diese Bedingungen gelesen und akzeptiere sie",
+            "button_accept": "Weiter",
+            "button_cancel": "Abbrechen"
+        },
+        "es": {
+            "title": "Aviso Importante",
+            "content": "Antes de comenzar una consulta con un experto, por favor lea y acepte los siguientes términos:\n\n• La información proporcionada por los expertos es solo para orientación general y no debe reemplazar el consejo médico profesional.\n• Siempre consulte con su médico antes de realizar cambios significativos en su dieta o régimen de salud.\n• Sus conversaciones son privadas. No comparta información personal sensible más allá de lo necesario.\n• Si experimenta una emergencia médica, contacte a los servicios de emergencia inmediatamente.",
+            "checkbox": "He leído y acepto estos términos",
+            "button_accept": "Continuar",
+            "button_cancel": "Cancelar"
+        }
+    },
     "data_sharing_consent": {
         "_description": "Show when user chooses to share data with an expert. Requires explicit consent each time.",
         "requires_checkbox": true,

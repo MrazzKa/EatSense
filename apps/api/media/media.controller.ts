@@ -62,6 +62,16 @@ export class MediaController {
     return this.mediaService.serveCredential(id, requesterUserId, isAdmin, res);
   }
 
+  /**
+   * Intentionally unauthenticated: shipped clients load these URLs directly
+   * (RN `<Image>`, the native ImagePipeline, chat/community photos shown to
+   * other users) without an Authorization header. Access control is the id
+   * itself — a Prisma `cuid()`, not sequential and not enumerable over HTTP —
+   * i.e. "anyone with the link". Only images are served here; documents
+   * (PDF credentials, lab reports) go through `credential/:id` with an
+   * owner/admin check. Moving to signed, expiring URLs would remove the
+   * link-sharing tradeoff but needs client changes.
+   */
   @Get(':id')
   @ApiOperation({ summary: 'Get media file by ID' })
   @ApiResponse({ status: 200, description: 'Media file content' })

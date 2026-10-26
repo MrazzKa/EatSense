@@ -117,6 +117,8 @@ export default function ChatScreen({ navigation, route }) {
     useEffect(() => {
         if (!disclaimerCheckedRef.current && !loading && conversation) {
             disclaimerCheckedRef.current = true;
+            // The notice is addressed to the client; the expert side never sees it.
+            if (!conversation.isClient) return;
             shouldShowDisclaimer('experts_chat').then((show) => {
                 if (show) setShowDisclaimer(true);
             });
@@ -512,9 +514,15 @@ export default function ChatScreen({ navigation, route }) {
                     style: 'destructive',
                     onPress: async () => {
                         try {
+                            // `category` is what the server stores; the chat menu has
+                            // no reason picker, so this is a generic report.
                             await MarketplaceService.createAbuseReport({
                                 conversationId,
-                                reason: 'user_report',
+                                category: 'other',
+                                ...(conversation?.isClient
+                                    ? { reportedExpertId: conversation?.expertId }
+                                    : { reportedUserId: conversation?.clientId }),
+                                description: 'Reported from chat',
                             });
                             Alert.alert(t('experts.reportSent') || 'Report sent');
                         } catch {
@@ -524,7 +532,7 @@ export default function ChatScreen({ navigation, route }) {
                 },
             ],
         );
-    }, [conversationId, t]);
+    }, [conversationId, conversation, t]);
 
     const handleMoreMenu = useCallback(() => {
         const isExpertSide = conversation?.isExpert;

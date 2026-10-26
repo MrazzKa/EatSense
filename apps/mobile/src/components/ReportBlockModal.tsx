@@ -31,6 +31,23 @@ const REPORT_REASONS = [
     { id: 'other', labelKey: 'report.reason.other' },
 ];
 
+// Server-side report categories (AbuseReport.category).
+type ReportCategory = 'spam' | 'harassment' | 'inappropriate' | 'fraud' | 'other';
+
+const toReportCategory = (reason: string): ReportCategory => {
+    switch (reason) {
+        case 'spam':
+        case 'harassment':
+        case 'inappropriate':
+        case 'other':
+            return reason;
+        case 'scam':
+            return 'fraud';
+        default:
+            return 'other';
+    }
+};
+
 /**
  * ReportBlockModal - Report abuse or block a user
  */
@@ -65,9 +82,13 @@ export default function ReportBlockModal({
         try {
             setLoading(true);
             await MarketplaceService.createAbuseReport({
-                reportedId: userId,
-                reason: selectedReason,
-                description: details.trim() || undefined,
+                reportedUserId: userId,
+                category: toReportCategory(selectedReason),
+                // Keep the exact reason the user picked when it is finer than the category.
+                description: [
+                    toReportCategory(selectedReason) !== selectedReason ? `[${selectedReason}]` : null,
+                    details.trim() || null,
+                ].filter(Boolean).join(' ') || undefined,
                 conversationId: conversationId || undefined,
             });
 
